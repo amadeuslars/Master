@@ -1,0 +1,65 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}  % Allows UTF-8 characters
+\usepackage{amsmath}         % Provides align* and other math environments
+
+\title{Problem definition Master Thesis}
+\author{Amadeus Linge \& Simon Svane}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+In this paper, we will define the problem for the master thesis. Our master thesis will try to 
+develop a good heuristic, using AI methods, to solve a VRPTW problem for HI Giørtz. This problem is 
+a vehicle routing problem with time windows, where a fleet of vehicles must deliver goods to a set of customers within specific time frames. The goal is to minimize the total distance traveled while adhering to the constraints of vehicle capacity and customer time windows.
+The problem is complex and grows exponentially with the number of customers, making it challenging to find optimal solutions for large instances.
+We will explore a subset of the stores that HI Giørtz services, at least to start of with. We will explore the use of AI to determine weights for a ALNS.
+The problem is NP-hard, meaning that there is no known polynomial-time algorithm to solve it optimally. Therefore, we will focus on developing heuristic and metaheuristic approaches to find good solutions within a reasonable time frame.
+With this thesis, we aim to contribute to the field of logistics and supply chain management as well as deliver valuable insights and solutions to HI Giørtz.
+
+\section{The VRPTW Problem}
+HI Giørtz has a single warehouse located in Ålesund, Norway, from which it delivers goods to its stores. The company operates a fleet of vehicles, each with a specific capacity limit. Each store has a defined time window during which deliveries must be made, and the objective is to minimize the total distance traveled by all vehicles while ensuring that all stores receive their deliveries within their respective time windows.
+A vehicle is loaded with goods at the warehouse packed in pallets. Each store has some demand for a certain number of pallets. The vehicle has a maximum capacity, which limits the number of pallets it can carry on a single trip. The vehicles must start and end their routes at the warehouse, and they can visit multiple stores on a single route as long as they do not exceed their capacity and adhere to the time windows of each store.
+How the pallets are organized and loaded into the vehicle, is beyond the scope of this thesis. We will assume some demand (based on historical data) for each store, and that the vehicle can be loaded in a way that allows it to deliver the pallets to the stores in the order they are visited. We will test both driving distance and driving times as the distance metric, to see how this affects the results.
+We will also assume some cost to every unit of distance traveled, to be able to calculate the total cost of a solution. This cost can be based on factors such as fuel consumption, vehicle maintenance, and driver wages.
+
+
+\section{Problem Definition}
+The problem can be formally defined as follows:
+
+\begin{itemize}
+    \item Let $G = (V, E)$ be a directed graph where $V$ is the set of vertices representing the warehouse and stores, and $E$ is the set of edges representing the roads between them.
+    \item Let $v_0$ be the vertex representing the warehouse, and let $v_1, v_2, \ldots, v_n$ be the vertices representing the stores.
+    \item Each edge $(v_i, v_j) \in E$ has an associated distance $d_{ij}$ representing the distance between vertices $v_i$ and $v_j$.
+    \item Each store $v_i$ has a demand $q_i$ representing the number of pallets required by that store.
+    \item Each store $v_i$ has a time window $[a_i, b_i]$ during which deliveries must be made.
+    \item Each vehicle has a maximum capacity $Q$ representing the maximum number of pallets it can carry.
+\end{itemize}
+The objective is to find a set of routes for the vehicles such that:
+\begin{itemize}
+    \item Each route starts and ends at the warehouse $v_0$.
+    \item Each store $v_i$ is visited exactly once by a vehicle.
+    \item The total demand of the stores visited on a single route does not exceed the vehicle capacity $Q$.
+    \item Each store $v_i$ is visited within its time window $[a_i, b_i]$.
+    \item The total distance traveled by all vehicles is minimized.
+\end{itemize}
+The problem can be mathematically formulated as follows:
+\begin{align*}
+\text{Minimize} \quad & \sum_{k=1}^{m} \sum_{(v_i, v_j) \in E} d_{ij} x_{ijk} \\
+\text{Subject to} \quad & \sum_{k=1}^{m} \sum_{j=0}^{n} x_{ijk} = 1 \quad \forall i = 1, 2, \ldots, n \\
+& \sum_{i=1}^{n} q_i \sum_{j=0}^{n} x_{ijk} \leq Q \quad \forall k = 1, 2, \ldots, m \\
+& a_i \leq t_{ik} \leq b_i \quad \forall i = 1, 2, \ldots, n, \forall k = 1, 2, \ldots, m \\
+& x_{ijk} \in \{0, 1\} \quad \forall (v_i, v_j) \in E, \forall k = 1, 2, \ldots, m
+\end{align*}
+Where:
+\begin{itemize}
+    \item $m$ is the number of vehicles.
+    \item $x_{ijk}$ is a binary variable that is 1 if vehicle $ k$ travels from vertex $v_i$ to vertex $v_j$, and 0 otherwise.
+    \item $t_{ik}$ is the time at which vehicle $k$ arrives at store $v_i$.
+\end{itemize}   
+
+
+\end{document}
