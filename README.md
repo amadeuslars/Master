@@ -64,13 +64,17 @@ python read_data.py
 ## Project Roadmap
 
 1.  [x] **Project Initialization**: Set up repository and initial files.
-2.  [ ] **Data Ingestion & Preprocessing**: Fully load, clean, and structure the data from `data.xlsx`.
-3.  [ ] **Geocoding & Distance Matrix**:
+2.  [x] **Data Ingestion & Preprocessing**: Fully load, clean, and structure the data from `data.xlsx`.
+3.  [x] **Geocoding & Distance Matrix**:
     -   Convert store addresses into geographic coordinates (latitude, longitude).
     -   Generate a distance/travel time matrix between all locations.
 4.  [ ] **Solution Evaluation Module**:
-    -   Develop functions to check the feasibility of a given solution (route).
-    -   Create the objective function to calculate the total cost (e.g., travel distance/time) of a solution.
+    -   [x] Develop functions to check the feasibility of a given solution (route).
+        -   [x] Capacity constraints (weight, volume, pallets)
+        -   [x] Freezer pallet capacity constraints
+        -   [x] Time window constraints
+        -   [x] Vehicle-store compatibility constraints
+    -   [x] Create the objective function to calculate the total cost (e.g., travel distance/time) of a solution.
 5.  [ ] **ALNS Framework Implementation**:
     -   Implement the core ALNS search loop.
     -   Develop a set of "destroy" and "repair" operators.
