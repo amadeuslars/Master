@@ -36,7 +36,7 @@ if __name__ == "__main__":
         # 1. Read the Excel file
         data = pd.read_excel('data.xlsx')
         print("Successfully loaded data.xlsx")
-
+        
         # 2. Select the 'Adresse' column
         if 'Adresse' in data.columns:
             addresses = data['Adresse'].dropna().unique()
@@ -50,6 +50,15 @@ if __name__ == "__main__":
             
             print("\n--- Geocoding Results ---")
             print(geo_df)
+
+            depot_address = {
+                'Adresse': ['Depot'],
+                'Latitude': [62.4293036],
+                'Longitude': [6.3280543]
+            }
+
+            depot_df = pd.DataFrame(depot_address)
+            geo_df = pd.concat([geo_df, depot_df], ignore_index=True)
 
             # 5. Save the DataFrame to a CSV file
             output_filename = 'geocoded_addresses.csv'

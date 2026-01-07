@@ -65,11 +65,11 @@ venv.bak/
 # Data files
 data.xlsx
 ~$data.xlsx
-geocoded_addresses.csv
-distance_matrix.csv
-customers.csv
-time_matrix.csv
-vehicles.csv
+# geocoded_addresses.csv
+# distance_matrix.csv
+# customers.csv
+# time_matrix.csv
+# vehicles.csv
 
 #OSRM data
 osrm-data/
