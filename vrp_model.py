@@ -220,7 +220,7 @@ def calculate_route_cost(route_customer_indices, customers_df, time_matrix_df):
         float: The total travel time for the route in hours.
     """
     total_travel_time = 0.0
-    last_location_name = 'Depot' # Assuming the depot is named 'Depot' and is the last row/column in the matrix
+    last_location_name = 'Depot' 
 
     # Travel from depot to the first customer
     if route_customer_indices:

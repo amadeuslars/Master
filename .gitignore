@@ -65,6 +65,7 @@ venv.bak/
 # Data files
 data.xlsx
 ~$data.xlsx
+start_osrm_server.sh
 # geocoded_addresses.csv
 # distance_matrix.csv
 # customers.csv
