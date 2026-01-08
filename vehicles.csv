@@ -1,6 +1,6 @@
-Navn,PPL total,PPL Frys,m3,Vekt (KG)
-small,17.5,5,32.0,14155
-medium-small,20.0,5,52.0,10835
-medium ,22.0,5,57.0,10075
-medium-large,30.0,6,75.5,17725
-large,33.0,6,78.5,18600
+Navn,PPL total,PPL Frys,m3,Vekt (KG),antall
+small,17.5,5,32.0,14155,5
+medium-small,20.0,5,52.0,10835,5
+medium ,22.0,5,57.0,10075,5
+medium-large,30.0,6,75.5,17725,5
+large,33.0,6,78.5,18600,5
