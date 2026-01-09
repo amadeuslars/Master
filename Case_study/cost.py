@@ -23,3 +23,4 @@ def calculate_route_cost(solution, customer_addr_idx, time_matrix_array, depot_i
     total_travel_time += time_matrix_array[last_idx, depot_idx]
 
     return total_travel_time
+    
