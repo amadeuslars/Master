@@ -75,3 +75,11 @@ start_osrm_server.sh
 #OSRM data
 osrm-data/
 
+# Benchmark original data (Solomon .txt files)
+Benchmark/data/
+
+# Benchmark other instances (keep only C101 as example)
+Benchmark/R*/
+Benchmark/RC*/
+Benchmark/processed/
+
