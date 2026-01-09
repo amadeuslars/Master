@@ -1,6 +1,7 @@
 # feasibilitycheck.py
 import pandas as pd
 import numpy as np
+from cost import calculate_route_cost
 
 def load_vrp_data(customers_file='customers.csv', vehicles_file='vehicles.csv', time_matrix_file='time_matrix.csv'):
     customers_df = pd.read_csv(customers_file)
@@ -159,3 +160,4 @@ def check_vehicle_store_compatibility(route_indices, vehicle_name, vehicles_dict
         return False
         
     return True
+

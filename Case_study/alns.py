@@ -8,8 +8,8 @@ from collections import Counter, defaultdict
 
 # --- Configuration ---
 RANDOM_SEED = 42
-MAX_ITERATIONS = 100  
-PCT_REMOVE = 0.2      
+MAX_ITERATIONS = 1000  
+PCT_REMOVE = 0.50      
 DUMMY_VEHICLE_NAME = 'dummy_virtual'
 DUMMY_PENALTY = 10000.0  
 
@@ -26,7 +26,7 @@ except ImportError as e:
     print(f"Error importing modules: {e}")
     sys.exit(1)
 
-random.seed(RANDOM_SEED)
+# random.seed(RANDOM_SEED)
 
 class Solution:
     def __init__(self, routes, vehicles, unassigned=None):
@@ -237,14 +237,14 @@ def format_solution_flat(solution, customers_df, vehicles_df):
     
     for v_type in real_vehicle_types:
         assigned_routes = routes_by_vehicle.get(v_type, [])
-        for i in range(3):
+        for i in range(1):
             if i < len(assigned_routes):
                 route = assigned_routes[i]
                 for customer_idx in route:
                     kundenr = customers_df.iloc[customer_idx]['Kundenr']
                     flat_list.append(int(kundenr))
             flat_list.append(0)
-
+    
     for route in dummy_routes:
         for customer_idx in route:
             kundenr = customers_df.iloc[customer_idx]['Kundenr']
