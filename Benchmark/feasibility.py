@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
-def load_vrp_data(customers_file='C101/customers.csv', vehicles_file='C101/vehicles.csv', distance_matrix_file='C101/distance_matrix.csv'):
+def load_vrp_data(customers_file='RC105/customers.csv', vehicles_file='RC105/vehicles.csv', distance_matrix_file='RC105/distance_matrix.csv'):
     # Get the directory of this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
@@ -42,7 +42,6 @@ def load_vrp_data(customers_file='C101/customers.csv', vehicles_file='C101/vehic
 
     return customers_df, vehicles_df, distance_matrix_df, distance_matrix_array, customer_addr_idx, customer_arrays
 
-customers, vehicles, distance_matrix, distance_matrix_array, customer_addr_idx, customer_arrays = load_vrp_data()
 
 def check_capacity_feasibility(route_indices, vehicle_name, vehicles_df, customer_arrays):
     """
@@ -60,7 +59,7 @@ def check_capacity_feasibility(route_indices, vehicle_name, vehicles_df, custome
         idx = np.asarray(route_indices, dtype=np.int32)
         
         # Sum demands for all customers in route
-        total_demand = float(customer_arrays['demand'][idx].sum())
+        total_demand = float(customer_arrays['demand'][idx-1].sum())
         
         if total_demand > vehicle_capacity:
             return False
@@ -91,15 +90,15 @@ def check_time_window_feasibility(
     
     for cust_idx in route_indices:
         # Get customer's position in distance matrix
-        cust_addr_idx = customer_addr_idx[cust_idx]
+        cust_addr_idx = customer_addr_idx[cust_idx-1]
         
         # Travel time equals distance
         travel_time = distance_matrix_array[current_location, cust_addr_idx]
         arrival_time = current_time + travel_time
         
         # Get time window
-        tw_start = float(customer_arrays['tw_start'][cust_idx])
-        tw_end = float(customer_arrays['tw_end'][cust_idx])
+        tw_start = float(customer_arrays['tw_start'][cust_idx-1])
+        tw_end = float(customer_arrays['tw_end'][cust_idx-1])
         
         # Check if we arrive too late
         if arrival_time > tw_end:
@@ -109,7 +108,7 @@ def check_time_window_feasibility(
         
         # Service starts at max(arrival_time, tw_start)
         service_start = max(arrival_time, tw_start)
-        service_time = float(customer_arrays['service_time'][cust_idx])
+        service_time = float(customer_arrays['service_time'][cust_idx-1])
         
         # Update current time and location
         current_time = service_start + service_time
