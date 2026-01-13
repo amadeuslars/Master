@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
-def load_vrp_data(customers_file='RC105/customers.csv', vehicles_file='RC105/vehicles.csv', distance_matrix_file='RC105/distance_matrix.csv'):
+def load_vrp_data(customers_file='R106/customers.csv', vehicles_file='R106/vehicles.csv', distance_matrix_file='R106/distance_matrix.csv'):
     # Get the directory of this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
