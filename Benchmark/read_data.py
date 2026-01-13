@@ -13,7 +13,10 @@ class SolomonInstance:
     """Parse and store Solomon benchmark instance data."""
     
     def __init__(self, file_path: str):
-        self.file_path = file_path
+        # Make path relative to script directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.file_path = os.path.join(script_dir, file_path)
+        
         self.instance_name = None
         self.num_vehicles = None
         self.vehicle_capacity = None
@@ -218,7 +221,7 @@ if __name__ == "__main__":
     print("Example: Loading C101 instance")
     print("=" * 60)
     
-    instance = load_solomon_instance('data/c101.txt')
+    instance = load_solomon_instance('data/rc105.txt')
     print(f"\n{instance}")
     print(f"\nDepot: x={instance.depot['x']}, y={instance.depot['y']}")
     print(f"First 5 customers:")
