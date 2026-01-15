@@ -5,7 +5,6 @@ import copy
 import math
 from feasibility import (
     load_vrp_data,
-    check_capacity_feasibility,
     check_time_window_feasibility
 )
 from cost import calculate_route_cost
@@ -336,14 +335,12 @@ def create_initial_solution(num_customers, num_real_vehicles):
 # ---------------------------------------------------------
 
 def run_alns():
-    print("Loading data...")
     customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
     
     num_customers = len(customers_df)
     num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
     
-    # Precompute Neighbors (Granular Search) 
-    print("Precomputing nearest neighbors for pruning...")
+    # Precompute Neighbors (Granular Search)
     neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=25)
     
     # 1. Operators & Weights
@@ -454,6 +451,8 @@ def run_alns():
     print(f"Best Cost: {best_sol._cost:.2f}")
     unassigned = len(best_sol.routes[-1])
     print(f"Unassigned Customers: {unassigned}")
+    vehicles_used = sum(1 for route in best_sol.routes[:-1] if route)
+    print(f"Vehicles Used: {vehicles_used}")
     
     print("\nRoutes:")
     for i, route in enumerate(best_sol.routes[:-1]):
