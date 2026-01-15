@@ -218,10 +218,10 @@ def process_all_instances(data_dir: str = 'data', output_base_dir: str = 'proces
 if __name__ == "__main__":
     # Example: Load and process a single instance
     print("=" * 60)
-    print("Example: Loading R106 instance")
+    print("Example: Loading C101 instance")
     print("=" * 60)
     
-    instance = load_solomon_instance('data/r106.txt')
+    instance = load_solomon_instance('data/c101.txt')
     print(f"\n{instance}")
     print(f"\nDepot: x={instance.depot['x']}, y={instance.depot['y']}")
     print(f"First 5 customers:")
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     
     # Create CSV files
     print("\n" + "=" * 60)
-    print("Creating CSV files for R106...")
+    print("Creating CSV files for C101...")
     print("=" * 60)
     instance.export_to_csv()
     
