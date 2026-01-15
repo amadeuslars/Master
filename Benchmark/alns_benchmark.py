@@ -5,6 +5,7 @@ import copy
 import math
 from feasibility import (
     load_vrp_data,
+    check_capacity_feasibility,
     check_time_window_feasibility
 )
 from cost import calculate_route_cost
