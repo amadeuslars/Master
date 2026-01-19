@@ -9,16 +9,18 @@ from feasibility import (
     check_time_window_feasibility
 )
 from cost import calculate_route_cost
+from visualization import ALNSTracker
 
 # --- Configuration ---
 DUMMY_VEHICLE_NAME = 'dummy'
 DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 1500
+MAX_ITERATIONS = 10000 
 SEGMENT_SIZE = 50  # Only used for logging now, not for weight updates
 
 # ALNS Parameters
 START_TEMPERATURE = 200.0
-COOLING_RATE = 0.997
+WARMUP_ITERATIONS = 50   # Iterations to calibrate typical delta (reduced from 100)
+ESCAPE_THRESHOLD = 350   # Trigger escape after this many iterations without improvement
 
 # Scoring (Rewards for RL)
 SCORE_NEW_GLOBAL_BEST = 33
@@ -97,13 +99,31 @@ def evaluate_solution(solution, distance_matrix_array, customer_addr_idx, depot_
     solution._cost = total_cost
     return total_cost
 
-def precompute_nearest_neighbors(distance_matrix_array, num_neighbors=20):
+def precompute_nearest_neighbors(distance_matrix_array, num_neighbors=15):
     """
-    Returns a list of sets, where index i contains the set of nearest neighbors for customer i.
+    Returns a list of sets, where index i contains the set of nearest neighbors for node i.
+    Optimized with argpartition to avoid full sort on large instances.
     """
-    # Argsort gives indices of closest nodes. Skip col 0 (self) and take top K.
-    neighbor_indices = np.argsort(distance_matrix_array, axis=1)[:, 1:num_neighbors+1]
-    neighbors = [set(row) for row in neighbor_indices]
+    n = distance_matrix_array.shape[0]
+    k = min(num_neighbors, n - 1)
+
+    neighbors = []
+    for i in range(n):
+        row = distance_matrix_array[i]
+        # Get k+1 smallest indices (includes self), then drop self
+        idxs = np.argpartition(row, k)[:k+1]
+        idxs = idxs[idxs != i]
+
+        # Ensure exactly k neighbors sorted by distance
+        if idxs.shape[0] > k:
+            order = np.argsort(row[idxs])[:k]
+            idxs = idxs[order]
+        else:
+            order = np.argsort(row[idxs])
+            idxs = idxs[order]
+
+        neighbors.append(set(map(int, idxs.tolist())))
+
     return neighbors
 
 # ---------------------------------------------------------
@@ -151,6 +171,71 @@ def two_opt_local_search(solution, distance_matrix_array, customer_addr_idx, cus
                 
     return improved
 
+def cross_route_segment_relocation(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, depot_idx=0):
+    """
+    Relocate segments (2-3 consecutive customers) between routes.
+    More powerful than single-customer moves - can find better arrangements.
+    """
+    improved = False
+    
+    # Pre-cache vehicle capacities
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
+    
+    # Try relocating segments of 1-3 customers
+    for seg_len in [1, 2, 3]:
+        for r_idx in range(len(solution.routes) - 1):
+            route_src = solution.routes[r_idx]
+            
+            # Try each segment start position
+            for seg_start in range(len(route_src) - seg_len + 1):
+                segment = route_src[seg_start:seg_start + seg_len]
+                segment_demand = sum(customer_arrays['demand'][c-1] for c in segment)
+                
+                # Source route without segment
+                new_src = route_src[:seg_start] + route_src[seg_start + seg_len:]
+                src_cost_old = calculate_route_cost(route_src, customer_addr_idx, distance_matrix_array, depot_idx)
+                
+                # Try inserting segment into each other route
+                for r_dst in range(len(solution.routes) - 1):
+                    if r_dst == r_idx:
+                        continue
+                    
+                    route_dst = solution.routes[r_dst]
+                    
+                    # Try each insertion position
+                    for pos in range(len(route_dst) + 1):
+                        new_dst = route_dst[:pos] + segment + route_dst[pos:]
+                        
+                        # 1. CAPACITY CHECK (was missing!)
+                        src_demand = sum(customer_arrays['demand'][c-1] for c in new_src)
+                        dst_demand = sum(customer_arrays['demand'][c-1] for c in new_dst)
+                        
+                        if src_demand > capacities[r_idx]:
+                            continue
+                        if dst_demand > capacities[r_dst]:
+                            continue
+                        
+                        # 2. TIME WINDOW FEASIBILITY
+                        if not check_time_window_feasibility(new_src, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                            continue
+                        if not check_time_window_feasibility(new_dst, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                            continue
+                        
+                        # Cost check
+                        src_cost_new = calculate_route_cost(new_src, customer_addr_idx, distance_matrix_array, depot_idx)
+                        dst_cost_old = calculate_route_cost(route_dst, customer_addr_idx, distance_matrix_array, depot_idx)
+                        dst_cost_new = calculate_route_cost(new_dst, customer_addr_idx, distance_matrix_array, depot_idx)
+                        
+                        delta = (src_cost_new - src_cost_old) + (dst_cost_new - dst_cost_old)
+                        
+                        if delta < -1e-3:  # Improvement
+                            solution.routes[r_idx] = new_src
+                            solution.routes[r_dst] = new_dst
+                            improved = True
+                            return improved
+    
+    return improved
+
 # ---------------------------------------------------------
 #  OPERATORS (Destroy)
 # ---------------------------------------------------------
@@ -176,19 +261,27 @@ def random_removal(solution, num_to_remove, **kwargs):
     return new_sol
 
 def worst_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, depot_idx=0, **kwargs):
-    """Removes customers that contribute the most to the distance cost."""
+    """Removes customers that contribute the most to the distance cost using delta cost."""
     new_sol = solution.copy()
     savings_list = [] # (cost_diff, route_idx, customer_val)
 
     for r_idx, route in enumerate(new_sol.routes[:-1]):
         if not route: continue
-        current_cost = calculate_route_cost(route, customer_addr_idx, distance_matrix_array, depot_idx)
         
+        # Use delta cost instead of full recalculation
         for i, cust in enumerate(route):
-            temp_route = route[:i] + route[i+1:]
-            new_cost = calculate_route_cost(temp_route, customer_addr_idx, distance_matrix_array, depot_idx)
-            diff = current_cost - new_cost
-            savings_list.append((diff, r_idx, cust))
+            cust_addr = customer_addr_idx[cust-1]
+            
+            # Get adjacent nodes (handle depot at boundaries)
+            prev_addr = depot_idx if i == 0 else customer_addr_idx[route[i-1]-1]
+            next_addr = depot_idx if i == len(route)-1 else customer_addr_idx[route[i+1]-1]
+            
+            # Delta cost: savings from removing customer
+            removed_dist = distance_matrix_array[prev_addr, cust_addr] + distance_matrix_array[cust_addr, next_addr]
+            added_dist = distance_matrix_array[prev_addr, next_addr]
+            savings = removed_dist - added_dist
+            
+            savings_list.append((savings, r_idx, cust))
     
     savings_list.sort(key=lambda x: x[0], reverse=True)
     
@@ -252,6 +345,9 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
     new_sol.routes[-1] = []
     random.shuffle(unassigned)
     
+    # Cache capacities to avoid repeated Pandas lookups
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+    
     for cust in unassigned:
         best_cost_increase = float('inf')
         best_pos = None # (route_idx, index)
@@ -262,12 +358,10 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
         
         for r_idx in range(len(new_sol.routes) - 1):
             route = new_sol.routes[r_idx]
-            vehicle_name = new_sol.vehicles[r_idx]
             
-            # Fast Capacity Check
-            # Note: We reconstruct route indices for check_capacity_feasibility if needed, 
-            # but simple sum check is faster here for single insertion
-            if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_df, customer_arrays):
+            # Fast inline capacity check using cached capacity
+            route_demand = sum(customer_arrays['demand'][c-1] for c in route)
+            if route_demand + cust_demand > capacities[r_idx]:
                 continue
                 
             route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
@@ -303,6 +397,9 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
     
+    # Cache capacities to avoid repeated Pandas lookups
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+    
     while unassigned:
         best_regret_score = -1
         best_customer = None
@@ -318,9 +415,10 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
             
             for r_idx in range(len(new_sol.routes) - 1):
                 route = new_sol.routes[r_idx]
-                vehicle_name = new_sol.vehicles[r_idx]
 
-                if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_df, customer_arrays):
+                # Fast inline capacity check using cached capacity
+                route_demand = sum(customer_arrays['demand'][c-1] for c in route)
+                if route_demand + customer_arrays['demand'][cust-1] > capacities[r_idx]:
                     continue
                 
                 route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
@@ -382,9 +480,13 @@ def create_initial_solution(num_customers, num_real_vehicles):
     return Solution(routes, vehicles)
 
 def run_alns():
-    print("Loading data...")
     customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
     
+    #tracking weights and solution evolution
+    destroy_op_names = ['Random Removal', 'Worst Removal', 'Cluster Removal']
+    repair_op_names = ['Greedy Insertion', 'Regret Insertion']
+    tracker = ALNSTracker(destroy_op_names, repair_op_names)
+
     num_customers = len(customers_df)
     # Assuming 'Standard' vehicle type exists, defaulting to 10 if not specified
     try:
@@ -394,7 +496,7 @@ def run_alns():
         num_real_vehicles = 10
     
     print("Precomputing nearest neighbors for granular search...")
-    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=25)
+    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
     
     # 1. Operators definition
     destroy_ops = [random_removal, worst_removal, cluster_removal]
@@ -411,10 +513,81 @@ def run_alns():
     best_sol._cost = current_sol._cost
     curr_temp = START_TEMPERATURE
     
-    print(f"Initial Cost: {current_sol._cost:.2f}")
+    # Escape mechanism tracking
+    iterations_without_improvement = 0
     
-    # 4. Main Loop
-    for it in range(MAX_ITERATIONS):
+    print(f"Initial Cost: {current_sol._cost:.2f}")
+    print(f"Running {WARMUP_ITERATIONS} warm-up iterations to calibrate temperature...")
+    
+    # 4. Warm-up phase to measure typical delta
+    deltas = []
+    for it in range(WARMUP_ITERATIONS):
+        state = agent.get_state(it, MAX_ITERATIONS)
+        d_idx = agent.select_action(state, agent.q_destroy)
+        r_idx = agent.select_action(state, agent.q_repair)
+        
+        n_remove = random.randint(int(num_customers * 0.05), int(num_customers * 0.15))
+        destroyed_sol = destroy_ops[d_idx](current_sol, n_remove, 
+                                          distance_matrix_array=dist_matrix, 
+                                          customer_addr_idx=cust_addr_idx)
+        
+        repaired_sol = repair_ops[r_idx](destroyed_sol, 
+                                         distance_matrix_array=dist_matrix, 
+                                         customer_addr_idx=cust_addr_idx,
+                                         customer_arrays=cust_arrays,
+                                         vehicles_df=vehicles_df,
+                                         neighbor_sets=neighbor_sets)
+        
+        new_cost = evaluate_solution(repaired_sol, dist_matrix, cust_addr_idx)
+        delta = abs(new_cost - current_sol._cost)
+        deltas.append(delta)
+        
+        # Accept improving moves during warm-up
+        if new_cost < current_sol._cost:
+            current_sol = repaired_sol
+            if new_cost < best_sol._cost:
+                best_sol = repaired_sol.copy()
+                best_sol._cost = new_cost
+                iterations_without_improvement = 0
+    
+    # 5. Compute adaptive final temperature based on typical delta
+    typical_delta = np.mean(deltas) if deltas else 10.0
+    # Set final temp so exp(-typical_delta/final_temp) ≈ 0.01 (1% acceptance)
+    # But cap it at 1.0 to ensure proper convergence
+    FINAL_TEMPERATURE = max(0.5, min(typical_delta / 4.6, 1.0))
+    
+    # 6. Compute cooling rate for remaining iterations
+    remaining_iterations = MAX_ITERATIONS - WARMUP_ITERATIONS
+    cooling_rate = (FINAL_TEMPERATURE / START_TEMPERATURE) ** (1.0 / remaining_iterations)
+    
+    print(f"Warm-up complete. Best so far: {best_sol._cost:.2f}")
+    print(f"Typical delta: {typical_delta:.2f}, Final temp: {FINAL_TEMPERATURE:.2f}")
+    print(f"Cooling rate: {cooling_rate:.6f} (for {remaining_iterations} remaining iterations)")
+    
+    # 7. Main Loop
+    for it in range(WARMUP_ITERATIONS, MAX_ITERATIONS):
+        # Escape mechanism: large perturbation if stuck
+        if iterations_without_improvement >= ESCAPE_THRESHOLD:
+            print(f"Iter {it}: Escape mechanism triggered (no improvement for {iterations_without_improvement} iterations)")
+            # Large-scale destruction: remove 40-60% of customers
+            escape_remove = random.randint(int(num_customers * 0.4), int(num_customers * 0.6))
+            current_sol = destroy_ops[random.randint(0, len(destroy_ops)-1)](
+                best_sol,  # Start from best, not current
+                escape_remove,
+                distance_matrix_array=dist_matrix,
+                customer_addr_idx=cust_addr_idx
+            )
+            current_sol = repair_ops[random.randint(0, len(repair_ops)-1)](
+                current_sol,
+                distance_matrix_array=dist_matrix,
+                customer_addr_idx=cust_addr_idx,
+                customer_arrays=cust_arrays,
+                vehicles_df=vehicles_df,
+                neighbor_sets=neighbor_sets
+            )
+            evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
+            iterations_without_improvement = 0
+        
         # Determine State
         state = agent.get_state(it, MAX_ITERATIONS)
         
@@ -422,8 +595,8 @@ def run_alns():
         d_idx = agent.select_action(state, agent.q_destroy)
         r_idx = agent.select_action(state, agent.q_repair)
         
-        # Apply Destroy
-        n_remove = random.randint(int(num_customers * 0.1), int(num_customers * 0.4))
+        # Apply Destroy (smaller removal for large instances)
+        n_remove = random.randint(int(num_customers * 0.05), int(num_customers * 0.15))
         destroyed_sol = destroy_ops[d_idx](
             current_sol, 
             n_remove, 
@@ -441,16 +614,35 @@ def run_alns():
             neighbor_sets=neighbor_sets
         )
         
-        # Apply Local Search (Improvement Step)
-        two_opt_local_search(
-            repaired_sol, 
-            dist_matrix, 
-            cust_addr_idx, 
-            cust_arrays
-        )
+        # Pre-evaluate to decide Local Search and avoid using undefined 'delta'
+        pre_cost = evaluate_solution(repaired_sol, dist_matrix, cust_addr_idx)
+        delta_pre = pre_cost - current_sol._cost
+        # Reduce 2-opt frequency after warmup to allow more exploration
+        exploration_phase = (it < WARMUP_ITERATIONS + 2000)
+        local_search_prob = 0.15 if exploration_phase else 0.05  # More 2-opt early, less late
+        run_local_search = (delta_pre < 0) or (random.random() < local_search_prob)
+
+        # Apply Local Search only on promising solutions
+        # if run_local_search:
+        #     two_opt_local_search(
+        #         repaired_sol, 
+        #         dist_matrix, 
+        #         cust_addr_idx, 
+        #         cust_arrays
+        #     )
         
-        # Evaluate
-        new_cost = evaluate_solution(repaired_sol, dist_matrix, cust_addr_idx)
+        # Apply cross-route segment relocations in final phase for fine-tuning (5% of iterations)
+        if it > WARMUP_ITERATIONS + 0.95 * (MAX_ITERATIONS - WARMUP_ITERATIONS):
+            cross_route_segment_relocation(
+                repaired_sol,
+                dist_matrix,
+                cust_addr_idx,
+                cust_arrays,
+                vehicles_df
+            )
+        
+        # Evaluate (reuse pre_cost if local search not applied)
+        new_cost = evaluate_solution(repaired_sol, dist_matrix, cust_addr_idx) if run_local_search else pre_cost
         current_cost = current_sol._cost
         best_cost = best_sol._cost
         
@@ -465,10 +657,12 @@ def run_alns():
                 reward = SCORE_NEW_GLOBAL_BEST
                 best_sol = repaired_sol.copy()
                 best_sol._cost = new_cost
+                iterations_without_improvement = 0  # Reset counter
                 print(f"Iter {it}: New Best {new_cost:.2f} (Unassigned: {len(best_sol.routes[-1])})")
             else:
                 reward = SCORE_BETTER_THAN_CURRENT
         else:
+            iterations_without_improvement += 1  # Increment counter
             prob = math.exp(-delta / curr_temp)
             if random.random() < prob:
                 accepted = True
@@ -482,12 +676,22 @@ def run_alns():
         agent.update(state, d_idx, reward, next_state, agent.q_destroy)
         agent.update(state, r_idx, reward, next_state, agent.q_repair)
 
+        # tracking updates (record every 10 iterations to reduce overhead)
+        TRACK_INTERVAL = 10  # Adjust this: 1=all data, 10=10%, 50=2%
+        if it % TRACK_INTERVAL == 0 or new_best_found:
+            new_best_found = (reward == SCORE_NEW_GLOBAL_BEST)
+            d_weights = agent.q_destroy[state].tolist()
+            r_weights = agent.q_repair[state].tolist()
+
+            tracker.record_iteration(it, best_sol._cost, current_sol._cost,
+                            d_weights, r_weights, new_best_found)
         # Logging
         if (it + 1) % SEGMENT_SIZE == 0:
-            print(f"--- Segment {it // SEGMENT_SIZE} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} ---")
+            segment_num = (it + 1 - WARMUP_ITERATIONS) // SEGMENT_SIZE
+            print(f"--- Segment {segment_num} | Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} ---")
 
         # Cool Down
-        curr_temp *= COOLING_RATE
+        curr_temp *= cooling_rate
 
     # Final Output
     print("\n" + "="*50)
@@ -496,12 +700,17 @@ def run_alns():
     print(f"Best Cost: {best_sol._cost:.2f}")
     unassigned = len(best_sol.routes[-1])
     print(f"Unassigned Customers: {unassigned}")
+    vehicles_used = sum(1 for route in best_sol.routes[:-1] if route)
+    print(f"Vehicles Used: {vehicles_used}")
     
     print("\nRoutes:")
     for i, route in enumerate(best_sol.routes[:-1]):
         if route:
             c = calculate_route_cost(route, cust_addr_idx, dist_matrix, 0)
             print(f"Vehicle {i+1}: {route} (Cost: {c:.2f})")
+    
+    tracker.plot_all(prefix='alns_results', save=True, show=True)
+    tracker.print_summary() 
 
 if __name__ == "__main__":
     run_alns()
