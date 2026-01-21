@@ -221,7 +221,7 @@ if __name__ == "__main__":
     print("Example: Loading RC208 instance")
     print("=" * 60)
     
-    instance = load_solomon_instance('data/C1_6_1.TXT')
+    instance = load_solomon_instance('data/C1_8_1.TXT')
     print(f"\n{instance}")
     print(f"\nDepot: x={instance.depot['x']}, y={instance.depot['y']}")
     print(f"First 5 customers:")

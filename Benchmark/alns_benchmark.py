@@ -1,7 +1,5 @@
-import pandas as pd
 import numpy as np
 import random
-import copy
 import math
 from feasibility import (
     load_vrp_data,
@@ -14,13 +12,13 @@ from visualization import ALNSTracker
 # --- Configuration ---
 DUMMY_VEHICLE_NAME = 'dummy'
 DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 10000 
+MAX_ITERATIONS = 10000
 SEGMENT_SIZE = 50 
 
 # ALNS Parameters
 START_TEMPERATURE = 200.0
 WARMUP_ITERATIONS = 100   
-ESCAPE_THRESHOLD = 400   
+ESCAPE_THRESHOLD = 1000
 
 # Scoring (Rewards for RL)
 SCORE_NEW_GLOBAL_BEST = 35
@@ -430,13 +428,20 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
     
     capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
     
+    def softmax_costs(costs):
+        # lower cost => higher probability
+        costs = np.array(costs, dtype=np.float64)
+        scores = -costs  # invert so lower cost gets larger score
+        scores -= scores.max()  # stabilize
+        exp = np.exp(scores)
+        return exp / exp.sum()
+    
     for cust in unassigned:
-        best_cost = float('inf')
-        best_pos = None 
-        
         cust_addr = customer_addr_idx[cust-1]
         cust_demand = customer_arrays['demand'][cust-1]
         allowed = neighbor_sets[cust_addr]
+        
+        feasible = []  # (delta, r_idx, i)
         
         for r_idx in range(len(new_sol.routes) - 1):
             route = new_sol.routes[r_idx]
@@ -447,21 +452,23 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
             
             for i in range(len(route) + 1):
                 prev = route_addrs[i]
-                if prev != depot_idx and prev not in allowed: continue
+                if prev != depot_idx and prev not in allowed:
+                    continue
 
                 next_node = route_addrs[i+1]
                 delta = (distance_matrix_array[prev, cust_addr] + 
                          distance_matrix_array[cust_addr, next_node] - 
                          distance_matrix_array[prev, next_node])
-                
-                if delta < best_cost:
-                    candidate = route[:i] + [cust] + route[i:]
-                    if check_time_window_feasibility(candidate, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                        best_cost = delta
-                        best_pos = (r_idx, i)
+                candidate = route[:i] + [cust] + route[i:]
+                if check_time_window_feasibility(candidate, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    feasible.append((delta, r_idx, i))
         
-        if best_pos:
-            new_sol.routes[best_pos[0]].insert(best_pos[1], cust)
+        if feasible:
+            deltas = [f[0] for f in feasible]
+            probs = softmax_costs(deltas)
+            choice_idx = np.random.choice(len(feasible), p=probs)
+            _, r_idx, pos = feasible[choice_idx]
+            new_sol.routes[r_idx].insert(pos, cust)
         else:
             new_sol.routes[-1].append(cust)
     return new_sol
@@ -472,6 +479,13 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
     capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+
+    def softmax_costs(costs):
+        costs = np.array(costs, dtype=np.float64)
+        scores = -costs
+        scores -= scores.max()
+        exp = np.exp(scores)
+        return exp / exp.sum()
     
     while unassigned:
         best_regret = -1
@@ -485,7 +499,7 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
         for cust in current_batch:
             cust_addr = customer_addr_idx[cust-1]
             allowed = neighbor_sets[cust_addr]
-            valid_insertions = []
+            valid_insertions = []  # (cost, r_idx, i)
             
             for r_idx in range(len(new_sol.routes) - 1):
                 route = new_sol.routes[r_idx]
@@ -503,25 +517,31 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
                             distance_matrix_array[prev, next_node])
                     valid_insertions.append((cost, r_idx, i))
             
-            valid_insertions.sort(key=lambda x: x[0])
-            
-            # Check feasibility of top 2
+            # Keep only feasible insertions
             feasible = []
             for cost, r, i in valid_insertions:
-                if len(feasible) >= 2: break
                 cand = new_sol.routes[r][:i] + [cust] + new_sol.routes[r][i:]
                 if check_time_window_feasibility(cand, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
                     feasible.append((cost, r, i))
             
-            if not feasible: continue
+            if not feasible:
+                continue
             found_any = True
             
-            regret = feasible[1][0] - feasible[0][0] if len(feasible) > 1 else float('inf')
+            # Probabilistic choice among feasible insertions (softmax on -cost)
+            costs = [f[0] for f in feasible]
+            probs = softmax_costs(costs)
+            chosen_idx = np.random.choice(len(feasible), p=probs)
+            chosen_cost, chosen_r, chosen_i = feasible[chosen_idx]
+            
+            # Regret based on best vs second-best costs (if available)
+            feasible_sorted = sorted(feasible, key=lambda x: x[0])
+            regret = feasible_sorted[1][0] - feasible_sorted[0][0] if len(feasible_sorted) > 1 else float('inf')
             
             if regret > best_regret:
                 best_regret = regret
                 best_cust = cust
-                best_pos = (feasible[0][1], feasible[0][2])
+                best_pos = (chosen_r, chosen_i)
         
         if not found_any:
             # Cannot insert any of the checked customers
@@ -564,7 +584,7 @@ def run_alns():
         num_real_vehicles = 25 # Default higher for 200 nodes
     
     print("Precomputing nearest neighbors...")
-    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=15)
+    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
     
     agent = QLearningAgent(len(destroy_ops), len(repair_ops))
     
@@ -576,7 +596,7 @@ def run_alns():
     best_sol._cost = current_sol._cost
     curr_temp = START_TEMPERATURE
     
-    iter_no_improve = 0
+    iter_no_improve = 0  # Counts iterations since last global best
     
     print(f"Initial Cost: {current_sol._cost:.2f}")
     
@@ -610,9 +630,11 @@ def run_alns():
     print(f"Starting Main Loop. Start Temp: {curr_temp:.1f}, Cooling: {cooling_rate:.5f}")
     
     # --- Main Loop ---
+    escaped = False
     for it in range(WARMUP_ITERATIONS, MAX_ITERATIONS):
         # Escape Mechanism
         if iter_no_improve >= ESCAPE_THRESHOLD:
+            escaped = True
             print(f"Iter {it}: ESCAPE triggered.")
             n_esc = int(num_customers * 0.5) # Remove 50%
             current_sol = random_removal(best_sol, n_esc) # Reset from best
@@ -655,11 +677,11 @@ def run_alns():
         
         # --- Local Search ---
         # 1. Intra-Route (2-opt): Frequent
-        if random.random() < 0.6: 
+        if random.random() < 0.4: 
             two_opt_local_search(repaired, dist_matrix, cust_addr_idx, cust_arrays)
 
         # 2. Inter-Route (Relocate): Moderate frequency
-        if random.random() < 0.3:
+        if random.random() < 0.1:
             simple_relocate(repaired, dist_matrix, cust_addr_idx, cust_arrays, vehicles_df)
         
         # 3. Heavy Segment Relocation: Periodic or if promising
@@ -673,28 +695,35 @@ def run_alns():
         
         # Acceptance
         accepted = False
+        new_global_best = False
         reward = SCORE_REJECTED
         delta = new_cost - current_cost
         
         if delta < 0:
             accepted = True
             if new_cost < best_sol._cost:
+                new_global_best = True
                 reward = SCORE_NEW_GLOBAL_BEST
                 best_sol = repaired.copy()
                 best_sol._cost = new_cost
-                iter_no_improve = 0
                 print(f"Iter {it} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
             else:
                 reward = SCORE_BETTER_THAN_CURRENT
-                iter_no_improve = 0
         else:
-            iter_no_improve += 1
             if random.random() < math.exp(-delta / curr_temp):
                 accepted = True
                 reward = SCORE_ACCEPTED_WORSE
         
         if accepted:
             current_sol = repaired
+        
+        if escaped:
+            iter_no_improve = 0
+            escaped = False
+        elif new_global_best:
+            iter_no_improve = 0
+        else:
+            iter_no_improve += 1
         
         # RL Update
         next_s = agent.get_state(it + 1, MAX_ITERATIONS)
@@ -709,9 +738,8 @@ def run_alns():
                                      (reward == SCORE_NEW_GLOBAL_BEST))
             
         if (it + 1) % SEGMENT_SIZE == 0:
-            segment_num = (it + 1 - WARMUP_ITERATIONS) // SEGMENT_SIZE
-            print(f"--- Segment {segment_num} | Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} ---")
-            print(f"Segment {it//SEGMENT_SIZE} | Temp {curr_temp:.2f} | Best {best_sol._cost:.2f}")
+            print(f"--- Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} | Current: {current_sol._cost:.2f} ---")
+
 
         curr_temp *= cooling_rate
 
