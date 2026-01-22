@@ -648,7 +648,7 @@ def run_alns():
             )
             evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
             iter_no_improve = 0
-            curr_temp = START_TEMPERATURE * 0.5 # Reheat
+            # curr_temp = START_TEMPERATURE * 0.5 # Reheat
 
         state = agent.get_state(it, MAX_ITERATIONS)
         d_idx = agent.select_action(state, agent.q_destroy)
