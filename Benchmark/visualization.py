@@ -113,7 +113,7 @@ class ALNSTracker:
     
     def plot_operator_weights(self, save_path: str = None, show: bool = True):
         """
-        Plot operator weight evolution over iterations.
+        Plot operator weight evolution over iterations as relative usage (0-1).
         Creates two subplots: one for destroy operators, one for repair operators.
         
         Args:
@@ -125,30 +125,38 @@ class ALNSTracker:
         # Convert to numpy arrays for easier plotting
         destroy_weights = np.array(self.destroy_weights_history)
         repair_weights = np.array(self.repair_weights_history)
+
+        # Normalize to probabilities (relative usage) with small epsilon to avoid divide-by-zero
+        destroy_sums = destroy_weights.sum(axis=1, keepdims=True) + 1e-10
+        repair_sums = repair_weights.sum(axis=1, keepdims=True) + 1e-10
+        destroy_norm = destroy_weights / destroy_sums
+        repair_norm = repair_weights / repair_sums
         
         # Define colors for operators
         colors = plt.cm.Set2(np.linspace(0, 1, max(len(self.destroy_op_names), 
                                                     len(self.repair_op_names))))
         
-        # Plot destroy operator weights
+        # Plot destroy operator relative usage
         for i, name in enumerate(self.destroy_op_names):
-            ax1.plot(self.iterations, destroy_weights[:, i], 
+            ax1.plot(self.iterations, destroy_norm[:, i], 
                     label=name, linewidth=2, color=colors[i], alpha=0.8)
         
         ax1.set_xlabel('Iteration', fontsize=12)
-        ax1.set_ylabel('Weight', fontsize=12)
-        ax1.set_title('Destroy Operator Weights Evolution', fontsize=14, fontweight='bold')
+        ax1.set_ylabel('Relative Usage (0-1)', fontsize=12)
+        ax1.set_ylim(0, 1)
+        ax1.set_title('Destroy Operator Relative Usage Evolution', fontsize=14, fontweight='bold')
         ax1.legend(loc='best')
         ax1.grid(True, alpha=0.3)
         
-        # Plot repair operator weights
+        # Plot repair operator relative usage
         for i, name in enumerate(self.repair_op_names):
-            ax2.plot(self.iterations, repair_weights[:, i], 
+            ax2.plot(self.iterations, repair_norm[:, i], 
                     label=name, linewidth=2, color=colors[i], alpha=0.8)
         
         ax2.set_xlabel('Iteration', fontsize=12)
-        ax2.set_ylabel('Weight', fontsize=12)
-        ax2.set_title('Repair Operator Weights Evolution', fontsize=14, fontweight='bold')
+        ax2.set_ylabel('Relative Usage (0-1)', fontsize=12)
+        ax2.set_ylim(0, 1)
+        ax2.set_title('Repair Operator Relative Usage Evolution', fontsize=14, fontweight='bold')
         ax2.legend(loc='best')
         ax2.grid(True, alpha=0.3)
         
