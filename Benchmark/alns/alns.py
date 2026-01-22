@@ -1,14 +1,20 @@
 import random
+import sys
+import os
+import math
+
+# Add Benchmark directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from utils.utils import evaluate_solution, create_initial_solution, precompute_nearest_neighbors, load_vrp_data
 from utils.operators import random_removal, greedy_insertion
-from utils.feasibility import load_vrp_data
-
 
 # --- Configuration ---
 DUMMY_VEHICLE_NAME = 'dummy'
 DUMMY_PENALTY = 10000.0
 MAX_ITERATIONS = 10000
-SEGMENT_SIZE = 50 
+SEGMENT_SIZE = 50
+START_TEMPERATURE = 1000.0 
 
 def run_alns():
     customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
@@ -31,6 +37,10 @@ def run_alns():
     best_sol._cost = current_sol._cost
 
     print(f"Initial Cost: {current_sol._cost:.2f}")
+    
+    # Simulated annealing temperature
+    curr_temp = START_TEMPERATURE
+    cooling_rate = (0.5 / START_TEMPERATURE) ** (1.0 / MAX_ITERATIONS)
 
     for it in range(MAX_ITERATIONS):
         # Simple destroy/repair
@@ -39,8 +49,16 @@ def run_alns():
         repaired = repair_ops[0](destroyed, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays, vehicles_df=vehicles_df, neighbor_sets=neighbor_sets)
         evaluate_solution(repaired, dist_matrix, cust_addr_idx)
 
-        # Accept only if better
-        if repaired._cost < current_sol._cost:
+        delta = repaired._cost - current_sol._cost
+        
+        
+        accepted = False
+        if delta < 0:
+            accepted = True
+        elif random.random() < math.exp(-delta / curr_temp):
+            accepted = True
+        
+        if accepted:
             current_sol = repaired
             if repaired._cost < best_sol._cost:
                 best_sol = repaired.copy()
@@ -48,7 +66,9 @@ def run_alns():
                 print(f"Iter {it} [New Best]: {repaired._cost:.2f}")
         
         if (it + 1) % SEGMENT_SIZE == 0:
-            print(f"--- Iter {it+1} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
+            print(f"--- Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
+        
+        curr_temp *= cooling_rate
 
     print("\n" + "="*40)
     print("FINAL RESULTS")

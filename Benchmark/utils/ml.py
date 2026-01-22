@@ -7,7 +7,6 @@ class QLearningAgent:
         self.gamma = gamma      
         self.epsilon = epsilon  
         
-        # Q-Tables: [State][Operator_Index]
         # States: 0=Early, 1=Mid, 2=Late
         self.q_destroy = np.zeros((3, num_destroy))
         self.q_repair = np.zeros((3, num_repair))
