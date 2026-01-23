@@ -1,5 +1,8 @@
-from feasibility import check_capacity_feasibility, check_time_window_feasibility
-from cost import calculate_route_cost
+from .feasibility import check_capacity_feasibility, check_time_window_feasibility
+from .cost import calculate_route_cost
+import os
+import pandas as pd
+import numpy as np
 
 class Solution:
     def __init__(self, routes, vehicles):
@@ -23,7 +26,7 @@ def evaluate_solution(solution, distance_matrix_array, customer_addr_idx, depot_
     
     # Dummy route penalty
     unassigned_count = len(solution.routes[-1])
-    total_cost += unassigned_count * DUMMY_PENALTY
+    total_cost += unassigned_count * 1000
     
     solution._cost = total_cost
     return total_cost
@@ -189,11 +192,11 @@ def two_opt_local_search(solution, distance_matrix_array, customer_addr_idx, cus
 def create_initial_solution(num_customers, num_real_vehicles):
     routes = [[] for _ in range(num_real_vehicles)]
     routes.append(list(range(1, num_customers + 1)))
-    vehicles = ['Standard'] * num_real_vehicles + [DUMMY_VEHICLE_NAME]
+    vehicles = ['Standard'] * num_real_vehicles + ['dummy']
     return Solution(routes, vehicles)
 
-def load_vrp_data(customers_file='c1_8_1/customers.csv', vehicles_file='c1_8_1/vehicles.csv', distance_matrix_file='c1_8_1/distance_matrix.csv'):
-    # Get the directory of this script
+def load_vrp_data(customers_file='../data/c1_6_1/customers.csv', vehicles_file='../data/c1_6_1/vehicles.csv', distance_matrix_file='../data/c1_6_1/distance_matrix.csv'):
+    # Get the directory of this script (Benchmark/utils/)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Make paths relative to script directory

@@ -1,6 +1,11 @@
 import numpy as np
 import random
 import math
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from utils.utils import (
     precompute_nearest_neighbors, 
     create_initial_solution, 
@@ -37,11 +42,13 @@ SCORE_BETTER_THAN_CURRENT = 10
 SCORE_ACCEPTED_WORSE = 5
 SCORE_REJECTED = 0
 
+# Roulette Wheel Parameters
+WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weight)
+
 
 # ---------------------------------------------------------
 #  MAIN ALNS LOOP
 # ---------------------------------------------------------
-
 
 def run_alns():
     customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
@@ -56,15 +63,14 @@ def run_alns():
     tracker = ALNSTracker(destroy_names, repair_names)
 
     num_customers = len(customers_df)
-    try:
-        num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
-    except KeyError:
-        num_real_vehicles = 25 # Default higher for 200 nodes
-
+    num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+    
     print("Precomputing nearest neighbors...")
     neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
     
-    agent = QLearningAgent(len(destroy_ops), len(repair_ops))
+    # Initialize roulette wheel weights (start equal for all operators)
+    destroy_weights = np.ones(len(destroy_ops))
+    repair_weights = np.ones(len(repair_ops))
     
     # Initial Solution
     current_sol = create_initial_solution(num_customers, num_real_vehicles)
@@ -74,13 +80,13 @@ def run_alns():
     best_sol._cost = current_sol._cost
     curr_temp = START_TEMPERATURE
     
-    iter_no_improve = 0  # Counts iterations since last global best
-    
     print(f"Initial Cost: {current_sol._cost:.2f}")
     
     # --- Warm-up ---
     print(f"Warming up ({WARMUP_ITERATIONS} iters)...")
     deltas = []
+    MAX_FEASIBLE_COST = 100000  # Cap for filtering out dummy-penalty solutions
+    
     for it in range(WARMUP_ITERATIONS):
         # Only use Random/Greedy for fast warmup
         d_idx = 0 
@@ -91,7 +97,10 @@ def run_alns():
         temp_sol = repair_ops[r_idx](temp_sol, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays, vehicles_df=vehicles_df, neighbor_sets=neighbor_sets)
         
         c = evaluate_solution(temp_sol, dist_matrix, cust_addr_idx)
-        deltas.append(abs(c - current_sol._cost))
+        
+        # Only track deltas from feasible solutions (no dummy penalties)
+        if c < MAX_FEASIBLE_COST and current_sol._cost < MAX_FEASIBLE_COST:
+            deltas.append(abs(c - current_sol._cost))
         
         if c < current_sol._cost:
             current_sol = temp_sol
@@ -99,38 +108,27 @@ def run_alns():
                 best_sol = temp_sol.copy()
                 best_sol._cost = c
 
-    # Temperature Calibration
-    typical_delta = np.mean(deltas) if deltas else 50.0
-    FINAL_TEMPERATURE = 0.5
-    # Calculate cooling to reach final temp at MAX_ITERATIONS
-    cooling_rate = (FINAL_TEMPERATURE / START_TEMPERATURE) ** (1.0 / (MAX_ITERATIONS - WARMUP_ITERATIONS))
+    # Temperature Calibration based on feasible solution variations
+    if deltas and len(deltas) > 10:
+        typical_delta = np.mean(deltas)
+    else:
+        # Fallback: use 10% of typical good solution cost as delta
+        typical_delta = 3500.0  # ~10% of 35000 (mid-range good solution)
     
-    print(f"Starting Main Loop. Start Temp: {curr_temp:.1f}, Cooling: {cooling_rate:.5f}")
+    FINAL_TEMPERATURE = 0.5
+    curr_temp = typical_delta / math.log(2.0) 
+    cooling_rate = (FINAL_TEMPERATURE / curr_temp) ** (1.0 / (MAX_ITERATIONS - WARMUP_ITERATIONS))
+    
+    print(f"Starting Main Loop. Typical Delta: {typical_delta:.1f}, Start Temp: {curr_temp:.1f}, Cooling: {cooling_rate:.5f}")
     
     # --- Main Loop ---
-    escaped = False
     for it in range(WARMUP_ITERATIONS, MAX_ITERATIONS):
-        # Escape Mechanism
-        if iter_no_improve >= ESCAPE_THRESHOLD:
-            escaped = True
-            print(f"Iter {it}: ESCAPE triggered.")
-            n_esc = int(num_customers * 0.5) # Remove 50%
-            current_sol = random_removal(best_sol, n_esc) # Reset from best
-            current_sol = greedy_insertion(
-                current_sol, 
-                distance_matrix_array=dist_matrix, 
-                customer_addr_idx=cust_addr_idx, 
-                customer_arrays=cust_arrays, 
-                vehicles_df=vehicles_df, 
-                neighbor_sets=neighbor_sets
-            )
-            evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
-            iter_no_improve = 0
-            # curr_temp = START_TEMPERATURE * 0.5 # Reheat
-
-        state = agent.get_state(it, MAX_ITERATIONS)
-        d_idx = agent.select_action(state, agent.q_destroy)
-        r_idx = agent.select_action(state, agent.q_repair)
+        
+        # Select operators using roulette wheel (weighted random)
+        d_probs = destroy_weights / destroy_weights.sum()
+        r_probs = repair_weights / repair_weights.sum()
+        d_idx = np.random.choice(len(destroy_ops), p=d_probs)
+        r_idx = np.random.choice(len(repair_ops), p=r_probs)
         
         # Dynamic removal size (10% to 30% of customers)
         low = int(num_customers * 0.10)
@@ -153,22 +151,7 @@ def run_alns():
             neighbor_sets=neighbor_sets
         )
         
-        # --- Local Search ---
-        # 1. Intra-Route (2-opt): Frequent
-        if random.random() < 0.4: 
-            two_opt_local_search(repaired, dist_matrix, cust_addr_idx, cust_arrays)
-
-        # 2. Inter-Route (Relocate): Moderate frequency
-        if random.random() < 0.1:
-            simple_relocate(repaired, dist_matrix, cust_addr_idx, cust_arrays, vehicles_df)
-        
-        # 3. Heavy Segment Relocation: Periodic or if promising
-        pre_eval = evaluate_solution(repaired, dist_matrix, cust_addr_idx)
-        if (pre_eval < current_sol._cost) or (it % 250 == 0):
-            cross_route_segment_relocation(repaired, dist_matrix, cust_addr_idx, cust_arrays, vehicles_df)
-            evaluate_solution(repaired, dist_matrix, cust_addr_idx) # Re-eval after move
-            
-        new_cost = repaired._cost
+        new_cost = evaluate_solution(repaired, dist_matrix, cust_addr_idx)
         current_cost = current_sol._cost
         
         # Acceptance
@@ -195,29 +178,19 @@ def run_alns():
         if accepted:
             current_sol = repaired
         
-        if escaped:
-            iter_no_improve = 0
-            escaped = False
-        elif new_global_best:
-            iter_no_improve = 0
-        else:
-            iter_no_improve += 1
+        # Update operator weights based on performance (roulette wheel)
+        destroy_weights[d_idx] = WEIGHT_DECAY * destroy_weights[d_idx] + (1 - WEIGHT_DECAY) * reward
+        repair_weights[r_idx] = WEIGHT_DECAY * repair_weights[r_idx] + (1 - WEIGHT_DECAY) * reward
         
-        # RL Update
-        next_s = agent.get_state(it + 1, MAX_ITERATIONS)
-        agent.update(state, d_idx, reward, next_s, agent.q_destroy)
-        agent.update(state, r_idx, reward, next_s, agent.q_repair)
-        
-        # Logging
+        # Track progress
         if it % 10 == 0:
             tracker.record_iteration(it, best_sol._cost, current_sol._cost,
-                                     agent.q_destroy[state].tolist(),
-                                     agent.q_repair[state].tolist(),
-                                     (reward == SCORE_NEW_GLOBAL_BEST))
-            
+                                     destroy_weights.tolist(),
+                                     repair_weights.tolist(),
+                                     new_global_best)
+          
         if (it + 1) % SEGMENT_SIZE == 0:
             print(f"--- Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} | Current: {current_sol._cost:.2f} ---")
-
 
         curr_temp *= cooling_rate
 

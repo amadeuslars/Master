@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from utils import Solution
+from utils.feasibility import check_capacity_feasibility, check_time_window_feasibility
 
 # ---------------------------------------------------------
 #  OPERATORS (Destroy)
