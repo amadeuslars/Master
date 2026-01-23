@@ -195,7 +195,7 @@ def create_initial_solution(num_customers, num_real_vehicles):
     vehicles = ['Standard'] * num_real_vehicles + ['dummy']
     return Solution(routes, vehicles)
 
-def load_vrp_data(customers_file='../data/c1_6_1/customers.csv', vehicles_file='../data/c1_6_1/vehicles.csv', distance_matrix_file='../data/c1_6_1/distance_matrix.csv'):
+def load_vrp_data(customers_file='../instances/c1_6_1/customers.csv', vehicles_file='../instances/c1_6_1/vehicles.csv', distance_matrix_file='../instances/c1_6_1/distance_matrix.csv'):
     # Get the directory of this script (Benchmark/utils/)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     

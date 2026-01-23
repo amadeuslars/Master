@@ -160,7 +160,7 @@ def run_alns():
             load = sum(cust_arrays['demand'][c-1] for c in r)
             print(f"V{i+1}: {r} | Load: {load}")
             
-    tracker.plot_all(prefix='alns_rrt_optimized', save=True, show=False)
+    tracker.plot_all(prefix='alns_rrt_optimized', save=False, show=False)
 
 if __name__ == "__main__":
     run_alns()
