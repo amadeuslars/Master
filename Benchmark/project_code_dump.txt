@@ -1,0 +1,2499 @@
+
+====================
+FILE: ./drl/env.py
+====================
+import gymnasium as gym
+import numpy as np
+from gymnasium import spaces
+import sys
+import os
+
+# --- PATH SETUP ---
+# Adjust path to import from your existing Benchmark folder
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.utils import create_initial_solution, evaluate_solution, precompute_nearest_neighbors
+from utils.operators import (
+    random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal,
+    greedy_insertion, regret_insertion
+)
+
+class VRPTWEnv(gym.Env):
+    def __init__(self, customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays, seed=42):
+        super(VRPTWEnv, self).__init__()
+        
+        # --- Data Loading ---
+        self.customers_df = customers_df
+        self.vehicles_df = vehicles_df
+        self.dist_matrix = dist_matrix
+        self.cust_addr_idx = cust_addr_idx
+        self.cust_arrays = cust_arrays
+        self.num_customers = len(customers_df)
+        self.num_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+        
+        # Precompute neighbors for operators (Shaw/Regret)
+        # We do this once to save time during steps
+        self.neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=15)
+
+        # --- Define Action Space ---
+        # Actions are pairs of (Destroy Operator, Repair Operator)
+        # 5 Destroy Ops * 2 Repair Ops = 10 Discrete Actions
+        self.destroy_ops = [
+            random_removal, 
+            worst_removal, 
+            cluster_removal, 
+            shaw_removal, 
+            least_used_vehicle_removal
+        ]
+        self.repair_ops = [
+            greedy_insertion, 
+            regret_insertion
+        ]
+        
+        # Create look-up table for actions: 0 -> (Random, Greedy), 1 -> (Random, Regret), etc.
+        self.action_pairs = [(d, r) for d in self.destroy_ops for r in self.repair_ops]
+        self.action_space = spaces.Discrete(len(self.action_pairs))
+        
+        # --- Define Observation Space ---
+        # A simple feature vector representing the state of the search
+        # 0: Gap to Best Solution
+        # 1: Progress (Current Iteration / Max Iterations)
+        # 2: Stagnation (Steps since last improvement)
+        # 3: Average Vehicle Load (Proxy for solution tightness)
+        # 4: Temperature (if using SA, currently 0)
+        # 5: Unassigned Customers Count (if any)
+        self.observation_space = spaces.Box(low=0, high=1, shape=(6,), dtype=np.float32)
+
+        # --- Internal State Variables ---
+        self.current_sol = None
+        self.best_sol = None
+        self.iteration = 0
+        self.max_iterations = 200 # Number of steps per episode
+        self.no_improvement_counter = 0
+
+    def reset(self, seed=None, options=None):
+        """
+        Resets the environment to an initial state.
+        Returns: (observation, info)
+        """
+        # Gymnasium requires proper seed handling
+        super().reset(seed=seed)
+        if seed is not None:
+            np.random.seed(seed)
+        
+        self.iteration = 0
+        self.no_improvement_counter = 0
+        
+        # Create a fresh initial solution
+        self.current_sol = create_initial_solution(self.num_customers, self.num_vehicles)
+        evaluate_solution(self.current_sol, self.dist_matrix, self.cust_addr_idx)
+        
+        # Initialize best solution
+        self.best_sol = self.current_sol.copy()
+        self.best_sol._cost = self.current_sol._cost
+        
+        # Return observation and empty info dict
+        return self._get_state(), {}
+
+    def step(self, action_idx):
+        """
+        Executes one step in the environment.
+        Returns: (observation, reward, terminated, truncated, info)
+        """
+        self.iteration += 1
+        
+        # 1. Decode the Action (Integer -> Operator Pair)
+        d_op, r_op = self.action_pairs[action_idx]
+        
+        # 2. Execute the Heuristics
+        # Randomly choose how many customers to remove (10% to 30%)
+        # This adds stochasticity to the transitions
+        n_remove = np.random.randint(int(self.num_customers * 0.1), int(self.num_customers * 0.3) + 1)
+        
+        # Apply Destroy Operator
+        destroyed = d_op(
+            self.current_sol, 
+            n_remove, 
+            distance_matrix_array=self.dist_matrix, 
+            customer_addr_idx=self.cust_addr_idx, 
+            customer_arrays=self.cust_arrays
+        )
+        
+        # Apply Repair Operator
+        repaired = r_op(
+            destroyed, 
+            distance_matrix_array=self.dist_matrix, 
+            customer_addr_idx=self.cust_addr_idx, 
+            customer_arrays=self.cust_arrays, 
+            vehicles_df=self.vehicles_df, 
+            neighbor_sets=self.neighbor_sets
+        )
+        
+        # Calculate Cost
+        new_cost = evaluate_solution(repaired, self.dist_matrix, self.cust_addr_idx)
+        prev_cost = self.current_sol._cost
+        
+        # 3. Calculate Reward and Acceptance
+        # We define a reward structure to guide the RL agent
+        reward = 0.0
+        accepted = False
+        
+        # Reward Case A: Improvement over current solution
+        if new_cost < prev_cost:
+            accepted = True
+            self.no_improvement_counter = 0
+            reward = 1.0 
+        else:
+            self.no_improvement_counter += 1
+            reward = -0.1 # Small penalty to discourage stagnation
+            
+        # Reward Case B: New Global Best Found (High Reward)
+        if new_cost < self.best_sol._cost:
+            self.best_sol = repaired.copy()
+            self.best_sol._cost = new_cost
+            reward = 5.0
+            accepted = True
+            
+        # Update current solution if accepted
+        if accepted:
+            self.current_sol = repaired
+
+        # 4. Check Termination
+        # Terminated = Goal reached (not used here)
+        # Truncated = Time limit reached (max_iterations)
+        terminated = False
+        truncated = self.iteration >= self.max_iterations
+        
+        info = {
+            'best_cost': self.best_sol._cost,
+            'current_cost': self.current_sol._cost
+        }
+        
+        return self._get_state(), reward, terminated, truncated, info
+
+    def _get_state(self):
+        """
+        Constructs the feature vector (observation) for the neural network.
+        """
+        # Feature 1: Normalized Gap (0.0 means we are at best known, higher is worse)
+        gap = (self.current_sol._cost - self.best_sol._cost) / (self.best_sol._cost + 1e-5)
+        
+        # Feature 2: Progress (0.0 to 1.0)
+        progress = self.iteration / self.max_iterations
+        
+        # Feature 3: Stagnation Factor (Normalized 0.0 to 1.0)
+        stagnation = min(self.no_improvement_counter / 50.0, 1.0)
+        
+        # Feature 4: Average Vehicle Load (To help agent learn capacity constraints)
+        # Simple heuristic: Used Capacity / Total Capacity of used vehicles
+        total_demand = self.cust_arrays['demand'].sum()
+        num_vehicles_used = len([r for r in self.current_sol.routes[:-1] if r])
+        if num_vehicles_used > 0:
+            capacity = self.vehicles_df.iloc[0]['capacity'] # Assuming homogeneous fleet
+            avg_load = total_demand / (num_vehicles_used * capacity)
+        else:
+            avg_load = 1.0
+            
+        # Feature 5: Unassigned Customers (Normalized)
+        unassigned_count = len(self.current_sol.routes[-1])
+        unassigned_feat = unassigned_count / self.num_customers
+
+        # Feature 6: Dummy (Placeholder for future features like Temperature)
+        dummy_feat = 0.0
+        
+        return np.array([gap, progress, stagnation, avg_load, unassigned_feat, dummy_feat], dtype=np.float32)
+
+====================
+FILE: ./drl/agent.py
+====================
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.distributions import Categorical
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+class ActorCritic(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden_dim=128):
+        super(ActorCritic, self).__init__()
+        
+        # Critic: Estimates Value of state
+        self.critic = nn.Sequential(
+            nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1)
+        )
+        
+        # Actor: Outputs probabilities for actions
+        self.actor = nn.Sequential(
+            nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, action_dim),
+            nn.Softmax(dim=-1)
+        )
+        
+    def forward(self):
+        raise NotImplementedError
+    
+    def act(self, state):
+        state = torch.from_numpy(state).float().to(device)
+        probs = self.actor(state)
+        dist = Categorical(probs)
+        action = dist.sample()
+        return action.item(), dist.log_prob(action)
+    
+    def evaluate(self, state, action):
+        state = state.to(device)
+        action = action.to(device)
+        
+        probs = self.actor(state)
+        dist = Categorical(probs)
+        
+        action_logprobs = dist.log_prob(action)
+        dist_entropy = dist.entropy()
+        state_values = self.critic(state)
+        
+        return action_logprobs, state_values, dist_entropy
+
+class PPOAgent:
+    def __init__(self, state_dim, action_dim, lr=0.001, gamma=0.99, eps_clip=0.2, K_epochs=4):
+        self.policy = ActorCritic(state_dim, action_dim).to(device)
+        self.optimizer = optim.Adam(self.policy.parameters(), lr=lr)
+        self.policy_old = ActorCritic(state_dim, action_dim).to(device)
+        self.policy_old.load_state_dict(self.policy.state_dict())
+        
+        self.gamma = gamma
+        self.eps_clip = eps_clip
+        self.K_epochs = K_epochs
+        self.MseLoss = nn.MSELoss()
+        
+        self.buffer_states = []
+        self.buffer_actions = []
+        self.buffer_logprobs = []
+        self.buffer_rewards = []
+        self.buffer_is_terminals = []
+
+    def select_action(self, state):
+        with torch.no_grad():
+            action, log_prob = self.policy_old.act(state)
+        
+        self.buffer_states.append(torch.from_numpy(state).float())
+        self.buffer_actions.append(torch.tensor(action))
+        self.buffer_logprobs.append(log_prob)
+        return action
+
+    def store_reward(self, reward, done):
+        self.buffer_rewards.append(reward)
+        self.buffer_is_terminals.append(done)
+
+    def update(self):
+        # Monte Carlo estimate of returns
+        rewards = []
+        discounted_reward = 0
+        for reward, is_terminal in zip(reversed(self.buffer_rewards), reversed(self.buffer_is_terminals)):
+            if is_terminal:
+                discounted_reward = 0
+            discounted_reward = reward + (self.gamma * discounted_reward)
+            rewards.insert(0, discounted_reward)
+            
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(device)
+        rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-7)
+
+        old_states = torch.stack(self.buffer_states).to(device).detach()
+        old_actions = torch.stack(self.buffer_actions).to(device).detach()
+        old_logprobs = torch.stack(self.buffer_logprobs).to(device).detach()
+        
+        # Optimize policy for K epochs
+        for _ in range(self.K_epochs):
+            logprobs, state_values, dist_entropy = self.policy.evaluate(old_states, old_actions)
+            state_values = torch.squeeze(state_values)
+            
+            ratios = torch.exp(logprobs - old_logprobs.detach())
+            surr1 = ratios * rewards
+            surr2 = torch.clamp(ratios, 1-self.eps_clip, 1+self.eps_clip) * rewards
+            
+            loss = -torch.min(surr1, surr2) + 0.5 * self.MseLoss(state_values, rewards) - 0.01 * dist_entropy
+            
+            self.optimizer.zero_grad()
+            loss.mean().backward()
+            self.optimizer.step()
+            
+        self.policy_old.load_state_dict(self.policy.state_dict())
+        
+        # Clear buffers
+        self.buffer_states = []
+        self.buffer_actions = []
+        self.buffer_logprobs = []
+        self.buffer_rewards = []
+        self.buffer_is_terminals = []
+
+====================
+FILE: ./drl/train.py
+====================
+import sys
+import os
+import numpy as np
+import torch
+import matplotlib.pyplot as plt
+import glob  # <--- Added to find files
+import random # <--- Added for random selection
+
+# --- PATH SETUP ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
+sys.path.insert(0, project_root)
+
+from Benchmark.drl.env import VRPTWEnv
+from Benchmark.drl.agent import PPOAgent
+from Benchmark.utils.utils import load_raw_solomon_data
+
+def train_drlh():
+    # --- CONFIGURATION ---
+    instances_dir = os.path.join(project_root, 'Benchmark', 'Instances', 'Training')
+    
+    # 1. Find all .txt files
+    instance_files = glob.glob(os.path.join(instances_dir, "*.txt"))
+    
+    if not instance_files:
+        print(f"\n❌ Error: No .txt files found in {instances_dir}")
+        return
+
+    print(f"--- Found {len(instance_files)} instances. Pre-loading data... ---")
+
+    # 2. Pre-load all data into memory
+    # This prevents disk lag during training
+    all_instances_data = []
+    for file_path in instance_files:
+        try:
+            # Load raw data tuple
+            data = load_raw_solomon_data(file_path)
+            all_instances_data.append(data)
+        except Exception as e:
+            print(f"Skipping {os.path.basename(file_path)}: {e}")
+
+    if not all_instances_data:
+        print("Error: Could not load any instances.")
+        return
+
+    print("--- Data Loaded. Initializing Agent... ---")
+
+    # Initialize Agent using the first instance to determine dimensions
+    # (Assuming all instances have the same feature shape)
+    # We create a temporary env just to get dimensions
+    temp_data = all_instances_data[0]
+    temp_env = VRPTWEnv(*temp_data)
+    
+    state_dim = temp_env.observation_space.shape[0]
+    action_dim = temp_env.action_space.n
+    agent = PPOAgent(state_dim, action_dim)
+    
+    # --- TRAINING SETTINGS ---
+    # Increased episodes because generalist training takes longer to converge
+    MAX_EPISODES = 5000  
+    UPDATE_TIMESTEP = 200 
+    
+    time_step = 0
+    scores = []
+    
+    print(f"--- Starting Generalist Training on {len(all_instances_data)} instances ---")
+    
+    for i_episode in range(1, MAX_EPISODES + 1):
+        
+        # 3. ROTATE INSTANCE
+        # Pick a random dataset for this episode
+        selected_data = random.choice(all_instances_data)
+        
+        # Re-initialize environment with the selected data
+        # The * operator unpacks the tuple (customers_df, vehicles_df, etc...)
+        env = VRPTWEnv(*selected_data)
+        
+        state, _ = env.reset()
+        current_ep_reward = 0
+        done = False
+        
+        while not done:
+            time_step += 1
+            action = agent.select_action(state)
+            
+            state, reward, terminated, truncated, info = env.step(action)
+            done = terminated or truncated
+            
+            agent.store_reward(reward, done)
+            current_ep_reward += reward
+            
+            if time_step % UPDATE_TIMESTEP == 0:
+                agent.update()
+                
+        scores.append(info['best_cost'])
+        
+        if i_episode % 10 == 0:
+            avg_score = np.mean(scores[-10:])
+            print(f"Episode {i_episode}\t Avg Best Cost: {avg_score:.2f}\t Last Cost: {scores[-1]:.2f}")
+            
+    # Save the trained model
+    save_path = os.path.join(current_dir, 'drlh_vrptw_model.pth')
+    torch.save(agent.policy.state_dict(), save_path)
+    print(f"Training Complete. Model Saved to {save_path}")
+    
+    # Plotting
+    plt.plot(scores)
+    plt.xlabel('Episode')
+    plt.ylabel('Best Cost')
+    plt.title('DRLH Generalist Training Progress')
+    plt.savefig('training_curve.png')
+    print("Saved training plot to training_curve.png")
+
+if __name__ == "__main__":
+    train_drlh()
+
+====================
+FILE: ./drl/solve.py
+====================
+import torch
+import numpy as np
+import sys
+import os
+
+# --- PATH SETUP ---
+# Get the absolute path of the script (.../Benchmark/drl/solve.py)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Go up two levels to get Project_Root (.../Master/Master)
+project_root = os.path.dirname(os.path.dirname(current_dir))
+sys.path.insert(0, project_root)
+
+from Benchmark.drl.env import VRPTWEnv
+from Benchmark.drl.agent import PPOAgent
+from Benchmark.utils.utils import load_raw_solomon_data
+
+def solve_with_drl():
+    # --- CONFIGURATION ---
+    # Must match the instance you trained on (or similar type)
+    INSTANCE_NAME = 'r106.txt'  
+    
+    # Construct absolute path to the instance
+    file_path = os.path.join(project_root, 'Benchmark', 'Instances', INSTANCE_NAME)
+    model_path = os.path.join(current_dir, 'drlh_vrptw_model.pth')
+    
+    print(f"--- Loading Raw Data from: {file_path} ---")
+    
+    if not os.path.exists(file_path):
+        print(f"\n Error: Instance file not found at {file_path}")
+        return
+
+    # 1. Load Data
+    data = load_raw_solomon_data(file_path)
+    customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = data
+    
+    # 2. Setup Environment
+    env = VRPTWEnv(customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays)
+    
+    # 3. Load the Trained Agent
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.n
+    agent = PPOAgent(state_dim, action_dim)
+    
+    if os.path.exists(model_path):
+        agent.policy.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        print(f"Loaded trained model from: {model_path}")
+    else:
+        print(f"Model not found at {model_path}! Running with random weights.")
+
+    # 4. Run Solver (Inference Loop)
+    state, _ = env.reset()
+    done = False
+    print("\nStarting DRL Solver...")
+    
+    step_count = 0
+    while not done:
+        step_count += 1
+        
+        # Get action from Neural Net (Deterministic / Greedy for inference)
+        # We grab the actor network directly to get the probabilities
+        state_tensor = torch.from_numpy(state).float().to(agent.policy.actor[0].weight.device)
+        
+        with torch.no_grad():
+            probs = agent.policy.actor(state_tensor)
+            # Pick the action with the highest probability (Argmax)
+            action = torch.argmax(probs).item()
+            
+        state, reward, terminated, truncated, info = env.step(action)
+        done = terminated or truncated
+        
+        # Optional: Print progress every 50 steps
+        if step_count % 50 == 0:
+            print(f"Step {step_count}: Best Cost = {env.best_sol._cost:.2f}")
+        
+    # 5. Final Report
+    print("\n" + "="*40)
+    print(f"FINAL RESULT ({INSTANCE_NAME})")
+    print("="*40)
+    print(f"Best Cost Found: {env.best_sol._cost:.2f}")
+    
+    print("\nRoutes:")
+    vehicle_count = 0
+    for i, r in enumerate(env.best_sol.routes[:-1]):
+        if r:
+            vehicle_count += 1
+            load = sum(cust_arrays['demand'][c-1] for c in r)
+            print(f"Vehicle {i+1}: {r} | Load: {load}")
+            
+    print(f"\nTotal Vehicles Used: {vehicle_count}")
+
+if __name__ == "__main__":
+    solve_with_drl()
+
+====================
+FILE: ./utils/feasibility.py
+====================
+import pandas as pd
+import numpy as np
+import os
+
+def check_capacity_feasibility(route_indices, vehicle_name, vehicles_df, customer_arrays):
+    """
+    Fast capacity check using vehicle DataFrame and numpy arrays.
+    For Solomon instances: only checks demand vs capacity.
+    """
+    if not route_indices:
+        return True
+
+    try:
+        # Get vehicle capacity
+        vehicle_capacity = vehicles_df.loc[vehicle_name, 'capacity']
+        
+        # Convert route_indices to numpy array
+        idx = np.asarray(route_indices, dtype=np.int32)
+        
+        # Sum demands for all customers in route
+        total_demand = float(customer_arrays['demand'][idx-1].sum())
+        
+        if total_demand > vehicle_capacity:
+            return False
+            
+        return True
+
+    except KeyError:
+        print(f"Vehicle {vehicle_name} not found")
+        return False
+
+def check_time_window_feasibility(
+    route_indices,
+    distance_matrix_array,
+    customer_addr_idx,
+    customer_arrays,
+    depot_idx=0,
+    debug=False,
+):
+    """
+    Fast time window check for Solomon instances.
+    Travel time = distance (1 distance unit = 1 minute).
+    """
+    if not route_indices:
+        return True
+
+    current_time = 0.0
+    current_location = depot_idx  # Start at depot
+    
+    for cust_idx in route_indices:
+        # Get customer's position in distance matrix
+        cust_addr_idx = customer_addr_idx[cust_idx-1]
+        
+        # Travel time equals distance
+        travel_time = distance_matrix_array[current_location, cust_addr_idx]
+        arrival_time = current_time + travel_time
+        
+        # Get time window
+        tw_start = float(customer_arrays['tw_start'][cust_idx-1])
+        tw_end = float(customer_arrays['tw_end'][cust_idx-1])
+        
+        # Check if we arrive too late
+        if arrival_time > tw_end:
+            if debug:
+                print(f"Late at customer {cust_idx}: arrival={arrival_time:.2f} > due_date={tw_end:.2f}")
+            return False
+        
+        # Service starts at max(arrival_time, tw_start)
+        service_start = max(arrival_time, tw_start)
+        service_time = float(customer_arrays['service_time'][cust_idx-1])
+        
+        # Update current time and location
+        current_time = service_start + service_time
+        current_location = cust_addr_idx
+    
+    return True
+
+
+
+====================
+FILE: ./utils/visualization.py
+====================
+"""
+Visualization tools for ALNS algorithm results.
+Tracks and plots solution evolution and operator performance.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from typing import List, Dict, Tuple
+
+
+class ALNSTracker:
+    """Tracks ALNS search progress for visualization."""
+    
+    def __init__(self, destroy_op_names: List[str], repair_op_names: List[str]):
+        """
+        Initialize tracker.
+        
+        Args:
+            destroy_op_names: Names of destroy operators
+            repair_op_names: Names of repair operators
+        """
+        self.destroy_op_names = destroy_op_names
+        self.repair_op_names = repair_op_names
+        
+        # Solution evolution
+        self.iterations = []
+        self.best_costs = []
+        self.current_costs = []
+        self.best_found_iterations = []  # Iterations where new best was found
+        self.best_found_costs = []
+        
+        # Operator weights evolution
+        self.destroy_weights_history = []
+        self.repair_weights_history = []
+        
+    def record_iteration(self, iteration: int, best_cost: float, current_cost: float, 
+                        destroy_weights: List[float], repair_weights: List[float],
+                        new_best: bool = False):
+        """
+        Record data from one iteration.
+        
+        Args:
+            iteration: Current iteration number
+            best_cost: Best solution cost so far
+            current_cost: Current solution cost
+            destroy_weights: Current destroy operator weights
+            repair_weights: Current repair operator weights
+            new_best: Whether this iteration found a new best solution
+        """
+        self.iterations.append(iteration)
+        self.best_costs.append(best_cost)
+        self.current_costs.append(current_cost)
+        self.destroy_weights_history.append(destroy_weights.copy())
+        self.repair_weights_history.append(repair_weights.copy())
+        
+        if new_best:
+            self.best_found_iterations.append(iteration)
+            self.best_found_costs.append(best_cost)
+    
+    def plot_solution_evolution(self, save_path: str = None, show: bool = True):
+        """
+        Plot solution cost evolution over iterations.
+        Shows best cost, current cost, and marks when new best solutions are found.
+        
+        Args:
+            save_path: Optional path to save figure
+            show: Whether to display the plot
+        """
+        fig, ax = plt.subplots(figsize=(12, 6))
+        
+        # Plot best and current costs
+        ax.plot(self.iterations, self.best_costs, 'b-', linewidth=2, 
+                label='Best Solution', alpha=0.8)
+        ax.plot(self.iterations, self.current_costs, 'gray', linewidth=0.5, 
+                label='Current Solution', alpha=0.5)
+        
+        # Mark iterations where new best was found
+        if self.best_found_iterations:
+            ax.scatter(self.best_found_iterations, self.best_found_costs, 
+                      color='red', s=80, zorder=5, marker='*',
+                      label='New Best Found', alpha=0.8)
+        
+        ax.set_xlabel('Iteration', fontsize=12)
+        ax.set_ylabel('Solution Cost', fontsize=12)
+        ax.set_title('ALNS Solution Evolution', fontsize=14, fontweight='bold')
+        ax.legend(loc='upper right')
+        ax.grid(True, alpha=0.3)
+        
+        # Add improvement stats
+        if len(self.best_costs) > 0:
+            initial_cost = self.best_costs[0]
+            final_cost = self.best_costs[-1]
+            improvement = ((initial_cost - final_cost) / initial_cost) * 100
+            
+            stats_text = f'Initial: {initial_cost:.2f}\n'
+            stats_text += f'Final: {final_cost:.2f}\n'
+            stats_text += f'Improvement: {improvement:.1f}%'
+            
+            ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+                   verticalalignment='top', bbox=dict(boxstyle='round', 
+                   facecolor='wheat', alpha=0.5), fontsize=10)
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Solution evolution plot saved to {save_path}")
+        
+        if show:
+            plt.show()
+        else:
+            plt.close()
+    
+    def plot_operator_weights(self, save_path: str = None, show: bool = True):
+        """
+        Plot operator weight evolution over iterations as relative usage (0-1).
+        Creates two subplots: one for destroy operators, one for repair operators.
+        
+        Args:
+            save_path: Optional path to save figure
+            show: Whether to display the plot
+        """
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+        
+        # Convert to numpy arrays for easier plotting
+        destroy_weights = np.array(self.destroy_weights_history)
+        repair_weights = np.array(self.repair_weights_history)
+
+        # Normalize to probabilities (relative usage) with small epsilon to avoid divide-by-zero
+        destroy_sums = destroy_weights.sum(axis=1, keepdims=True) + 1e-10
+        repair_sums = repair_weights.sum(axis=1, keepdims=True) + 1e-10
+        destroy_norm = destroy_weights / destroy_sums
+        repair_norm = repair_weights / repair_sums
+        
+        # Define colors for operators
+        colors = plt.cm.Set2(np.linspace(0, 1, max(len(self.destroy_op_names), 
+                                                    len(self.repair_op_names))))
+        
+        # Plot destroy operator relative usage
+        for i, name in enumerate(self.destroy_op_names):
+            ax1.plot(self.iterations, destroy_norm[:, i], 
+                    label=name, linewidth=2, color=colors[i], alpha=0.8)
+        
+        ax1.set_xlabel('Iteration', fontsize=12)
+        ax1.set_ylabel('Relative Usage (0-1)', fontsize=12)
+        ax1.set_ylim(0, 1)
+        ax1.set_title('Destroy Operator Relative Usage Evolution', fontsize=14, fontweight='bold')
+        ax1.legend(loc='best')
+        ax1.grid(True, alpha=0.3)
+        
+        # Plot repair operator relative usage
+        for i, name in enumerate(self.repair_op_names):
+            ax2.plot(self.iterations, repair_norm[:, i], 
+                    label=name, linewidth=2, color=colors[i], alpha=0.8)
+        
+        ax2.set_xlabel('Iteration', fontsize=12)
+        ax2.set_ylabel('Relative Usage (0-1)', fontsize=12)
+        ax2.set_ylim(0, 1)
+        ax2.set_title('Repair Operator Relative Usage Evolution', fontsize=14, fontweight='bold')
+        ax2.legend(loc='best')
+        ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Operator weights plot saved to {save_path}")
+        
+        if show:
+            plt.show()
+        else:
+            plt.close()
+    
+    def plot_all(self, prefix: str = 'alns', save: bool = True, show: bool = True):
+        """
+        Generate all plots.
+        
+        Args:
+            prefix: Prefix for saved filenames
+            save: Whether to save plots
+            show: Whether to display plots
+        """
+        solution_path = f'{prefix}_solution_evolution.png' if save else None
+        weights_path = f'{prefix}_operator_weights.png' if save else None
+        
+        self.plot_solution_evolution(save_path=solution_path, show=show)
+        self.plot_operator_weights(save_path=weights_path, show=show)
+    
+    def get_summary_stats(self) -> Dict:
+        """
+        Get summary statistics of the search.
+        
+        Returns:
+            Dictionary with summary statistics
+        """
+        if not self.best_costs:
+            return {}
+        
+        initial_cost = self.best_costs[0]
+        final_cost = self.best_costs[-1]
+        improvement = ((initial_cost - final_cost) / initial_cost) * 100
+        
+        return {
+            'initial_cost': initial_cost,
+            'final_cost': final_cost,
+            'improvement_percent': improvement,
+            'total_iterations': len(self.iterations),
+            'new_best_found': len(self.best_found_iterations),
+            'last_improvement_iter': self.best_found_iterations[-1] if self.best_found_iterations else 0
+        }
+    
+    def print_summary(self):
+        """Print summary statistics."""
+        stats = self.get_summary_stats()
+        
+        if not stats:
+            print("No data recorded yet.")
+            return
+        
+        print("\n" + "="*50)
+        print("ALNS SEARCH SUMMARY")
+        print("="*50)
+        print(f"Initial Cost:        {stats['initial_cost']:.2f}")
+        print(f"Final Cost:          {stats['final_cost']:.2f}")
+        print(f"Improvement:         {stats['improvement_percent']:.2f}%")
+        print(f"Total Iterations:    {stats['total_iterations']}")
+        print(f"New Best Found:      {stats['new_best_found']} times")
+        print(f"Last Improvement:    Iteration {stats['last_improvement_iter']}")
+        print("="*50)
+
+
+# Example usage
+if __name__ == "__main__":
+    # Simulate ALNS data
+    import random
+    
+    destroy_ops = ['Random Removal', 'Worst Removal', 'Cluster Removal']
+    repair_ops = ['Greedy Insertion', 'Regret Insertion']
+    
+    tracker = ALNSTracker(destroy_ops, repair_ops)
+    
+    # Simulate 1000 iterations
+    best_cost = 1000.0
+    current_cost = 1000.0
+    d_weights = [1.0, 1.0, 1.0]
+    r_weights = [1.0, 1.0]
+    
+    for i in range(1000):
+        # Simulate cost changes
+        current_cost = best_cost + random.uniform(-50, 100)
+        new_best = False
+        
+        if random.random() < 0.05:  # 5% chance of improvement
+            best_cost *= 0.98
+            new_best = True
+        
+        # Simulate weight changes
+        d_weights = [w + random.uniform(-0.1, 0.1) for w in d_weights]
+        r_weights = [w + random.uniform(-0.1, 0.1) for w in r_weights]
+        
+        tracker.record_iteration(i, best_cost, current_cost, d_weights, r_weights, new_best)
+    
+    # Generate plots
+    tracker.plot_all(prefix='example', save=True, show=False)
+    tracker.print_summary()
+    
+    print("\nExample plots generated!")
+
+
+====================
+FILE: ./utils/ml.py
+====================
+import numpy as np
+import random
+
+class QLearningAgent:
+    def __init__(self, num_destroy, num_repair, alpha=0.1, gamma=0.9, epsilon=0.1):
+        self.alpha = alpha      
+        self.gamma = gamma      
+        self.epsilon = epsilon  
+        
+        # States: 0=Early, 1=Mid, 2=Late
+        self.q_destroy = np.zeros((3, num_destroy))
+        self.q_repair = np.zeros((3, num_repair))
+        
+        # Initialize with optimistic values to encourage exploration
+        self.q_destroy.fill(5.0)
+        self.q_repair.fill(5.0)
+        
+    def get_state(self, current_iter, max_iter):
+        progress = current_iter / max_iter
+        if progress < 0.33: return 0  
+        if progress < 0.66: return 1  
+        return 2                      
+
+    def select_action(self, state, q_table):
+        if random.random() < self.epsilon:
+            return random.randint(0, len(q_table[state]) - 1) 
+        else:
+            values = q_table[state]
+            random_noise = np.random.random(values.shape) * 1e-4 # Tiny noise for tie-breaking
+            return np.argmax(values + random_noise)
+
+    def update(self, state, action, reward, next_state, q_table):
+        best_next = np.max(q_table[next_state])
+        current_q = q_table[state][action]
+        q_table[state][action] = current_q + \
+                                 self.alpha * (reward + self.gamma * best_next - current_q)
+
+====================
+FILE: ./utils/utils.py
+====================
+from .feasibility import check_capacity_feasibility, check_time_window_feasibility
+from .cost import calculate_route_cost
+import os
+import pandas as pd
+import numpy as np
+from .read_data import SolomonInstance
+import glob
+
+class Solution:
+    def __init__(self, routes, vehicles):
+        self.routes = [r[:] for r in routes] 
+        self.vehicles = vehicles
+        self._cost = None
+    
+    def copy(self):
+        return Solution(self.routes, self.vehicles)
+    
+def evaluate_solution(solution, distance_matrix_array, customer_addr_idx, depot_idx=0):
+    """Calculates total cost including penalties for dummy vehicle."""
+    total_cost = 0.0
+    
+    # Real routes
+    for i, route in enumerate(solution.routes[:-1]):
+        if route:
+            total_cost += calculate_route_cost(
+                route, customer_addr_idx, distance_matrix_array, depot_idx
+            )
+    
+    # Dummy route penalty
+    unassigned_count = len(solution.routes[-1])
+    total_cost += unassigned_count * 1000
+    
+    solution._cost = total_cost
+    return total_cost
+
+def precompute_nearest_neighbors(distance_matrix_array, num_neighbors=20):
+    n = distance_matrix_array.shape[0]
+    k = min(num_neighbors, n - 1)
+    neighbors = []
+    for i in range(n):
+        row = distance_matrix_array[i]
+        idxs = np.argpartition(row, k)[:k+1]
+        idxs = idxs[idxs != i]
+        if idxs.shape[0] > k:
+            order = np.argsort(row[idxs])[:k]
+            idxs = idxs[order]
+        else:
+            order = np.argsort(row[idxs])
+            idxs = idxs[order]
+        neighbors.append(set(map(int, idxs.tolist())))
+    return neighbors
+
+def simple_relocate(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, depot_idx=0):
+    """
+    INTER-ROUTE: Moves single customers between routes.
+    Runs faster than segment relocation, good for continuous balancing.
+    """
+    improved = False
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
+    
+    for r_src_idx, src_route in enumerate(solution.routes[:-1]):
+        if not src_route: continue
+        
+        for i, cust in enumerate(src_route):
+            cust_demand = customer_arrays['demand'][cust-1]
+            cust_addr = customer_addr_idx[cust-1]
+            
+            # Calculate savings of removing customer
+            cost_pre = calculate_route_cost(src_route, customer_addr_idx, distance_matrix_array, depot_idx)
+            temp_src = src_route[:i] + src_route[i+1:]
+            cost_post = calculate_route_cost(temp_src, customer_addr_idx, distance_matrix_array, depot_idx)
+            savings = cost_pre - cost_post
+            
+            # Try inserting into other routes
+            for r_dst_idx, dst_route in enumerate(solution.routes[:-1]):
+                if r_src_idx == r_dst_idx: continue
+                
+                # 1. Capacity Check
+                dst_demand = sum(customer_arrays['demand'][c-1] for c in dst_route)
+                if dst_demand + cust_demand > capacities[r_dst_idx]: continue
+                
+                # 2. Find best insertion
+                best_delta = float('inf')
+                best_pos = -1
+                
+                dst_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in dst_route] + [depot_idx]
+                
+                for j in range(len(dst_route) + 1):
+                    prev = dst_addrs[j]
+                    next_node = dst_addrs[j+1]
+                    
+                    # Marginal cost of insertion
+                    increase = (distance_matrix_array[prev, cust_addr] + 
+                                distance_matrix_array[cust_addr, next_node] - 
+                                distance_matrix_array[prev, next_node])
+                    
+                    # Net change
+                    delta = increase - savings
+                    
+                    if delta < -1e-3: # Improvement found
+                        if delta < best_delta:
+                            # 3. Feasibility Check (Lazy)
+                            candidate_dst = dst_route[:j] + [cust] + dst_route[j:]
+                            if check_time_window_feasibility(candidate_dst, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                                best_delta = delta
+                                best_pos = j
+                
+                if best_pos != -1:
+                    solution.routes[r_src_idx] = temp_src
+                    solution.routes[r_dst_idx].insert(best_pos, cust)
+                    return True # First improvement
+                    
+    return False
+
+def cross_route_segment_relocation(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, depot_idx=0):
+    """
+    HEAVY INTER-ROUTE: Relocates segments (chains of 1-3 customers).
+    Computational expensive, run periodically.
+    """
+    improved = False
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
+    
+    # Try relocating segments of 1, 2, 3 customers
+    for seg_len in [1, 2, 3]:
+        for r_idx in range(len(solution.routes) - 1):
+            route_src = solution.routes[r_idx]
+            if len(route_src) < seg_len: continue
+            
+            for seg_start in range(len(route_src) - seg_len + 1):
+                segment = route_src[seg_start:seg_start + seg_len]
+                
+                # Source route without segment
+                new_src = route_src[:seg_start] + route_src[seg_start + seg_len:]
+                src_cost_old = calculate_route_cost(route_src, customer_addr_idx, distance_matrix_array, depot_idx)
+                
+                for r_dst in range(len(solution.routes) - 1):
+                    if r_dst == r_idx: continue
+                    route_dst = solution.routes[r_dst]
+                    
+                    for pos in range(len(route_dst) + 1):
+                        new_dst = route_dst[:pos] + segment + route_dst[pos:]
+                        
+                        # Capacity Check
+                        src_demand = sum(customer_arrays['demand'][c-1] for c in new_src)
+                        dst_demand = sum(customer_arrays['demand'][c-1] for c in new_dst)
+                        if src_demand > capacities[r_idx] or dst_demand > capacities[r_dst]:
+                            continue
+                        
+                        # Time Window Check
+                        if not check_time_window_feasibility(new_src, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx): continue
+                        if not check_time_window_feasibility(new_dst, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx): continue
+                        
+                        # Cost Check
+                        src_cost_new = calculate_route_cost(new_src, customer_addr_idx, distance_matrix_array, depot_idx)
+                        dst_cost_old = calculate_route_cost(route_dst, customer_addr_idx, distance_matrix_array, depot_idx)
+                        dst_cost_new = calculate_route_cost(new_dst, customer_addr_idx, distance_matrix_array, depot_idx)
+                        
+                        delta = (src_cost_new - src_cost_old) + (dst_cost_new - dst_cost_old)
+                        
+                        if delta < -1e-3:
+                            solution.routes[r_idx] = new_src
+                            solution.routes[r_dst] = new_dst
+                            return True
+    return improved
+
+def two_opt_local_search(solution, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx=0):
+    """INTRA-ROUTE: Untangles crossings within single routes."""
+    improved = False
+    for r_idx, route in enumerate(solution.routes[:-1]):
+        if len(route) < 3: continue
+        
+        best_route_cost = calculate_route_cost(route, customer_addr_idx, distance_matrix_array, depot_idx)
+        route_improved = True
+        
+        while route_improved:
+            route_improved = False
+            for i in range(len(route) - 1):
+                for j in range(i + 1, len(route)):
+                    if j - i == 1: continue 
+                    
+                    new_route = route[:i] + route[i:j+1][::-1] + route[j+1:]
+                    new_cost = calculate_route_cost(new_route, customer_addr_idx, distance_matrix_array, depot_idx)
+                    
+                    if new_cost < best_route_cost - 1e-4:
+                        if check_time_window_feasibility(new_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                            route[:] = new_route 
+                            best_route_cost = new_cost
+                            route_improved = True
+                            improved = True
+                            break 
+                if route_improved: break
+    return improved
+
+def create_initial_solution(num_customers, num_real_vehicles):
+    routes = [[] for _ in range(num_real_vehicles)]
+    routes.append(list(range(1, num_customers + 1)))
+    vehicles = ['Standard'] * num_real_vehicles + ['dummy']
+    return Solution(routes, vehicles)
+
+def load_vrp_data(customers_file='../instances/c1_6_1/customers.csv', vehicles_file='../instances/c1_6_1/vehicles.csv', distance_matrix_file='../instances/c1_6_1/distance_matrix.csv'):
+    # Get the directory of this script (Benchmark/utils/)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Make paths relative to script directory
+    customers_file = os.path.join(script_dir, customers_file)
+    vehicles_file = os.path.join(script_dir, vehicles_file)
+    distance_matrix_file = os.path.join(script_dir, distance_matrix_file)
+    
+    customers_df = pd.read_csv(customers_file)
+    vehicles_df = pd.read_csv(vehicles_file)
+    distance_matrix_df = pd.read_csv(distance_matrix_file, index_col=0)
+    distance_matrix_df = distance_matrix_df.apply(pd.to_numeric, errors='coerce')
+
+    vehicles_df.set_index('vehicle_type', inplace=True)
+
+    # Keep time windows in minutes (Solomon standard format)
+    # No conversion needed - travel time = distance (1 distance unit = 1 minute)
+    
+    distance_matrix_array = distance_matrix_df.to_numpy(dtype=np.float32)
+    
+    # Map customer IDs to matrix indices (depot is index 0, customers start at 1)
+    customer_addr_idx = customers_df['customer_id'].astype(np.int32).to_numpy()
+
+    # Create compact arrays for fast checking
+    def _num(col, default=0.0, scale=1.0, dtype=np.float32):
+        vals = customers_df[col].fillna(default)
+        if scale != 1.0:
+            vals = vals * scale
+        return vals.to_numpy(dtype)
+
+    customer_arrays = {
+        'demand': _num('demand', 0.0, 1.0, np.float32),
+        'tw_start': _num('ready_time', 0.0, 1.0, np.float32),  # Keep in minutes
+        'tw_end': _num('due_date', 0.0, 1.0, np.float32),      # Keep in minutes
+        'service_time': _num('service_time', 0.0, 1.0, np.float32),  # Keep in minutes
+    }
+
+    return customers_df, vehicles_df, distance_matrix_df, distance_matrix_array, customer_addr_idx, customer_arrays
+
+def load_raw_solomon_data(file_path):
+    """
+    Parses a raw Solomon .txt file and returns the data structures 
+    required by the VRPTWEnv.
+    """
+    # 1. Parse the text file using your existing parser
+    instance = SolomonInstance(file_path)
+    
+    # 2. Create Vehicles DataFrame (Compatible with env expectations)
+    # We create a single 'Standard' vehicle type with the capacity from the file
+    vehicles_df = pd.DataFrame({
+        'vehicle_type': ['Standard'],
+        'capacity': [instance.vehicle_capacity],
+        'num_vehicles': [instance.num_vehicles]
+    }).set_index('vehicle_type')
+    
+    # 3. Create Customers DataFrame
+    customers_df = instance.create_customers_csv()
+    
+    # 4. Create Distance Matrix Array
+    dist_matrix_df = instance.create_distance_matrix()
+    dist_matrix = dist_matrix_df.to_numpy(dtype=np.float32)
+    
+    # 5. Generate Numpy Arrays for Fast Access (Same logic as existing load_vrp_data)
+    # Map customer IDs to matrix indices (Depot is 0, Cust 1 is 1)
+    customer_addr_idx = customers_df['customer_id'].astype(np.int32).to_numpy()
+
+    def _num(col, default=0.0, scale=1.0, dtype=np.float32):
+        vals = customers_df[col].fillna(default)
+        if scale != 1.0: vals = vals * scale
+        return vals.to_numpy(dtype)
+
+    cust_arrays = {
+        'demand': _num('demand'),
+        'tw_start': _num('ready_time'),
+        'tw_end': _num('due_date'),
+        'service_time': _num('service_time'),
+    }
+    
+    return customers_df, vehicles_df, dist_matrix, customer_addr_idx, cust_arrays
+
+def load_all_solomon_instances(instances_dir):
+    """Loads ALL .txt files in the directory into a list of data tuples."""
+    file_paths = glob.glob(os.path.join(instances_dir, "*.txt"))
+    all_data = []
+    
+    print(f"Loading {len(file_paths)} instances...")
+    for path in file_paths:
+        try:
+            # Re-use your existing single loader
+            data = load_raw_solomon_data(path) 
+            all_data.append(data)
+        except Exception as e:
+            print(f"Skipping {path}: {e}")
+            
+    return all_data
+
+====================
+FILE: ./utils/read_data.py
+====================
+"""
+Read Solomon benchmark instances and generate CSV files similar to real-life data format.
+Creates distance matrix and vehicle information as CSV files.
+"""
+
+import pandas as pd
+import numpy as np
+from typing import List, Tuple, Dict
+import os
+
+
+class SolomonInstance:
+    """Parse and store Solomon benchmark instance data."""
+    
+    def __init__(self, file_path: str):
+        # Make path relative to script directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.file_path = os.path.join(script_dir, file_path)
+        
+        self.instance_name = None
+        self.num_vehicles = None
+        self.vehicle_capacity = None
+        self.customers = []  # List of customer dictionaries
+        self.depot = None
+        
+        self._parse_file()
+    
+    def _parse_file(self):
+        """Parse Solomon instance file."""
+        with open(self.file_path, 'r') as f:
+            lines = f.readlines()
+        
+        # Get instance name
+        self.instance_name = lines[0].strip()
+        
+        # Parse vehicle information
+        for i, line in enumerate(lines):
+            if 'VEHICLE' in line:
+                capacity_line = lines[i + 2].strip().split()
+                self.num_vehicles = int(capacity_line[0])
+                self.vehicle_capacity = float(capacity_line[1])
+                break
+        
+        # Parse customer data
+        reading_customers = False
+        
+        for line in lines:
+            if 'CUST NO.' in line:
+                reading_customers = True
+                continue
+            
+            if reading_customers and line.strip():
+                parts = line.strip().split()
+                if len(parts) >= 7:
+                    customer = {
+                        'id': int(parts[0]),
+                        'x': float(parts[1]),
+                        'y': float(parts[2]),
+                        'demand': float(parts[3]),
+                        'ready_time': float(parts[4]),
+                        'due_date': float(parts[5]),
+                        'service_time': float(parts[6])
+                    }
+                    
+                    if customer['id'] == 0:
+                        self.depot = customer
+                    else:
+                        self.customers.append(customer)
+    
+    def calculate_euclidean_distance(self, loc1: Dict, loc2: Dict) -> float:
+        """Calculate Euclidean distance between two locations."""
+        dx = loc1['x'] - loc2['x']
+        dy = loc1['y'] - loc2['y']
+        return np.sqrt(dx**2 + dy**2)
+    
+    def create_distance_matrix(self) -> pd.DataFrame:
+        """
+        Create distance matrix CSV similar to real-life data.
+        Row 0/Column 0 is depot, then customers 1, 2, 3, ...
+        """
+        # All locations (depot + customers)
+        all_locations = [self.depot] + self.customers
+        n = len(all_locations)
+        
+        # Create distance matrix
+        distances = np.zeros((n, n))
+        
+        for i in range(n):
+            for j in range(n):
+                distances[i, j] = self.calculate_euclidean_distance(
+                    all_locations[i], 
+                    all_locations[j]
+                )
+        
+        # Create DataFrame with proper labels
+        labels = ['Depot'] + [f'Customer_{c["id"]}' for c in self.customers]
+        df = pd.DataFrame(distances, index=labels, columns=labels)
+        
+        return df
+    
+    def create_customers_csv(self) -> pd.DataFrame:
+        """
+        Create customers CSV similar to real-life data format.
+        """
+        customers_data = []
+        
+        for cust in self.customers:
+            customers_data.append({
+                'customer_id': cust['id'],
+                'x_coord': cust['x'],
+                'y_coord': cust['y'],
+                'demand': cust['demand'],
+                'ready_time': cust['ready_time'],
+                'due_date': cust['due_date'],
+                'service_time': cust['service_time']
+            })
+        
+        return pd.DataFrame(customers_data)
+    
+    def create_vehicles_csv(self) -> pd.DataFrame:
+        """
+        Create vehicles CSV similar to real-life data format.
+        """
+        vehicle_data = {
+            'vehicle_type': ['Standard'],
+            'capacity': [self.vehicle_capacity],
+            'num_vehicles': [self.num_vehicles]
+        }
+        
+        return pd.DataFrame(vehicle_data)
+    
+    def create_depot_csv(self) -> pd.DataFrame:
+        """Create depot information CSV."""
+        depot_data = {
+            'location': ['Depot'],
+            'x_coord': [self.depot['x']],
+            'y_coord': [self.depot['y']],
+            'ready_time': [self.depot['ready_time']],
+            'due_date': [self.depot['due_date']]
+        }
+        
+        return pd.DataFrame(depot_data)
+    
+    def export_to_csv(self, output_dir: str = None):
+        """
+        Export all data to CSV files.
+        
+        Args:
+            output_dir: Directory to save CSV files. If None, uses instance name as folder.
+        """
+        if output_dir is None:
+            output_dir = self.instance_name
+        
+        # Create output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Export distance matrix
+        distance_matrix = self.create_distance_matrix()
+        distance_matrix.to_csv(os.path.join(output_dir, 'distance_matrix.csv'))
+        print(f"✓ Created {output_dir}/distance_matrix.csv ({len(distance_matrix)}x{len(distance_matrix)})")
+        
+        # Export customers
+        customers_df = self.create_customers_csv()
+        customers_df.to_csv(os.path.join(output_dir, 'customers.csv'), index=False)
+        print(f"✓ Created {output_dir}/customers.csv ({len(customers_df)} customers)")
+        
+        # Export vehicles
+        vehicles_df = self.create_vehicles_csv()
+        vehicles_df.to_csv(os.path.join(output_dir, 'vehicles.csv'), index=False)
+        print(f"✓ Created {output_dir}/vehicles.csv ({self.num_vehicles} vehicles)")
+        
+        # Export depot
+        depot_df = self.create_depot_csv()
+        depot_df.to_csv(os.path.join(output_dir, 'depot.csv'), index=False)
+        print(f"✓ Created {output_dir}/depot.csv")
+        
+        return output_dir
+    
+    def __repr__(self):
+        return (f"SolomonInstance({self.instance_name}, "
+                f"customers={len(self.customers)}, "
+                f"vehicles={self.num_vehicles}, "
+                f"capacity={self.vehicle_capacity})")
+
+
+def load_solomon_instance(file_path: str) -> SolomonInstance:
+    """Load a Solomon benchmark instance from file."""
+    return SolomonInstance(file_path)
+
+
+def process_all_instances(data_dir: str = 'data', output_base_dir: str = 'processed'):
+    """
+    Process all Solomon instances in a directory and create CSV files for each.
+    
+    Args:
+        data_dir: Directory containing .txt benchmark files
+        output_base_dir: Base directory for output CSV files
+    """
+    import glob
+    
+    # Get all .txt files
+    txt_files = glob.glob(os.path.join(data_dir, '*.txt'))
+    
+    print(f"Found {len(txt_files)} benchmark instances in {data_dir}/")
+    print("=" * 60)
+    
+    for txt_file in sorted(txt_files):
+        print(f"\nProcessing {os.path.basename(txt_file)}...")
+        
+        instance = load_solomon_instance(txt_file)
+        instance_output_dir = os.path.join(output_base_dir, instance.instance_name)
+        instance.export_to_csv(instance_output_dir)
+    
+    print("\n" + "=" * 60)
+    print(f"All instances processed! CSV files saved in {output_base_dir}/")
+
+
+if __name__ == "__main__":
+    # Example: Load and process a single instance
+    print("=" * 60)
+    print("Example: Loading RC208 instance")
+    print("=" * 60)
+    
+    instance = load_solomon_instance('Instances/C1_6_1.TXT')
+    print(f"\n{instance}")
+    print(f"\nDepot: x={instance.depot['x']}, y={instance.depot['y']}")
+    print(f"First 5 customers:")
+    for c in instance.customers[:5]:
+        print(f"  Customer {c['id']}: demand={c['demand']}, "
+              f"window=[{c['ready_time']}, {c['due_date']}], "
+              f"coords=({c['x']}, {c['y']})")
+    
+    # Create CSV files
+    print("\n" + "=" * 60)
+    print("Creating CSV files for RC208...")
+    print("=" * 60)
+    instance.export_to_csv()
+    
+    # Show sample of distance matrix
+    print("\n" + "=" * 60)
+    print("Sample Distance Matrix (first 5x5):")
+    print("=" * 60)
+    dist_matrix = instance.create_distance_matrix()
+    print(dist_matrix.iloc[:5, :5].round(2))
+    
+    # Show vehicles info
+    print("\n" + "=" * 60)
+    print("Vehicles Information:")
+    print("=" * 60)
+    print(instance.create_vehicles_csv())
+
+
+
+====================
+FILE: ./utils/cost.py
+====================
+# from feasibility import load_vrp_data
+
+def calculate_route_cost(solution, customer_addr_idx, time_matrix_array, depot_idx):
+    """
+    Calculates the total travel time for a route.
+    Optimized for raw list/array access.
+    
+    Note: solution contains 1-indexed customer indices (1-100 for 100 customers, Solomon format)
+    """
+    if not solution:
+        return 0.0
+
+    total_travel_time = 0.0
+    last_idx = depot_idx
+
+    # Traverse route from depot through all customers
+    # solution is expected to be a list of 1-indexed customer IDs (1-100 for 100 customers)
+    for cust_idx in solution:
+        current_idx = customer_addr_idx[cust_idx-1]
+        total_travel_time += time_matrix_array[last_idx, current_idx]
+        last_idx = current_idx
+
+    # Return to depot
+    total_travel_time += time_matrix_array[last_idx, depot_idx]
+
+    return total_travel_time
+    
+# customers_df, vehicles_df, distance_matrix_df, distance_matrix_array, customer_addr_idx, customer_arrays = load_vrp_data()
+
+# RC105 Best Known Solution (Bent & Van Hentenryck, 2001)
+# 13 vehicles, distance: 1513.7
+# solution = [
+#     [90, 53, 66, 56],
+#     [63, 62, 67, 84, 51, 85, 91],
+#     [72, 71, 81, 41, 54, 96, 94, 93],
+#     [65, 82, 12, 11, 87, 59, 97, 75, 58],
+#     [33, 76, 89, 48, 21, 25, 24],
+#     [98, 14, 47, 15, 16, 9, 10, 13, 17],
+#     [42, 61, 8, 6, 46, 4, 3, 1, 100],
+#     [39, 36, 44, 38, 40, 37, 35, 43, 70],
+#     [83, 19, 23, 18, 22, 49, 20, 77],
+#     [31, 29, 27, 30, 28, 26, 32, 34, 50, 80],
+#     [92, 95, 64, 99, 52, 86, 57, 74],
+#     [69, 88, 78, 73, 60],
+#     [2, 45, 5, 7, 79, 55, 68]
+# ]
+
+# total_cost = 0.0
+# for i, route in enumerate(solution, 1):
+#     route_cost = calculate_route_cost(
+#         route,
+#         customer_addr_idx,
+#         distance_matrix_array,
+#         depot_idx=0
+#     )
+#     total_cost += route_cost
+#     print(f"Route {i}: {len(route)} customers, cost={route_cost:.2f}")
+
+# print(f"\nTotal distance: {total_cost:.2f}")
+# print(f"Number of vehicles: {len(solution)}")
+
+====================
+FILE: ./utils/operators.py
+====================
+import random
+import numpy as np
+from utils.feasibility import check_capacity_feasibility, check_time_window_feasibility
+
+# ---------------------------------------------------------
+#  OPERATORS (Destroy)
+# ---------------------------------------------------------
+
+def random_removal(solution, num_to_remove, **kwargs):
+    new_sol = solution.copy()
+    candidates = []
+    for r_idx, route in enumerate(new_sol.routes[:-1]):
+        for cust in route:
+            candidates.append(cust)
+            
+    if not candidates: return new_sol
+
+    num_to_remove = min(len(candidates), num_to_remove)
+    to_remove = set(random.sample(candidates, num_to_remove))
+    
+    for i in range(len(new_sol.routes) - 1):
+        new_sol.routes[i] = [c for c in new_sol.routes[i] if c not in to_remove]
+        
+    new_sol.routes[-1].extend(list(to_remove))
+    return new_sol
+
+def worst_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, depot_idx=0, **kwargs):
+    new_sol = solution.copy()
+    savings_list = [] 
+
+    for r_idx, route in enumerate(new_sol.routes[:-1]):
+        if not route: continue
+        
+        # Use delta cost instead of full recalculation
+        for i, cust in enumerate(route):
+            cust_addr = customer_addr_idx[cust-1]
+            prev_addr = depot_idx if i == 0 else customer_addr_idx[route[i-1]-1]
+            next_addr = depot_idx if i == len(route)-1 else customer_addr_idx[route[i+1]-1]
+            
+            removed_cost = distance_matrix_array[prev_addr, cust_addr] + distance_matrix_array[cust_addr, next_addr]
+            added_cost = distance_matrix_array[prev_addr, next_addr]
+            savings = removed_cost - added_cost
+            
+            savings_list.append((savings, cust))
+    
+    savings_list.sort(key=lambda x: x[0], reverse=True)
+    
+    targets = set()
+    while len(targets) < num_to_remove and savings_list:
+        idx = int(len(savings_list) * (random.random()**3)) 
+        targets.add(savings_list.pop(idx)[1])
+            
+    for i in range(len(new_sol.routes) - 1):
+        new_sol.routes[i] = [c for c in new_sol.routes[i] if c not in targets]
+        
+    new_sol.routes[-1].extend(list(targets))
+    return new_sol
+
+def cluster_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, **kwargs):
+    new_sol = solution.copy()
+    candidates = []
+    for r in new_sol.routes[:-1]:
+        candidates.extend(r)
+    
+    if not candidates: return new_sol
+    
+    center_cust = random.choice(candidates)
+    center_idx = customer_addr_idx[center_cust-1]
+    
+    distances = []
+    for cust in candidates:
+        if cust == center_cust: continue
+        idx = customer_addr_idx[cust-1]
+        dist = distance_matrix_array[center_idx, idx]
+        distances.append((dist, cust))
+    
+    distances.sort(key=lambda x: x[0])
+    
+    targets = {center_cust}
+    for _, cust in distances[:num_to_remove-1]:
+        targets.add(cust)
+    
+    for i in range(len(new_sol.routes) - 1):
+        new_sol.routes[i] = [c for c in new_sol.routes[i] if c not in targets]
+        
+    new_sol.routes[-1].extend(list(targets))
+    return new_sol
+
+def shaw_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, customer_arrays, **kwargs):
+    new_sol = solution.copy()
+    candidates = []
+    for r in new_sol.routes[:-1]:
+        candidates.extend(r)
+    
+    if not candidates: return new_sol
+    
+    seed = random.choice(candidates)
+    removed = {seed}
+    
+    w_dist, w_time, w_dem = 9.0, 3.0, 2.0
+    
+    max_dist = np.max(distance_matrix_array) if np.max(distance_matrix_array) > 0 else 1.0
+    max_time = np.max(customer_arrays['tw_end']) if np.max(customer_arrays['tw_end']) > 0 else 1.0
+    max_dem = np.max(customer_arrays['demand']) if np.max(customer_arrays['demand']) > 0 else 1.0
+
+    while len(removed) < num_to_remove and len(removed) < len(candidates):
+        ref_cust = random.choice(list(removed))
+        ref_idx = customer_addr_idx[ref_cust-1]
+        
+        ref_tw = customer_arrays['tw_start'][ref_cust-1]
+        ref_d = customer_arrays['demand'][ref_cust-1]
+        
+        scored_candidates = []
+        sample_pool = [c for c in candidates if c not in removed]
+        if len(sample_pool) > 50:
+            sample_pool = random.sample(sample_pool, 50)
+            
+        for cust in sample_pool:
+            c_idx = customer_addr_idx[cust-1]
+            dist_val = distance_matrix_array[ref_idx, c_idx] / max_dist
+            
+            time_val = abs(ref_tw - customer_arrays['tw_start'][cust-1]) / max_time
+            dem_val = abs(ref_d - customer_arrays['demand'][cust-1]) / max_dem
+            
+            relatedness = w_dist * dist_val + w_time * time_val + w_dem * dem_val
+            scored_candidates.append((relatedness, cust))
+        
+        scored_candidates.sort(key=lambda x: x[0])
+        
+        if scored_candidates:
+            idx = random.randint(0, min(2, len(scored_candidates)-1))
+            removed.add(scored_candidates[idx][1])
+        else:
+            break
+            
+    for i in range(len(new_sol.routes) - 1):
+        new_sol.routes[i] = [c for c in new_sol.routes[i] if c not in removed]
+        
+    new_sol.routes[-1].extend(list(removed))
+    return new_sol
+
+def least_used_vehicle_removal(solution, num_to_remove, **kwargs):
+    """Prioritizes emptying the vehicles with the fewest customers."""
+    new_sol = solution.copy()
+    
+    routes_info = []
+    for i, route in enumerate(new_sol.routes[:-1]):
+        if len(route) > 0:
+            routes_info.append((i, len(route)))
+    
+    random.shuffle(routes_info)
+    routes_info.sort(key=lambda x: x[1])
+    
+    targets = set()
+    current_removed = 0
+    
+    for r_idx, r_len in routes_info:
+        if current_removed + r_len <= num_to_remove:
+            targets.update(new_sol.routes[r_idx])
+            current_removed += r_len
+        elif current_removed == 0:
+            subset = random.sample(new_sol.routes[r_idx], num_to_remove)
+            targets.update(subset)
+            break
+        else:
+            break
+            
+    for i in range(len(new_sol.routes) - 1):
+        new_sol.routes[i] = [c for c in new_sol.routes[i] if c not in targets]
+        
+    new_sol.routes[-1].extend(list(targets))
+    return new_sol
+
+# ---------------------------------------------------------
+#  OPERATORS (Repair)
+# ---------------------------------------------------------
+
+def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, neighbor_sets, depot_idx=0, **kwargs):
+    new_sol = solution.copy()
+    unassigned = list(new_sol.routes[-1])
+    new_sol.routes[-1] = []
+    random.shuffle(unassigned) 
+    
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+    
+    def softmax_costs(costs):
+        costs = np.array(costs, dtype=np.float64)
+        scores = -costs 
+        scores -= scores.max()
+        exp = np.exp(scores)
+        return exp / exp.sum()
+    
+    for cust in unassigned:
+        cust_addr = customer_addr_idx[cust-1]
+        cust_demand = customer_arrays['demand'][cust-1]
+        allowed = neighbor_sets[cust_addr]
+        
+        feasible = []  
+        
+        for r_idx in range(len(new_sol.routes) - 1):
+            route = new_sol.routes[r_idx]
+            if sum(customer_arrays['demand'][c-1] for c in route) + cust_demand > capacities[r_idx]:
+                continue
+                
+            route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
+            
+            for i in range(len(route) + 1):
+                prev = route_addrs[i]
+                if prev != depot_idx and prev not in allowed:
+                   
+                    continue
+
+                next_node = route_addrs[i+1]
+                delta = (distance_matrix_array[prev, cust_addr] + 
+                         distance_matrix_array[cust_addr, next_node] - 
+                         distance_matrix_array[prev, next_node])
+                candidate = route[:i] + [cust] + route[i:]
+                if check_time_window_feasibility(candidate, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    feasible.append((delta, r_idx, i))
+        
+        if feasible:
+            deltas = [f[0] for f in feasible]
+            probs = softmax_costs(deltas)
+            choice_idx = np.random.choice(len(feasible), p=probs)
+            _, r_idx, pos = feasible[choice_idx]
+            new_sol.routes[r_idx].insert(pos, cust)
+            candidate = route[:i] + [cust] + route[i:]
+            if check_time_window_feasibility(candidate, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                feasible.append((delta, r_idx, i))
+        
+        if feasible:
+            deltas = [f[0] for f in feasible]
+            probs = softmax_costs(deltas)
+            choice_idx = np.random.choice(len(feasible), p=probs)
+            _, r_idx, pos = feasible[choice_idx]
+            new_sol.routes[r_idx].insert(pos, cust)
+        else:
+            new_sol.routes[-1].append(cust)
+    return new_sol
+
+def regret_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, neighbor_sets, depot_idx=0, **kwargs):
+    """2-Regret Insertion."""
+    new_sol = solution.copy()
+    unassigned = list(new_sol.routes[-1])
+    new_sol.routes[-1] = []
+    capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+
+    def softmax_costs(costs):
+        costs = np.array(costs, dtype=np.float64)
+        scores = -costs
+        scores -= scores.max()
+        exp = np.exp(scores)
+        return exp / exp.sum()
+    
+    while unassigned:
+        best_regret = -1
+        best_cust = None
+        best_pos = None
+        found_any = False
+        
+        current_batch = unassigned if len(unassigned) < 30 else random.sample(unassigned, 30)
+        
+        for cust in current_batch:
+            cust_addr = customer_addr_idx[cust-1]
+            allowed = neighbor_sets[cust_addr]
+            valid_insertions = []  
+            
+            for r_idx in range(len(new_sol.routes) - 1):
+                route = new_sol.routes[r_idx]
+                if sum(customer_arrays['demand'][c-1] for c in route) + customer_arrays['demand'][cust-1] > capacities[r_idx]:
+                    continue
+                
+                route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
+                for i in range(len(route) + 1):
+                    prev = route_addrs[i]
+                    if prev != depot_idx and prev not in allowed: continue
+                    
+                    next_node = route_addrs[i+1]
+                    cost = (distance_matrix_array[prev, cust_addr] + 
+                            distance_matrix_array[cust_addr, next_node] - 
+                            distance_matrix_array[prev, next_node])
+                    valid_insertions.append((cost, r_idx, i))
+            
+            feasible = []
+            for cost, r, i in valid_insertions:
+                cand = new_sol.routes[r][:i] + [cust] + new_sol.routes[r][i:]
+                if check_time_window_feasibility(cand, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    feasible.append((cost, r, i))
+            
+            if not feasible:
+                continue
+            found_any = True
+            
+            costs = [f[0] for f in feasible]
+            probs = softmax_costs(costs)
+            chosen_idx = np.random.choice(len(feasible), p=probs)
+            chosen_cost, chosen_r, chosen_i = feasible[chosen_idx]
+            
+            feasible_sorted = sorted(feasible, key=lambda x: x[0])
+            regret = feasible_sorted[1][0] - feasible_sorted[0][0] if len(feasible_sorted) > 1 else float('inf')
+            
+            if regret > best_regret:
+                best_regret = regret
+                best_cust = cust
+                best_pos = (chosen_r, chosen_i)
+        
+        if not found_any:
+            remaining = set(current_batch)
+            for c in remaining:
+                new_sol.routes[-1].append(c)
+                unassigned.remove(c)
+        else:
+            new_sol.routes[best_pos[0]].insert(best_pos[1], best_cust)
+            unassigned.remove(best_cust)
+            
+    return new_sol
+
+====================
+FILE: ./alns/alns.py
+====================
+import random
+import sys
+import os
+import math
+
+# Add Benchmark directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.utils import evaluate_solution, create_initial_solution, precompute_nearest_neighbors, load_vrp_data
+from utils.operators import random_removal, greedy_insertion
+
+# --- Configuration ---
+DUMMY_VEHICLE_NAME = 'dummy'
+DUMMY_PENALTY = 10000.0
+MAX_ITERATIONS = 10000
+SEGMENT_SIZE = 50
+START_TEMPERATURE = 1000.0 
+
+def run_alns():
+    customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
+    
+    destroy_ops = [random_removal]
+    repair_ops = [greedy_insertion]
+
+    num_customers = len(customers_df)
+    try:
+        num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+    except KeyError:
+        num_real_vehicles = 25 
+
+    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
+    
+    current_sol = create_initial_solution(num_customers, num_real_vehicles)
+    evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
+
+    best_sol = current_sol.copy()
+    best_sol._cost = current_sol._cost
+
+    print(f"Initial Cost: {current_sol._cost:.2f}")
+    
+    # Simulated annealing temperature
+    curr_temp = START_TEMPERATURE
+    cooling_rate = (0.5 / START_TEMPERATURE) ** (1.0 / MAX_ITERATIONS)
+
+    for it in range(MAX_ITERATIONS):
+        # Simple destroy/repair
+        n_remove = random.randint(int(num_customers * 0.1), int(num_customers * 0.2))
+        destroyed = destroy_ops[0](current_sol, n_remove, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays)
+        repaired = repair_ops[0](destroyed, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays, vehicles_df=vehicles_df, neighbor_sets=neighbor_sets)
+        evaluate_solution(repaired, dist_matrix, cust_addr_idx)
+
+        delta = repaired._cost - current_sol._cost
+        
+        
+        accepted = False
+        if delta < 0:
+            accepted = True
+        elif random.random() < math.exp(-delta / curr_temp):
+            accepted = True
+        
+        if accepted:
+            current_sol = repaired
+            if repaired._cost < best_sol._cost:
+                best_sol = repaired.copy()
+                best_sol._cost = repaired._cost
+                print(f"Iter {it} [New Best]: {repaired._cost:.2f}")
+        
+        if (it + 1) % SEGMENT_SIZE == 0:
+            print(f"--- Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
+        
+        curr_temp *= cooling_rate
+
+    print("\n" + "="*40)
+    print("FINAL RESULTS")
+    print("="*40)
+    print(f"Best Cost: {best_sol._cost:.2f}")
+    
+    print("Routes:")
+    for i, r in enumerate(best_sol.routes[:-1]):
+        if r:
+            load = sum(cust_arrays['demand'][c-1] for c in r)
+            print(f"V{i+1}: {r} | Load: {load}")
+
+
+if __name__ == "__main__":
+    run_alns()
+
+====================
+FILE: ./alns/alns_SA.py
+====================
+import numpy as np
+import random
+import math
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.utils import (
+    precompute_nearest_neighbors, 
+    create_initial_solution, 
+    evaluate_solution, 
+    load_vrp_data,
+    two_opt_local_search,
+    cross_route_segment_relocation,
+    simple_relocate)
+
+from utils.ml import QLearningAgent
+from utils.visualization import ALNSTracker
+from utils.operators import (
+    random_removal, 
+    shaw_removal, 
+    worst_removal, 
+    cluster_removal,
+    greedy_insertion,
+    regret_insertion)
+
+# --- Configuration ---
+DUMMY_VEHICLE_NAME = 'dummy'
+DUMMY_PENALTY = 10000.0
+MAX_ITERATIONS = 10000
+SEGMENT_SIZE = 50 
+
+# SA Parameters
+START_TEMPERATURE = 200.0
+WARMUP_ITERATIONS = 100   
+ESCAPE_THRESHOLD = 1000
+
+# Scoring (Rewards for RL)
+SCORE_NEW_GLOBAL_BEST = 35
+SCORE_BETTER_THAN_CURRENT = 10
+SCORE_ACCEPTED_WORSE = 5
+SCORE_REJECTED = 0
+
+# Roulette Wheel Parameters
+WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weight)
+
+
+# ---------------------------------------------------------
+#  MAIN ALNS LOOP
+# ---------------------------------------------------------
+
+def run_alns():
+    customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
+    
+    # Setup operators & Tracker
+    # Added Shaw Removal to the list
+    destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal]
+    repair_ops = [greedy_insertion, regret_insertion]
+    
+    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw']
+    repair_names = ['Greedy', 'Regret']
+    tracker = ALNSTracker(destroy_names, repair_names)
+
+    num_customers = len(customers_df)
+    num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+    
+    print("Precomputing nearest neighbors...")
+    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
+    
+    # Initialize roulette wheel weights (start equal for all operators)
+    destroy_weights = np.ones(len(destroy_ops))
+    repair_weights = np.ones(len(repair_ops))
+    
+    # Initial Solution
+    current_sol = create_initial_solution(num_customers, num_real_vehicles)
+    evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
+    
+    best_sol = current_sol.copy()
+    best_sol._cost = current_sol._cost
+    curr_temp = START_TEMPERATURE
+    
+    print(f"Initial Cost: {current_sol._cost:.2f}")
+    
+    # --- Warm-up ---
+    print(f"Warming up ({WARMUP_ITERATIONS} iters)...")
+    deltas = []
+    MAX_FEASIBLE_COST = 100000  # Cap for filtering out dummy-penalty solutions
+    
+    for it in range(WARMUP_ITERATIONS):
+        # Only use Random/Greedy for fast warmup
+        d_idx = 0 
+        r_idx = 0
+        
+        n_remove = random.randint(int(num_customers * 0.1), int(num_customers * 0.2))
+        temp_sol = destroy_ops[d_idx](current_sol, n_remove, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays)
+        temp_sol = repair_ops[r_idx](temp_sol, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays, vehicles_df=vehicles_df, neighbor_sets=neighbor_sets)
+        
+        c = evaluate_solution(temp_sol, dist_matrix, cust_addr_idx)
+        
+        # Only track deltas from feasible solutions (no dummy penalties)
+        if c < MAX_FEASIBLE_COST and current_sol._cost < MAX_FEASIBLE_COST:
+            deltas.append(abs(c - current_sol._cost))
+        
+        if c < current_sol._cost:
+            current_sol = temp_sol
+            if c < best_sol._cost:
+                best_sol = temp_sol.copy()
+                best_sol._cost = c
+
+    # Temperature Calibration based on feasible solution variations
+    if deltas and len(deltas) > 10:
+        typical_delta = np.mean(deltas)
+    else:
+        # Fallback: use 10% of typical good solution cost as delta
+        typical_delta = 3500.0  # ~10% of 35000 (mid-range good solution)
+    
+    FINAL_TEMPERATURE = 0.5
+    curr_temp = typical_delta / math.log(2.0) 
+    cooling_rate = (FINAL_TEMPERATURE / curr_temp) ** (1.0 / (MAX_ITERATIONS - WARMUP_ITERATIONS))
+    
+    print(f"Starting Main Loop. Typical Delta: {typical_delta:.1f}, Start Temp: {curr_temp:.1f}, Cooling: {cooling_rate:.5f}")
+    
+    # --- Main Loop ---
+    for it in range(WARMUP_ITERATIONS, MAX_ITERATIONS):
+        
+        # Select operators using roulette wheel (weighted random)
+        d_probs = destroy_weights / destroy_weights.sum()
+        r_probs = repair_weights / repair_weights.sum()
+        d_idx = np.random.choice(len(destroy_ops), p=d_probs)
+        r_idx = np.random.choice(len(repair_ops), p=r_probs)
+        
+        # Dynamic removal size (10% to 30% of customers)
+        low = int(num_customers * 0.10)
+        high = int(num_customers * 0.30)
+        n_remove = random.randint(low, high)
+        
+        destroyed = destroy_ops[d_idx](
+            current_sol, n_remove, 
+            distance_matrix_array=dist_matrix, 
+            customer_addr_idx=cust_addr_idx,
+            customer_arrays=cust_arrays
+        )
+        
+        repaired = repair_ops[r_idx](
+            destroyed, 
+            distance_matrix_array=dist_matrix, 
+            customer_addr_idx=cust_addr_idx,
+            customer_arrays=cust_arrays, 
+            vehicles_df=vehicles_df, 
+            neighbor_sets=neighbor_sets
+        )
+        
+        new_cost = evaluate_solution(repaired, dist_matrix, cust_addr_idx)
+        current_cost = current_sol._cost
+        
+        # Acceptance
+        accepted = False
+        new_global_best = False
+        reward = SCORE_REJECTED
+        delta = new_cost - current_cost
+        
+        if delta < 0:
+            accepted = True
+            if new_cost < best_sol._cost:
+                new_global_best = True
+                reward = SCORE_NEW_GLOBAL_BEST
+                best_sol = repaired.copy()
+                best_sol._cost = new_cost
+                print(f"Iter {it} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
+            else:
+                reward = SCORE_BETTER_THAN_CURRENT
+        else:
+            if random.random() < math.exp(-delta / curr_temp):
+                accepted = True
+                reward = SCORE_ACCEPTED_WORSE
+        
+        if accepted:
+            current_sol = repaired
+        
+        # Update operator weights based on performance (roulette wheel)
+        destroy_weights[d_idx] = WEIGHT_DECAY * destroy_weights[d_idx] + (1 - WEIGHT_DECAY) * reward
+        repair_weights[r_idx] = WEIGHT_DECAY * repair_weights[r_idx] + (1 - WEIGHT_DECAY) * reward
+        
+        # Track progress
+        if it % 10 == 0:
+            tracker.record_iteration(it, best_sol._cost, current_sol._cost,
+                                     destroy_weights.tolist(),
+                                     repair_weights.tolist(),
+                                     new_global_best)
+          
+        if (it + 1) % SEGMENT_SIZE == 0:
+            print(f"--- Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} | Current: {current_sol._cost:.2f} ---")
+
+        curr_temp *= cooling_rate
+
+    # Final Report
+    print("\n" + "="*40)
+    print("FINAL RESULTS")
+    print("="*40)
+    print(f"Best Cost: {best_sol._cost:.2f}")
+    
+    print("Routes:")
+    for i, r in enumerate(best_sol.routes[:-1]):
+        if r:
+            load = sum(cust_arrays['demand'][c-1] for c in r)
+            print(f"V{i+1}: {r} | Load: {load}")
+            
+    tracker.plot_all(prefix='alns_optimized', save=False, show=False)
+
+if __name__ == "__main__":
+    run_alns()
+
+====================
+FILE: ./alns/run_algorithms.py
+====================
+import subprocess
+import time
+import re
+import os
+import statistics
+
+# Configuration
+SCRIPTS = ["alns_SA.py", "alns_RRT.py"]
+NUM_RUNS = 10
+OUTPUT_FILE = "results.txt"
+
+def run_algorithm_realtime(script_name, run_index):
+    """
+    Runs the python script, streams 'New Best' lines to console immediately,
+    captures full output for parsing later.
+    """
+    start_time = time.time()
+    
+    # -u flag forces unbuffered output so we see prints immediately
+    cmd = ["python", "-u", script_name]
+    
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, # Merge errors into stdout
+        text=True,
+        bufsize=1 # Line buffered
+    )
+    
+    captured_lines = []
+    
+    # Read output line by line as it is generated
+    for line in process.stdout:
+        line_clean = line.strip()
+        captured_lines.append(line_clean)
+        
+        # Check if this line indicates a new best solution
+        # Pattern matches: "Iter 123 [New Best]: ..."
+        if "[New Best]" in line_clean:
+            print(f"    [Run {run_index}] >> {line_clean}")
+            
+    # Wait for process to close
+    process.wait()
+    
+    end_time = time.time()
+    runtime = end_time - start_time
+    
+    # Reassemble full output for parsing
+    full_output = "\n".join(captured_lines)
+    
+    # --- Parsing Logic (Same as before) ---
+    
+    # 1. Get the Final Best Cost reported at the end
+    final_cost_match = re.search(r"Best Cost:\s*(\d+\.\d+)", full_output)
+    
+    if final_cost_match:
+        best_cost = float(final_cost_match.group(1))
+    else:
+        best_cost = float('inf') 
+
+    # 2. Find which iteration produced this cost
+    found_on_iter = "Warmup/Init"
+    iter_pattern = re.compile(r"Iter (\d+) \[New Best\]:\s*(\d+\.\d+)")
+    
+    for line in captured_lines:
+        match = iter_pattern.search(line)
+        if match:
+            it_num = match.group(1)
+            cost_at_iter = float(match.group(2))
+            
+            # Match strictly against the final reported cost
+            if abs(cost_at_iter - best_cost) < 0.001:
+                found_on_iter = it_num
+                
+    return best_cost, found_on_iter, runtime
+
+def format_time(seconds):
+    if seconds < 60:
+        return f"{seconds:.2f}s"
+    m = int(seconds // 60)
+    s = seconds % 60
+    return f"{m}m {s:.2f}s"
+
+def main():
+    results_buffer = []
+
+    print(f"Starting Benchmark ({NUM_RUNS} runs per algorithm)...")
+    print("Real-time updates will appear below for every new global best found.")
+    print("-" * 60)
+
+    for script in SCRIPTS:
+        print(f"\nBenchmarking {script}...")
+        print("=" * 60)
+        
+        script_results = []
+        script_costs = []
+        
+        # Header for the text file
+        script_results.append(f"{script.replace('.py', '')}:")
+        
+        for i in range(1, NUM_RUNS + 1):
+            print(f"Starting Run {i}/{NUM_RUNS}...")
+            
+            try:
+                # This function now prints to terminal while running
+                best_cost, found_iter, runtime_sec = run_algorithm_realtime(script, i)
+                
+                script_costs.append(best_cost)
+                
+                # Create the result string
+                line = (f"Run {i}: Best found solution: {best_cost:.2f} | "
+                        f"Found on iteration: {found_iter} | "
+                        f"Runtime: {format_time(runtime_sec)}")
+                
+                script_results.append(line)
+                print(f"Run {i} Finished. Final Cost: {best_cost:.2f}")
+                print("-" * 30)
+                
+            except Exception as e:
+                print(f"Run {i} Failed! ({e})")
+                script_results.append(f"Run {i}: Failed with error {e}")
+
+        # Calculate Average
+        if script_costs:
+            avg_cost = statistics.mean(script_costs)
+            script_results.append(f"Average best found solution: {avg_cost:.2f}")
+        else:
+            script_results.append("Average best found solution: N/A")
+            
+        script_results.append("") # Spacer
+        results_buffer.extend(script_results)
+
+    # Write final report
+    with open(OUTPUT_FILE, "w") as f:
+        f.write("\n".join(results_buffer))
+        
+    print("\n" + "="*60)
+    print(f"Benchmark complete. Results saved to {OUTPUT_FILE}")
+    print("="*60)
+
+if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    main()
+
+====================
+FILE: ./alns/alns_RRT.py
+====================
+import random
+import sys
+import os
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.utils import (
+    precompute_nearest_neighbors, 
+    create_initial_solution, 
+    evaluate_solution, 
+    load_vrp_data,
+    two_opt_local_search,
+    cross_route_segment_relocation,
+    simple_relocate)
+
+from utils.ml import QLearningAgent
+from utils.visualization import ALNSTracker
+from utils.operators import (
+    random_removal, 
+    shaw_removal, 
+    worst_removal, 
+    cluster_removal,
+    greedy_insertion,
+    regret_insertion,
+    least_used_vehicle_removal)
+
+# --- Configuration ---
+DUMMY_VEHICLE_NAME = 'dummy'
+DUMMY_PENALTY = 10000.0
+MAX_ITERATIONS = 10000
+SEGMENT_SIZE = 50 
+
+# RRT Parameters
+WARMUP_ITERATIONS = 100   
+ESCAPE_THRESHOLD = 1000
+RRT_START_PERCENTAGE = 0.10  # Deviation allowed at start (20%)
+
+# Scoring (Rewards for RL)
+SCORE_NEW_GLOBAL_BEST = 35
+SCORE_BETTER_THAN_CURRENT = 10
+SCORE_ACCEPTED_WORSE = 5
+SCORE_REJECTED = 0
+
+# Roulette Wheel Parameters
+WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weight)
+
+# ---------------------------------------------------------
+#  MAIN ALNS LOOP (RRT)
+# ---------------------------------------------------------
+
+def run_alns():
+    customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
+    
+    destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
+    repair_ops = [greedy_insertion, regret_insertion]
+    
+    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw', 'LeastUsed']
+    repair_names = ['Greedy', 'Regret']
+    tracker = ALNSTracker(destroy_names, repair_names)
+
+    num_customers = len(customers_df)
+    num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+   
+    print("Precomputing nearest neighbors...")
+    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
+    
+    # Initialize roulette wheel weights (start equal for all operators)
+    destroy_weights = np.ones(len(destroy_ops))
+    repair_weights = np.ones(len(repair_ops))
+    
+    current_sol = create_initial_solution(num_customers, num_real_vehicles)
+    evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
+    
+    best_sol = current_sol.copy()
+    best_sol._cost = current_sol._cost
+    
+    print(f"Initial Cost: {current_sol._cost:.2f}")
+    print(f"Starting Main Loop (RRT Strategy). Start Deviation: {RRT_START_PERCENTAGE*100}%")
+    
+    for it in range(MAX_ITERATIONS):
+
+        # Select operators using roulette wheel (weighted random)
+        d_probs = destroy_weights / destroy_weights.sum()
+        r_probs = repair_weights / repair_weights.sum()
+        d_idx = np.random.choice(len(destroy_ops), p=d_probs)
+        r_idx = np.random.choice(len(repair_ops), p=r_probs)
+
+        # RRT Threshold
+        remaining_ratio = (MAX_ITERATIONS - it) / MAX_ITERATIONS
+        threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol._cost
+        acceptance_threshold = best_sol._cost + threshold_value
+        
+        low = int(num_customers * 0.10)
+        high = int(num_customers * 0.30)
+        n_remove = random.randint(low, high)
+        
+        destroyed = destroy_ops[d_idx](
+            current_sol, n_remove, 
+            distance_matrix_array=dist_matrix, 
+            customer_addr_idx=cust_addr_idx,
+            customer_arrays=cust_arrays
+        )
+        
+        repaired = repair_ops[r_idx](
+            destroyed, 
+            distance_matrix_array=dist_matrix, 
+            customer_addr_idx=cust_addr_idx,
+            customer_arrays=cust_arrays, 
+            vehicles_df=vehicles_df, 
+            neighbor_sets=neighbor_sets
+        )
+           
+        new_cost = evaluate_solution(repaired, dist_matrix, cust_addr_idx)
+        current_cost = current_sol._cost
+        
+        accepted = False
+        reward = SCORE_REJECTED
+        
+        if new_cost < best_sol._cost:
+            accepted = True
+            new_global_best = True
+            reward = SCORE_NEW_GLOBAL_BEST
+            best_sol = repaired.copy()
+            best_sol._cost = new_cost
+            print(f"Iter {it} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
+            
+        elif new_cost < current_cost:
+            accepted = True
+            reward = SCORE_BETTER_THAN_CURRENT
+            
+        elif new_cost < acceptance_threshold:
+            accepted = True
+            reward = SCORE_ACCEPTED_WORSE
+            
+        if accepted:
+            current_sol = repaired
+
+        # Update operator weights based on performance (roulette wheel)
+        destroy_weights[d_idx] = WEIGHT_DECAY * destroy_weights[d_idx] + (1 - WEIGHT_DECAY) * reward
+        repair_weights[r_idx] = WEIGHT_DECAY * repair_weights[r_idx] + (1 - WEIGHT_DECAY) * reward
+        
+        # Track progress
+        if it % 10 == 0:
+            tracker.record_iteration(it, best_sol._cost, current_sol._cost,
+                                     destroy_weights.tolist(),
+                                     repair_weights)
+            
+        if (it + 1) % SEGMENT_SIZE == 0:
+            print(f"--- Iter {it+1} | Threshold: +{threshold_value:.2f} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
+
+    print("\n" + "="*40)
+    print("FINAL RESULTS")
+    print("="*40)
+    print(f"Best Cost: {best_sol._cost:.2f}")
+    
+    print("Routes:")
+    for i, r in enumerate(best_sol.routes[:-1]):
+        if r:
+            load = sum(cust_arrays['demand'][c-1] for c in r)
+            print(f"V{i+1}: {r} | Load: {load}")
+            
+    tracker.plot_all(prefix='alns_rrt_optimized', save=False, show=False)
+
+if __name__ == "__main__":
+    run_alns()

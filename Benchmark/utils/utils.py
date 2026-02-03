@@ -3,6 +3,8 @@ from .cost import calculate_route_cost
 import os
 import pandas as pd
 import numpy as np
+from .read_data import SolomonInstance
+import glob
 
 class Solution:
     def __init__(self, routes, vehicles):
@@ -235,3 +237,59 @@ def load_vrp_data(customers_file='../instances/c1_6_1/customers.csv', vehicles_f
 
     return customers_df, vehicles_df, distance_matrix_df, distance_matrix_array, customer_addr_idx, customer_arrays
 
+def load_raw_solomon_data(file_path):
+    """
+    Parses a raw Solomon .txt file and returns the data structures 
+    required by the VRPTWEnv.
+    """
+    # 1. Parse the text file using your existing parser
+    instance = SolomonInstance(file_path)
+    
+    # 2. Create Vehicles DataFrame (Compatible with env expectations)
+    # We create a single 'Standard' vehicle type with the capacity from the file
+    vehicles_df = pd.DataFrame({
+        'vehicle_type': ['Standard'],
+        'capacity': [instance.vehicle_capacity],
+        'num_vehicles': [instance.num_vehicles]
+    }).set_index('vehicle_type')
+    
+    # 3. Create Customers DataFrame
+    customers_df = instance.create_customers_csv()
+    
+    # 4. Create Distance Matrix Array
+    dist_matrix_df = instance.create_distance_matrix()
+    dist_matrix = dist_matrix_df.to_numpy(dtype=np.float32)
+    
+    # 5. Generate Numpy Arrays for Fast Access (Same logic as existing load_vrp_data)
+    # Map customer IDs to matrix indices (Depot is 0, Cust 1 is 1)
+    customer_addr_idx = customers_df['customer_id'].astype(np.int32).to_numpy()
+
+    def _num(col, default=0.0, scale=1.0, dtype=np.float32):
+        vals = customers_df[col].fillna(default)
+        if scale != 1.0: vals = vals * scale
+        return vals.to_numpy(dtype)
+
+    cust_arrays = {
+        'demand': _num('demand'),
+        'tw_start': _num('ready_time'),
+        'tw_end': _num('due_date'),
+        'service_time': _num('service_time'),
+    }
+    
+    return customers_df, vehicles_df, dist_matrix, customer_addr_idx, cust_arrays
+
+def load_all_solomon_instances(instances_dir):
+    """Loads ALL .txt files in the directory into a list of data tuples."""
+    file_paths = glob.glob(os.path.join(instances_dir, "*.txt"))
+    all_data = []
+    
+    print(f"Loading {len(file_paths)} instances...")
+    for path in file_paths:
+        try:
+            # Re-use your existing single loader
+            data = load_raw_solomon_data(path) 
+            all_data.append(data)
+        except Exception as e:
+            print(f"Skipping {path}: {e}")
+            
+    return all_data
