@@ -6,6 +6,8 @@ import glob
 import random
 import csv
 import time
+import pandas as pd
+import matplotlib.pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 
 # --- PATH SETUP ---
@@ -16,6 +18,39 @@ sys.path.insert(0, project_root)
 from Benchmark.drl.env import VRPTWEnv
 from Benchmark.drl.agent import PPOAgent
 from Benchmark.utils.utils import load_raw_solomon_data
+
+def generate_moving_average_plot(csv_path, output_path, window=100):
+    """
+    Generates a professional training curve with moving average.
+    """
+    try:
+        # Load Data
+        df = pd.read_csv(csv_path)
+        
+        # Calculate Moving Average (smooths out the noise from switching instances)
+        df['MA_Cost'] = df['Best_Cost'].rolling(window=window).mean()
+        
+        plt.figure(figsize=(10, 6))
+        
+        # Plot Raw Data (faint)
+        plt.plot(df['Episode'], df['Best_Cost'], color='lightgray', alpha=0.3, label='Raw Episode Cost')
+        
+        # Plot Moving Average (bold)
+        plt.plot(df['Episode'], df['MA_Cost'], color='blue', linewidth=2, label=f'Moving Avg (n={window})')
+        
+        plt.title('DRL Training Convergence (Generalist Agent)', fontsize=14)
+        plt.xlabel('Episode', fontsize=12)
+        plt.ylabel('Best Cost Found', fontsize=12)
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        
+        # Save
+        plt.savefig(output_path, dpi=300)
+        print(f"✅ Generated thesis plot: {output_path}")
+        plt.close()
+        
+    except Exception as e:
+        print(f"Could not generate plot: {e}")
 
 def train_drlh():
     # --- LOGGING SETUP ---
@@ -142,6 +177,10 @@ def train_drlh():
     torch.save(agent.policy.state_dict(), final_path)
     writer.close()
     print(f"Training Complete. Final model saved to {final_path}")
+
+    # --- GENERATE THESIS PLOT ---
+    plot_output = os.path.join(current_dir, 'training_curve.png') # Saves next to train.py
+    generate_moving_average_plot(csv_file, plot_output, window=100)
 
 if __name__ == "__main__":
     train_drlh()
