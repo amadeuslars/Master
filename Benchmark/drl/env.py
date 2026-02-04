@@ -23,29 +23,54 @@ class VRPTWEnv(gym.Env):
         self.dist_matrix = dist_matrix
         self.cust_addr_idx = cust_addr_idx
         self.cust_arrays = cust_arrays
-        self.num_customers = len(customers_df)
-        self.num_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+        self.num_customers = len(customers_df['customer_id']) if isinstance(customers_df, dict) else len(customers_df)
+        self.num_vehicles = int(vehicles_df['num_vehicles']) if isinstance(vehicles_df, dict) else int(vehicles_df.loc['Standard', 'num_vehicles'])
         
-        self.neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=15)
+        self.neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=30)
 
         # --- Actions ---
-        self.destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
+        remove_buckets = [(0.02, 0.05), (0.05, 0.10), (0.10, 0.20), (0.20, 0.30), (0.30, 0.40)]
+
+        def bucketed(op, min_pct, max_pct):
+            def _op(solution, **kwargs):
+                low = max(1, int(self.num_customers * min_pct))
+                high = max(low, int(self.num_customers * max_pct))
+                n_remove = np.random.randint(low, high + 1)
+                return op(solution, n_remove, **kwargs)
+            return _op
+
+        base_destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
+        self.destroy_ops = [bucketed(op, lo, hi) for op in base_destroy_ops for lo, hi in remove_buckets]
         self.repair_ops = [greedy_insertion, regret_insertion]
         self.action_pairs = [(d, r) for d in self.destroy_ops for r in self.repair_ops]
         self.action_space = spaces.Discrete(len(self.action_pairs))
         
-        # --- Observation Space ---
-        self.observation_space = spaces.Box(low=0, high=1, shape=(6,), dtype=np.float32)
+        # --- Observation Space (20D: 10 core + 1 sign + 5 one-hot destroy + 1 bucket + 1 repair + 2 reserved) ---
+        state_dim = 20
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(state_dim,), dtype=np.float32)
 
         # --- RRT Params ---
         self.rrt_start_deviation = 0.10 
-        self.max_iterations = 200 
+        self.max_iterations = 1000
 
         # --- Internal State ---
         self.current_sol = None
         self.best_sol = None
         self.iteration = 0
         self.no_improvement_counter = 0
+        
+        # --- State Tracking ---
+        self.last_action = 0
+        self.last_distance = 0
+        self.was_changed = 0
+        self.seen_solutions = set()
+        self.T = 0.0
+        self.cs = 0.0
+        self.reduced_dist = 0.0
+        self.last_destroy_op = 0
+        self.last_bucket = 0
+        self.last_repair = 0
+        self.remaining_ratio = 1.0
         
         # --- Logging Stats (For TensorBoard) ---
         self.action_counts = np.zeros(len(self.action_pairs))
@@ -57,27 +82,46 @@ class VRPTWEnv(gym.Env):
             np.random.seed(seed)
         
         self.iteration = 0
-        self.no_improvement_counter = 0
         self.action_counts.fill(0)
         self.improvement_counts.fill(0)
+        self.no_improvement_counter = 0
+        self.last_action = 0
+        self.was_changed = 0
+        self.T = 0.0
+        self.cs = 0.0
+        self.reduced_dist = 0.0
+        self.seen_solutions = set()
+        self.last_destroy_op = 0
+        self.last_bucket = 0
+        self.last_repair = 0
+        self.remaining_ratio = 1.0
         
         self.current_sol = create_initial_solution(self.num_customers, self.num_vehicles)
         evaluate_solution(self.current_sol, self.dist_matrix, self.cust_addr_idx)
+        self.last_distance = self.current_sol._cost
         
         self.best_sol = self.current_sol.copy()
         self.best_sol._cost = self.current_sol._cost
+        
+        # Track initial solution as seen
+        self.seen_solutions.add(tuple(sorted([tuple(r) for r in self.current_sol.routes])))
         
         return self._get_state(), {}
 
     def step(self, action_idx):
         self.iteration += 1
-        self.action_counts[action_idx] += 1  # Log usage
+        self.action_counts[action_idx] += 1
+        self.last_action = action_idx
+        
+        # Decode action: 50 = 5 destroy × 5 buckets × 2 repair
+        self.last_repair = action_idx % 2
+        bucket_and_destroy = action_idx // 2
+        self.last_bucket = bucket_and_destroy % 5
+        self.last_destroy_op = bucket_and_destroy // 5
         
         # 1. Execute Heuristics
         d_op, r_op = self.action_pairs[action_idx]
-        n_remove = np.random.randint(int(self.num_customers * 0.1), int(self.num_customers * 0.3) + 1)
-        
-        destroyed = d_op(self.current_sol, n_remove, distance_matrix_array=self.dist_matrix, 
+        destroyed = d_op(self.current_sol, distance_matrix_array=self.dist_matrix, 
                          customer_addr_idx=self.cust_addr_idx, customer_arrays=self.cust_arrays)
         
         repaired = r_op(destroyed, distance_matrix_array=self.dist_matrix, 
@@ -87,33 +131,46 @@ class VRPTWEnv(gym.Env):
         new_cost = evaluate_solution(repaired, self.dist_matrix, self.cust_addr_idx)
         prev_cost = self.current_sol._cost
         
+        # Track if solution changed
+        self.was_changed = 1 if new_cost != prev_cost else 0
+        
+        # Track reduced distance
+        self.reduced_dist = prev_cost - new_cost if new_cost < prev_cost else 0.0
+        
         # 2. Acceptance Criteria (RRT)
-        accepted = False
-        reward = 0.0
-        
-        remaining_ratio = max(0, (self.max_iterations - self.iteration) / self.max_iterations)
-        threshold_value = self.rrt_start_deviation * remaining_ratio * self.best_sol._cost
-        
-        if new_cost < self.best_sol._cost + threshold_value:
-            accepted = True
-        
+        self.remaining_ratio = max(0, (self.max_iterations - self.iteration) / self.max_iterations)
+        threshold_value = self.rrt_start_deviation * self.remaining_ratio * self.best_sol._cost
+        accepted = new_cost < (self.best_sol._cost + threshold_value)
+
         # 3. Reward & Improvement Tracking
-        if new_cost < prev_cost:
+        is_improvement = new_cost < prev_cost
+        is_new_best = new_cost < self.best_sol._cost
+
+        if is_improvement:
             self.no_improvement_counter = 0
-            self.improvement_counts[action_idx] += 1 # Log success
-            reward = 1.0
+            self.improvement_counts[action_idx] += 1
         else:
             self.no_improvement_counter += 1
-            reward = -0.1
-            
-        if new_cost < self.best_sol._cost:
+
+        if is_new_best:
             self.best_sol = repaired.copy()
             self.best_sol._cost = new_cost
-            reward = 5.0
-            accepted = True 
-            
+
         if accepted:
             self.current_sol = repaired
+            self.last_distance = new_cost
+
+        if is_improvement:
+            reward = 5.0 if is_new_best else 3.0
+        elif accepted:
+            reward = 1.0
+        else:
+            reward = 0.0
+
+        # Track if this is a new/unseen solution
+        sol_tuple = tuple(sorted([tuple(r) for r in self.current_sol.routes]))
+        unseen = 1.0 if sol_tuple not in self.seen_solutions else 0.0
+        self.seen_solutions.add(sol_tuple)
 
         # 4. Termination
         terminated = False
@@ -130,17 +187,55 @@ class VRPTWEnv(gym.Env):
         return self._get_state(), reward, terminated, truncated, info
 
     def _get_state(self):
-        gap = (self.current_sol._cost - self.best_sol._cost) / (self.best_sol._cost + 1e-5)
-        progress = self.iteration / self.max_iterations
-        stagnation = min(self.no_improvement_counter / 50.0, 1.0)
+        """Return 20D state vector:
+        [0-9]: 10 core features
+        [10]: delta_sign
+        [11-15]: destroy_op one-hot (5 features)
+        [16]: bucket (normalized)
+        [17]: repair
+        [18]: remaining_ratio (1.0=start, 0.0=end) - RRT acceptance flexibility
+        [19]: Reserved
+        """
         
-        total_demand = self.cust_arrays['demand'].sum()
-        num_vehicles_used = len([r for r in self.current_sol.routes[:-1] if r])
-        capacity = self.vehicles_df.iloc[0]['capacity'] if num_vehicles_used > 0 else 1.0
-        avg_load = total_demand / (num_vehicles_used * capacity) if num_vehicles_used > 0 else 1.0
-            
-        unassigned_count = len(self.current_sol.routes[-1])
-        unassigned_feat = unassigned_count / self.num_customers
-        remaining_ratio = max(0, (self.max_iterations - self.iteration) / self.max_iterations)
+        # 10 Core Features
+        reduced_dist = self.reduced_dist
+        dist_from_min = self.current_sol._cost - self.best_sol._cost
+        distance = self.current_sol._cost
+        min_distance = self.best_sol._cost
+        T = self.T
+        cs = self.cs
+        no_improvement = self.no_improvement_counter
+        index_step = self.iteration
+        was_changed = self.was_changed
+        unseen = 1.0 if (tuple(sorted([tuple(r) for r in self.current_sol.routes])) not in self.seen_solutions) else 0.0
         
-        return np.array([gap, progress, stagnation, avg_load, unassigned_feat, remaining_ratio], dtype=np.float32)
+        # 1 Feature: delta_sign
+        delta_sign = -1.0 if reduced_dist > 0 else 1.0
+        
+        # 5 One-hot encoded destroy operators
+        destroy_op_onehot = np.zeros(5, dtype=np.float32)
+        destroy_op_onehot[self.last_destroy_op] = 1.0
+        
+        # 1 Bucket feature (normalized to [0,1])
+        bucket_norm = self.last_bucket / 4.0
+        
+        # 1 Repair feature
+        repair_norm = float(self.last_repair)
+        
+        # 1 Remaining ratio (exploration phase indicator)
+        remaining_ratio = self.remaining_ratio
+        
+        # 1 Reserved for future use
+        reserved = 0.0
+        
+        # Combine into 20D vector
+        state = np.array([
+            reduced_dist, dist_from_min, distance, min_distance, T, cs,
+            no_improvement, index_step, was_changed, unseen,
+            delta_sign,
+            *destroy_op_onehot,
+            bucket_norm, repair_norm,
+            remaining_ratio, reserved
+        ], dtype=np.float32)
+        
+        return state

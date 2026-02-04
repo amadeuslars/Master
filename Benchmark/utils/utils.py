@@ -3,8 +3,7 @@ from .cost import calculate_route_cost
 import os
 import pandas as pd
 import numpy as np
-from .read_data import SolomonInstance
-import glob
+from typing import Dict
 
 class Solution:
     def __init__(self, routes, vehicles):
@@ -14,6 +13,103 @@ class Solution:
     
     def copy(self):
         return Solution(self.routes, self.vehicles)
+    
+class SolomonInstance:
+    """Parse and store Solomon benchmark instance data."""
+    
+    def __init__(self, file_path: str):
+        # Make path relative to script directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.file_path = os.path.join(script_dir, file_path)
+        
+        self.instance_name = None
+        self.num_vehicles = None
+        self.vehicle_capacity = None
+        self.customers = []  # List of customer dictionaries
+        self.depot = None
+        
+        self._parse_file()
+    
+    def _parse_file(self):
+        """Parse Solomon instance file."""
+        with open(self.file_path, 'r') as f:
+            lines = f.readlines()
+        
+        # Get instance name
+        self.instance_name = lines[0].strip()
+        
+        # Parse vehicle information
+        for i, line in enumerate(lines):
+            if 'VEHICLE' in line:
+                capacity_line = lines[i + 2].strip().split()
+                self.num_vehicles = int(capacity_line[0])
+                self.vehicle_capacity = float(capacity_line[1])
+                break
+        
+        # Parse customer data
+        reading_customers = False
+        
+        for line in lines:
+            if 'CUST NO.' in line:
+                reading_customers = True
+                continue
+            
+            if reading_customers and line.strip():
+                parts = line.strip().split()
+                if len(parts) >= 7:
+                    customer = {
+                        'id': int(parts[0]),
+                        'x': float(parts[1]),
+                        'y': float(parts[2]),
+                        'demand': float(parts[3]),
+                        'ready_time': float(parts[4]),
+                        'due_date': float(parts[5]),
+                        'service_time': float(parts[6])
+                    }
+                    
+                    if customer['id'] == 0:
+                        self.depot = customer
+                    else:
+                        self.customers.append(customer)
+    
+    def calculate_euclidean_distance(self, loc1: Dict, loc2: Dict) -> float:
+        """Calculate Euclidean distance between two locations."""
+        dx = loc1['x'] - loc2['x']
+        dy = loc1['y'] - loc2['y']
+        return np.sqrt(dx**2 + dy**2)
+    
+    def create_distance_matrix(self) -> pd.DataFrame:
+        """
+        Create distance matrix CSV similar to real-life data.
+        Row 0/Column 0 is depot, then customers 1, 2, 3, ...
+        """
+        # All locations (depot + customers)
+        all_locations = [self.depot] + self.customers
+        n = len(all_locations)
+        
+        # Create distance matrix
+        distances = np.zeros((n, n))
+        
+        for i in range(n):
+            for j in range(n):
+                distances[i, j] = self.calculate_euclidean_distance(
+                    all_locations[i], 
+                    all_locations[j]
+                )
+        
+        # Create DataFrame with proper labels
+        labels = ['Depot'] + [f'Customer_{c["id"]}' for c in self.customers]
+        df = pd.DataFrame(distances, index=labels, columns=labels)
+        
+        return df
+    
+    def __repr__(self):
+        return (f"SolomonInstance({self.instance_name}, "
+                f"customers={len(self.customers)}, "
+                f"vehicles={self.num_vehicles}, "
+                f"capacity={self.vehicle_capacity})")
+    
+
     
 def evaluate_solution(solution, distance_matrix_array, customer_addr_idx, depot_idx=0):
     """Calculates total cost including penalties for dummy vehicle."""
@@ -28,7 +124,7 @@ def evaluate_solution(solution, distance_matrix_array, customer_addr_idx, depot_
     
     # Dummy route penalty
     unassigned_count = len(solution.routes[-1])
-    total_cost += unassigned_count * 1000
+    total_cost += unassigned_count * 100
     
     solution._cost = total_cost
     return total_cost
@@ -197,99 +293,55 @@ def create_initial_solution(num_customers, num_real_vehicles):
     vehicles = ['Standard'] * num_real_vehicles + ['dummy']
     return Solution(routes, vehicles)
 
-def load_vrp_data(customers_file='../instances/c1_6_1/customers.csv', vehicles_file='../instances/c1_6_1/vehicles.csv', distance_matrix_file='../instances/c1_6_1/distance_matrix.csv'):
-    # Get the directory of this script (Benchmark/utils/)
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Make paths relative to script directory
-    customers_file = os.path.join(script_dir, customers_file)
-    vehicles_file = os.path.join(script_dir, vehicles_file)
-    distance_matrix_file = os.path.join(script_dir, distance_matrix_file)
-    
-    customers_df = pd.read_csv(customers_file)
-    vehicles_df = pd.read_csv(vehicles_file)
-    distance_matrix_df = pd.read_csv(distance_matrix_file, index_col=0)
-    distance_matrix_df = distance_matrix_df.apply(pd.to_numeric, errors='coerce')
-
-    vehicles_df.set_index('vehicle_type', inplace=True)
-
-    # Keep time windows in minutes (Solomon standard format)
-    # No conversion needed - travel time = distance (1 distance unit = 1 minute)
-    
-    distance_matrix_array = distance_matrix_df.to_numpy(dtype=np.float32)
-    
-    # Map customer IDs to matrix indices (depot is index 0, customers start at 1)
-    customer_addr_idx = customers_df['customer_id'].astype(np.int32).to_numpy()
-
-    # Create compact arrays for fast checking
-    def _num(col, default=0.0, scale=1.0, dtype=np.float32):
-        vals = customers_df[col].fillna(default)
-        if scale != 1.0:
-            vals = vals * scale
-        return vals.to_numpy(dtype)
-
-    customer_arrays = {
-        'demand': _num('demand', 0.0, 1.0, np.float32),
-        'tw_start': _num('ready_time', 0.0, 1.0, np.float32),  # Keep in minutes
-        'tw_end': _num('due_date', 0.0, 1.0, np.float32),      # Keep in minutes
-        'service_time': _num('service_time', 0.0, 1.0, np.float32),  # Keep in minutes
-    }
-
-    return customers_df, vehicles_df, distance_matrix_df, distance_matrix_array, customer_addr_idx, customer_arrays
-
 def load_raw_solomon_data(file_path):
     """
     Parses a raw Solomon .txt file and returns the data structures 
-    required by the VRPTWEnv.
+    required by the VRPTWEnv. Skips CSV conversion and goes directly 
+    from parsed .txt to numpy arrays.
     """
-    # 1. Parse the text file using your existing parser
+    # 1. Parse the text file
     instance = SolomonInstance(file_path)
     
-    # 2. Create Vehicles DataFrame (Compatible with env expectations)
-    # We create a single 'Standard' vehicle type with the capacity from the file
-    vehicles_df = pd.DataFrame({
-        'vehicle_type': ['Standard'],
-        'capacity': [instance.vehicle_capacity],
-        'num_vehicles': [instance.num_vehicles]
-    }).set_index('vehicle_type')
+    # 2. Create Vehicles dict (minimal structure)
+    vehicles_df = {
+        'vehicle_type': 'Standard',
+        'capacity': instance.vehicle_capacity,
+        'num_vehicles': instance.num_vehicles
+    }
     
-    # 3. Create Customers DataFrame
-    customers_df = instance.create_customers_csv()
+    # 3. Build numpy arrays directly from parsed customers
+    n_customers = len(instance.customers)
+    customer_ids = np.array([c['id'] for c in instance.customers], dtype=np.int32)
+    customer_x = np.array([c['x'] for c in instance.customers], dtype=np.float32)
+    customer_y = np.array([c['y'] for c in instance.customers], dtype=np.float32)
     
-    # 4. Create Distance Matrix Array
-    dist_matrix_df = instance.create_distance_matrix()
-    dist_matrix = dist_matrix_df.to_numpy(dtype=np.float32)
+    # 4. Build distance matrix directly (Depot is index 0, customers 1..n)
+    all_locs = [(instance.depot['x'], instance.depot['y'])] + [(c['x'], c['y']) for c in instance.customers]
+    n = len(all_locs)
+    dist_matrix = np.zeros((n, n), dtype=np.float32)
     
-    # 5. Generate Numpy Arrays for Fast Access (Same logic as existing load_vrp_data)
-    # Map customer IDs to matrix indices (Depot is 0, Cust 1 is 1)
-    customer_addr_idx = customers_df['customer_id'].astype(np.int32).to_numpy()
-
-    def _num(col, default=0.0, scale=1.0, dtype=np.float32):
-        vals = customers_df[col].fillna(default)
-        if scale != 1.0: vals = vals * scale
-        return vals.to_numpy(dtype)
-
+    for i in range(n):
+        for j in range(n):
+            dx = all_locs[i][0] - all_locs[j][0]
+            dy = all_locs[i][1] - all_locs[j][1]
+            dist_matrix[i, j] = np.sqrt(dx**2 + dy**2)
+    
+    # 5. Customer address indices (customer ID to matrix index mapping)
+    customer_addr_idx = customer_ids.astype(np.int32)
+    
+    # 6. Build customer arrays dict
     cust_arrays = {
-        'demand': _num('demand'),
-        'tw_start': _num('ready_time'),
-        'tw_end': _num('due_date'),
-        'service_time': _num('service_time'),
+        'demand': np.array([c['demand'] for c in instance.customers], dtype=np.float32),
+        'tw_start': np.array([c['ready_time'] for c in instance.customers], dtype=np.float32),
+        'tw_end': np.array([c['due_date'] for c in instance.customers], dtype=np.float32),
+        'service_time': np.array([c['service_time'] for c in instance.customers], dtype=np.float32),
+    }
+    
+    # 7. Return minimal customers_df for compatibility
+    customers_df = {
+        'customer_id': customer_ids,
+        'x_coord': customer_x,
+        'y_coord': customer_y,
     }
     
     return customers_df, vehicles_df, dist_matrix, customer_addr_idx, cust_arrays
-
-def load_all_solomon_instances(instances_dir):
-    """Loads ALL .txt files in the directory into a list of data tuples."""
-    file_paths = glob.glob(os.path.join(instances_dir, "*.txt"))
-    all_data = []
-    
-    print(f"Loading {len(file_paths)} instances...")
-    for path in file_paths:
-        try:
-            # Re-use your existing single loader
-            data = load_raw_solomon_data(path) 
-            all_data.append(data)
-        except Exception as e:
-            print(f"Skipping {path}: {e}")
-            
-    return all_data
