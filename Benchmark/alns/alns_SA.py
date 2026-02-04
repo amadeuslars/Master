@@ -60,7 +60,7 @@ def run_alns():
     destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal]
     repair_ops = [greedy_insertion, regret_insertion]
     
-    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw']
+    destroy_names = ['Random_XS', 'Random_S', 'Random_M', 'Random_L', 'Random_XL', 'Worst', 'Cluster', 'Shaw']
     repair_names = ['Greedy', 'Regret']
     tracker = ALNSTracker(destroy_names, repair_names)
 

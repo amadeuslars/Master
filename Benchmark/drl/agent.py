@@ -9,16 +9,20 @@ class ActorCritic(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim=128):
         super(ActorCritic, self).__init__()
         
-        # Critic: Estimates Value of state
+        # Critic: Estimates Value of state (2 Hidden Layers)
         self.critic = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), # 2nd Hidden Layer
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)
         )
         
-        # Actor: Outputs probabilities for actions
+        # Actor: Outputs probabilities for actions (2 Hidden Layers)
         self.actor = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim), # 2nd Hidden Layer
             nn.ReLU(),
             nn.Linear(hidden_dim, action_dim),
             nn.Softmax(dim=-1)

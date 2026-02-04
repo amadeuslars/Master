@@ -63,9 +63,9 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
     buckets = ['2-5%', '5-10%', '10-20%', '20-30%', '30-40%']
     repair_ops = ['greedy', 'regret']
     
-    while not done:
+        while not done:
         step += 1
-        action, _states = model.predict(obs)
+        action, _states = model.predict(obs, deterministic=deterministic)
         
         # Decode action
         destroy_idx = action // 10  # 0-4 (5 destroy ops × 5 buckets = 25, so destroy+bucket pair = action // 2)
