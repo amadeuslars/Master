@@ -15,7 +15,6 @@ from utils.utils import (
     simple_relocate,
     load_raw_solomon_data)
 
-from utils.ml import QLearningAgent
 from utils.visualization import ALNSTracker
 from utils.operators import (
     random_removal,
@@ -60,7 +59,7 @@ def run_alns():
     destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal]
     repair_ops = [greedy_insertion, regret_insertion]
     
-    destroy_names = ['Random_XS', 'Random_S', 'Random_M', 'Random_L', 'Random_XL', 'Worst', 'Cluster', 'Shaw']
+    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw']
     repair_names = ['Greedy', 'Regret']
     tracker = ALNSTracker(destroy_names, repair_names)
 
@@ -126,11 +125,9 @@ def run_alns():
     # --- Main Loop ---
     for it in range(WARMUP_ITERATIONS, MAX_ITERATIONS):
         
-        # Select operators using roulette wheel (weighted random)
-        d_probs = destroy_weights / destroy_weights.sum()
-        r_probs = repair_weights / repair_weights.sum()
-        d_idx = np.random.choice(len(destroy_ops), p=d_probs)
-        r_idx = np.random.choice(len(repair_ops), p=r_probs)
+        # Select operators uniformly at random
+        d_idx = np.random.choice(len(destroy_ops))
+        r_idx = np.random.choice(len(repair_ops))
         
         # Dynamic removal size (10% to 30% of customers)
         low = int(num_customers * 0.02)
@@ -179,10 +176,6 @@ def run_alns():
         
         if accepted:
             current_sol = repaired
-        
-        # Update operator weights based on performance (roulette wheel)
-        destroy_weights[d_idx] = WEIGHT_DECAY * destroy_weights[d_idx] + (1 - WEIGHT_DECAY) * reward
-        repair_weights[r_idx] = WEIGHT_DECAY * repair_weights[r_idx] + (1 - WEIGHT_DECAY) * reward
         
         # Track progress
         if it % 10 == 0:
