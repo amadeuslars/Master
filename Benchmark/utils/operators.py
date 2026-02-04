@@ -175,152 +175,152 @@ def least_used_vehicle_removal(solution, num_to_remove, **kwargs):
 #  OPERATORS (Repair)
 # ---------------------------------------------------------
 
-def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, neighbor_sets, depot_idx=0, **kwargs):
+def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
+    """
+    Greedy insertion with Blended Softmax selection.
+    Uses negative exponential costs to favor low-distance insertions while allowing exploration.
+    """
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
-    random.shuffle(unassigned) 
     
-    # Get capacity from dict (all vehicles have same capacity)
+    # Shuffle processing order to ensure the DRL agent explores different insertion sequences
+    random.shuffle(unassigned)
+    
     capacity = vehicles_df['capacity'] if isinstance(vehicles_df, dict) else vehicles_df.loc['Standard', 'capacity']
-    capacities = [capacity for _ in new_sol.vehicles[:-1]]
-    
-    if neighbor_sets is None:
-        neighbor_sets = [set(range(len(distance_matrix_array))) for _ in range(len(distance_matrix_array))]
-    
-    def softmax_costs(costs):
-        costs = np.array(costs, dtype=np.float64)
-        scores = -costs 
-        scores -= scores.max()
-        exp = np.exp(scores)
-        return exp / exp.sum()
     
     for cust in unassigned:
         cust_addr = customer_addr_idx[cust-1]
         cust_demand = customer_arrays['demand'][cust-1]
-        allowed = neighbor_sets[cust_addr]
         
-        feasible = []  
-        
+        # Store all feasible insertion points for THIS customer
+        feasible_points = [] # List of tuples: (delta_cost, route_index, position)
+
         for r_idx in range(len(new_sol.routes) - 1):
             route = new_sol.routes[r_idx]
-            if sum(customer_arrays['demand'][c-1] for c in route) + cust_demand > capacities[r_idx]:
+            
+            # 1. Capacity check
+            if sum(customer_arrays['demand'][c-1] for c in route) + cust_demand > capacity:
                 continue
-                
+            
             route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
             
             for i in range(len(route) + 1):
-                prev = route_addrs[i]
-                if prev != depot_idx and prev not in allowed:
-                   
-                    continue
-
-                next_node = route_addrs[i+1]
+                prev, nxt = route_addrs[i], route_addrs[i+1]
+                
+                # Marginal cost calculation
                 delta = (distance_matrix_array[prev, cust_addr] + 
-                         distance_matrix_array[cust_addr, next_node] - 
-                         distance_matrix_array[prev, next_node])
-                candidate = route[:i] + [cust] + route[i:]
-                if check_time_window_feasibility(candidate, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                    feasible.append((delta, r_idx, i))
-        
-        if feasible:
-            deltas = [f[0] for f in feasible]
-            probs = softmax_costs(deltas)
-            choice_idx = np.random.choice(len(feasible), p=probs)
-            _, r_idx, pos = feasible[choice_idx]
-            new_sol.routes[r_idx].insert(pos, cust)
-            candidate = route[:i] + [cust] + route[i:]
-            if check_time_window_feasibility(candidate, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                feasible.append((delta, r_idx, i))
-        
-        if feasible:
-            deltas = [f[0] for f in feasible]
-            probs = softmax_costs(deltas)
-            choice_idx = np.random.choice(len(feasible), p=probs)
-            _, r_idx, pos = feasible[choice_idx]
-            new_sol.routes[r_idx].insert(pos, cust)
+                         distance_matrix_array[cust_addr, nxt] - 
+                         distance_matrix_array[prev, nxt])
+                
+                # 2. Time Window check
+                candidate_route = route[:i] + [cust] + route[i:]
+                if check_time_window_feasibility(candidate_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    feasible_points.append((delta, r_idx, i))
+
+        # 3. Softmax Selection
+        if feasible_points:
+            # Extract costs
+            costs = np.array([p[0] for p in feasible_points], dtype=np.float64)
+            
+            # Stabilization: subtract min cost to prevent overflow in exp()
+            # We use negative costs because we want LOWER cost to have HIGHER probability
+            norm_costs = (costs - np.min(costs)) / (temperature + 1e-9)
+            exp_neg_costs = np.exp(-norm_costs)
+            probs = exp_neg_costs / np.sum(exp_neg_costs)
+            
+            # Choose one insertion point based on the distribution
+            idx = np.random.choice(len(feasible_points), p=probs)
+            _, selected_r, selected_p = feasible_points[idx]
+            
+            new_sol.routes[selected_r].insert(selected_p, cust)
         else:
+            # If no route is feasible, return the customer to the dummy route
             new_sol.routes[-1].append(cust)
+            
     return new_sol
 
-def regret_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, neighbor_sets, depot_idx=0, **kwargs):
-    """2-Regret Insertion."""
+def regret_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
+    """
+    Traditional 2-Regret Insertion with Blended Softmax for position selection.
+    Prioritizes customers who have the most to lose if not inserted into their best spot.
+    """
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
-    # Get capacity from dict (all vehicles have same capacity)
-    capacity = vehicles_df['capacity'] if isinstance(vehicles_df, dict) else vehicles_df.loc['Standard', 'capacity']
-    capacities = [capacity for _ in new_sol.vehicles[:-1]]
-
-    if neighbor_sets is None:
-        neighbor_sets = [set(range(len(distance_matrix_array))) for _ in range(len(distance_matrix_array))]
-
-    def softmax_costs(costs):
-        costs = np.array(costs, dtype=np.float64)
-        scores = -costs
-        scores -= scores.max()
-        exp = np.exp(scores)
-        return exp / exp.sum()
     
+    capacity = vehicles_df['capacity'] if isinstance(vehicles_df, dict) else vehicles_df.loc['Standard', 'capacity']
+
     while unassigned:
-        best_regret = -1
-        best_cust = None
-        best_pos = None
-        found_any = False
-        
-        current_batch = unassigned if len(unassigned) < 30 else random.sample(unassigned, 30)
-        
-        for cust in current_batch:
+        # We will store (regret_value, customer_id, list_of_feasible_options)
+        potential_insertions = []
+
+        for cust in unassigned:
             cust_addr = customer_addr_idx[cust-1]
-            allowed = neighbor_sets[cust_addr]
-            valid_insertions = []  
+            cust_demand = customer_arrays['demand'][cust-1]
             
+            # Find all feasible spots for this specific customer
+            feasible_options = [] # (delta_cost, route_idx, pos)
+
             for r_idx in range(len(new_sol.routes) - 1):
                 route = new_sol.routes[r_idx]
-                if sum(customer_arrays['demand'][c-1] for c in route) + customer_arrays['demand'][cust-1] > capacities[r_idx]:
+                
+                # 1. Capacity Pre-check
+                if sum(customer_arrays['demand'][c-1] for c in route) + cust_demand > capacity:
                     continue
                 
                 route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
                 for i in range(len(route) + 1):
-                    prev = route_addrs[i]
-                    if prev != depot_idx and prev not in allowed: continue
+                    prev, nxt = route_addrs[i], route_addrs[i+1]
+                    delta = (distance_matrix_array[prev, cust_addr] + 
+                             distance_matrix_array[cust_addr, nxt] - 
+                             distance_matrix_array[prev, nxt])
                     
-                    next_node = route_addrs[i+1]
-                    cost = (distance_matrix_array[prev, cust_addr] + 
-                            distance_matrix_array[cust_addr, next_node] - 
-                            distance_matrix_array[prev, next_node])
-                    valid_insertions.append((cost, r_idx, i))
-            
-            feasible = []
-            for cost, r, i in valid_insertions:
-                cand = new_sol.routes[r][:i] + [cust] + new_sol.routes[r][i:]
-                if check_time_window_feasibility(cand, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                    feasible.append((cost, r, i))
-            
-            if not feasible:
+                    # 2. Time Window Check (Critical for VRPTW)
+                    temp_route = route[:i] + [cust] + route[i:]
+                    if check_time_window_feasibility(temp_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                        feasible_options.append((delta, r_idx, i))
+
+            if not feasible_options:
+                # This customer is currently infeasible in all routes
                 continue
-            found_any = True
+
+            # Sort options for this customer by cost to find 1st and 2nd best
+            feasible_options.sort(key=lambda x: x[0])
             
-            costs = [f[0] for f in feasible]
-            probs = softmax_costs(costs)
-            chosen_idx = np.random.choice(len(feasible), p=probs)
-            chosen_cost, chosen_r, chosen_i = feasible[chosen_idx]
-            
-            feasible_sorted = sorted(feasible, key=lambda x: x[0])
-            regret = feasible_sorted[1][0] - feasible_sorted[0][0] if len(feasible_sorted) > 1 else float('inf')
-            
-            if regret > best_regret:
-                best_regret = regret
-                best_cust = cust
-                best_pos = (chosen_r, chosen_i)
+            # --- Traditional Regret Logic ---
+            if len(feasible_options) >= 2:
+                # Regret = 2nd_best_cost - 1st_best_cost
+                regret_val = feasible_options[1][0] - feasible_options[0][0]
+            else:
+                # If only one spot exists, regret is effectively "infinite" (prioritize this customer)
+                regret_val = 1e6 
+
+            potential_insertions.append((regret_val, cust, feasible_options))
+
+        if not potential_insertions:
+            # Re-add remaining customers to dummy if no feasible spots are left
+            new_sol.routes[-1].extend(unassigned)
+            break
+
+        # 3. Selection: Pick the customer with the MAX regret
+        potential_insertions.sort(key=lambda x: x[0], reverse=True)
+        best_regret_match = potential_insertions[0]
         
-        if not found_any:
-            remaining = set(current_batch)
-            for c in remaining:
-                new_sol.routes[-1].append(c)
-                unassigned.remove(c)
-        else:
-            new_sol.routes[best_pos[0]].insert(best_pos[1], best_cust)
-            unassigned.remove(best_cust)
-            
+        target_cust = best_regret_match[1]
+        available_options = best_regret_match[2]
+
+        # 4. Blended Softmax for Position
+        # We apply softmax over the insertion costs for the chosen customer
+        costs = np.array([opt[0] for opt in available_options])
+        norm_costs = (costs - np.min(costs)) / (temperature + 1e-9)
+        probs = np.exp(-norm_costs) / np.sum(np.exp(-norm_costs))
+        
+        choice_idx = np.random.choice(len(available_options), p=probs)
+        _, final_r, final_p = available_options[choice_idx]
+
+        # Execute insertion
+        new_sol.routes[final_r].insert(final_p, target_cust)
+        unassigned.remove(target_cust)
+
     return new_sol
