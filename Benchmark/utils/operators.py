@@ -181,7 +181,12 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
     new_sol.routes[-1] = []
     random.shuffle(unassigned) 
     
-    capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+    # Get capacity from dict (all vehicles have same capacity)
+    capacity = vehicles_df['capacity'] if isinstance(vehicles_df, dict) else vehicles_df.loc['Standard', 'capacity']
+    capacities = [capacity for _ in new_sol.vehicles[:-1]]
+    
+    if neighbor_sets is None:
+        neighbor_sets = [set(range(len(distance_matrix_array))) for _ in range(len(distance_matrix_array))]
     
     def softmax_costs(costs):
         costs = np.array(costs, dtype=np.float64)
@@ -243,7 +248,12 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
-    capacities = [vehicles_df.loc[v, 'capacity'] for v in new_sol.vehicles[:-1]]
+    # Get capacity from dict (all vehicles have same capacity)
+    capacity = vehicles_df['capacity'] if isinstance(vehicles_df, dict) else vehicles_df.loc['Standard', 'capacity']
+    capacities = [capacity for _ in new_sol.vehicles[:-1]]
+
+    if neighbor_sets is None:
+        neighbor_sets = [set(range(len(distance_matrix_array))) for _ in range(len(distance_matrix_array))]
 
     def softmax_costs(costs):
         costs = np.array(costs, dtype=np.float64)

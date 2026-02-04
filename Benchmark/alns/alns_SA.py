@@ -9,16 +9,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import (
     precompute_nearest_neighbors, 
     create_initial_solution, 
-    evaluate_solution, 
-    load_vrp_data,
+    evaluate_solution,
     two_opt_local_search,
     cross_route_segment_relocation,
-    simple_relocate)
+    simple_relocate,
+    load_raw_solomon_data)
 
 from utils.ml import QLearningAgent
 from utils.visualization import ALNSTracker
 from utils.operators import (
-    random_removal, 
+    random_removal,
     shaw_removal, 
     worst_removal, 
     cluster_removal,
@@ -28,7 +28,7 @@ from utils.operators import (
 # --- Configuration ---
 DUMMY_VEHICLE_NAME = 'dummy'
 DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 10000
+MAX_ITERATIONS = 1000
 SEGMENT_SIZE = 50 
 
 # SA Parameters
@@ -51,19 +51,21 @@ WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weigh
 # ---------------------------------------------------------
 
 def run_alns():
-    customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
+    # Load data from Solomon .txt instance
+    instance_file = '../data/homberger_600/C1_6_1.TXT'
+    customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
     
     # Setup operators & Tracker
     # Added Shaw Removal to the list
     destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal]
     repair_ops = [greedy_insertion, regret_insertion]
     
-    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw']
+    destroy_names = ['Random_XS', 'Random_S', 'Random_M', 'Random_L', 'Random_XL', 'Worst', 'Cluster', 'Shaw']
     repair_names = ['Greedy', 'Regret']
     tracker = ALNSTracker(destroy_names, repair_names)
 
-    num_customers = len(customers_df)
-    num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+    num_customers = len(customers_df['customer_id'])
+    num_real_vehicles = int(vehicles_df['num_vehicles'])
     
     print("Precomputing nearest neighbors...")
     neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)

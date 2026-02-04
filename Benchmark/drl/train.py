@@ -70,11 +70,17 @@ def train_drlh():
     print(f"--- To view: tensorboard --logdir={os.path.join(project_root, 'logs')} ---")
 
     # --- DATA LOADING ---
-    instances_dir = os.path.join(project_root, 'Benchmark', 'Instances', 'Training')
-    instance_files = glob.glob(os.path.join(instances_dir, "*.txt"))
+    data_dirs = [
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_100'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200_customer_instances')
+    ]
+    instance_files = []
+    for data_dir in data_dirs:
+        instance_files.extend(glob.glob(os.path.join(data_dir, "*.txt")))
+        instance_files.extend(glob.glob(os.path.join(data_dir, "*.TXT")))
     
     if not instance_files:
-        print(f"\nError: No .txt files found in {instances_dir}")
+        print(f"\nError: No .txt files found in {', '.join(data_dirs)}")
         return
 
     print(f"--- Pre-loading {len(instance_files)} instances... ---")

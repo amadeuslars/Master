@@ -2,14 +2,15 @@ import random
 import sys
 import os
 import numpy as np
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils import (
     precompute_nearest_neighbors, 
     create_initial_solution, 
-    evaluate_solution, 
-    load_vrp_data,
+    evaluate_solution,
+    load_raw_solomon_data,
     two_opt_local_search,
     cross_route_segment_relocation,
     simple_relocate)
@@ -28,7 +29,7 @@ from utils.operators import (
 # --- Configuration ---
 DUMMY_VEHICLE_NAME = 'dummy'
 DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 10000
+MAX_ITERATIONS = 1000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
@@ -50,7 +51,10 @@ WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weigh
 # ---------------------------------------------------------
 
 def run_alns():
-    customers_df, vehicles_df, _, dist_matrix, cust_addr_idx, cust_arrays = load_vrp_data()
+    
+    # Load data from Solomon .txt instance
+    instance_file = '../data/homberger_600/C1_6_1.TXT'
+    customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
     
     destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
     repair_ops = [greedy_insertion, regret_insertion]
@@ -59,11 +63,12 @@ def run_alns():
     repair_names = ['Greedy', 'Regret']
     tracker = ALNSTracker(destroy_names, repair_names)
 
-    num_customers = len(customers_df)
-    num_real_vehicles = int(vehicles_df.loc['Standard', 'num_vehicles'])
+    num_customers = len(customers_df['customer_id'])
+    num_real_vehicles = int(vehicles_df['num_vehicles'])
    
     print("Precomputing nearest neighbors...")
-    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
+    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=30)
+    
     
     # Initialize roulette wheel weights (start equal for all operators)
     destroy_weights = np.ones(len(destroy_ops))
@@ -163,4 +168,7 @@ def run_alns():
     tracker.plot_all(prefix='alns_rrt_optimized', save=False, show=False)
 
 if __name__ == "__main__":
+    start = time.perf_counter()
     run_alns()
+    elapsed = time.perf_counter() - start
+    print(f'Elapsed time: {elapsed:.3f}s')

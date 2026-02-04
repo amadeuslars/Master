@@ -83,3 +83,6 @@ Benchmark/R*/
 Benchmark/RC*/
 Benchmark/processed/
 
+# Training logs
+logs/
+
