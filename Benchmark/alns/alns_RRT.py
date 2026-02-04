@@ -96,8 +96,8 @@ def run_alns():
         threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol._cost
         acceptance_threshold = best_sol._cost + threshold_value
         
-        low = int(num_customers * 0.10)
-        high = int(num_customers * 0.30)
+        low = int(num_customers * 0.02)
+        high = int(num_customers * 0.40)
         n_remove = random.randint(low, high)
         
         destroyed = destroy_ops[d_idx](

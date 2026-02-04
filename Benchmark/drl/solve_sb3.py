@@ -65,7 +65,7 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
     
     while not done:
         step += 1
-        action, _states = model.predict(obs, deterministic=deterministic)
+        action, _states = model.predict(obs)
         
         # Decode action
         destroy_idx = action // 10  # 0-4 (5 destroy ops × 5 buckets = 25, so destroy+bucket pair = action // 2)
