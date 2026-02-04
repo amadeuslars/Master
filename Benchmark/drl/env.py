@@ -187,55 +187,95 @@ class VRPTWEnv(gym.Env):
         return self._get_state(), reward, terminated, truncated, info
 
     def _get_state(self):
-        """Return 20D state vector:
-        [0-9]: 10 core features
-        [10]: delta_sign
-        [11-15]: destroy_op one-hot (5 features)
-        [16]: bucket (normalized)
-        [17]: repair
-        [18]: remaining_ratio (1.0=start, 0.0=end) - RRT acceptance flexibility
-        [19]: Reserved
+        """
+        Return 20D state vector representing the Hybrid State:
+        [0]: Reduced Distance (Improvement magnitude since last step)
+        [1]: Optimality Gap (Normalized % difference from Global Best)
+        [2]: Current Cost (Scaled)
+        [3]: Best Cost (Scaled)
+        [4]: Temperature/Threshold (Current RRT allowance)
+        [5]: Cost Trajectory (Raw differential)
+        [6]: Stagnation (No improvement counter)
+        [7]: Step Progress (Iteration count)
+        [8]: Solution Changed (Binary flag)
+        [9]: Unseen Solution (Binary flag)
+        [10]: Delta Sign (Direction of last move)
+        [11-15]: One-hot Destroy Operator (Previous action context)
+        [16]: Bucket Index (Normalized intensity)
+        [17]: Repair Operator (Binary context)
+        [18]: Remaining Budget (1.0 -> 0.0)
+        [19]: Feasibility Pressure (Ratio of unassigned/dummy customers)
         """
         
-        # 10 Core Features
+        # --- 1. Core Metrics ---
         reduced_dist = self.reduced_dist
-        dist_from_min = self.current_sol._cost - self.best_sol._cost
         distance = self.current_sol._cost
-        min_distance = self.best_sol._cost
-        T = self.T
-        cs = self.cs
+        min_distance = max(self.best_sol._cost, 1e-6) # Avoid div/0
+        
+        # Thesis Consistency: "Optimality Gap" should be normalized
+        optimality_gap = (distance - min_distance) / min_distance
+        
+        # Scaling raw costs helps neural net stability (approx range 0.0-5.0)
+        dist_scaled = distance / 10000.0
+        min_dist_scaled = min_distance / 10000.0
+        
+        T = self.T  # Current RRT threshold value
+        
+        # Cost Trajectory (Placeholder 'cs' in original code, now updated)
+        # Using reduced_dist captures the immediate trajectory
+        cost_trajectory = reduced_dist 
+        
         no_improvement = self.no_improvement_counter
         index_step = self.iteration
         was_changed = self.was_changed
-        unseen = 1.0 if (tuple(sorted([tuple(r) for r in self.current_sol.routes])) not in self.seen_solutions) else 0.0
         
-        # 1 Feature: delta_sign
+        # Unseen Hash Check
+        sol_tuple = tuple(sorted([tuple(r) for r in self.current_sol.routes]))
+        unseen = 1.0 if (sol_tuple not in self.seen_solutions) else 0.0
+        
+        # --- 2. Action Context ---
         delta_sign = -1.0 if reduced_dist > 0 else 1.0
         
-        # 5 One-hot encoded destroy operators
+        # One-hot encoded destroy operators (5 features)
         destroy_op_onehot = np.zeros(5, dtype=np.float32)
-        destroy_op_onehot[self.last_destroy_op] = 1.0
-        
-        # 1 Bucket feature (normalized to [0,1])
+        if 0 <= self.last_destroy_op < 5:
+            destroy_op_onehot[self.last_destroy_op] = 1.0
+            
+        # Bucket feature (normalized 0-4 -> 0.0-1.0)
         bucket_norm = self.last_bucket / 4.0
         
-        # 1 Repair feature
+        # Repair feature (0 or 1)
         repair_norm = float(self.last_repair)
         
-        # 1 Remaining ratio (exploration phase indicator)
+        # --- 3. Domain Features (Thesis Consistency) ---
+        
+        # Remaining Budget (Thesis: "1.0 - t/T_max")
         remaining_ratio = self.remaining_ratio
         
-        # 1 Reserved for future use
-        reserved = 0.0
+        # NEW: Feasibility Pressure
+        # Calculates ratio of customers in the dummy vehicle (route index -1).
+        # High pressure = many customers could not be inserted feasibly -> Agent should switch strategies.
+        dummy_route_len = len(self.current_sol.routes[-1])
+        feasibility_pressure = dummy_route_len / max(self.num_customers, 1)
         
         # Combine into 20D vector
         state = np.array([
-            reduced_dist, dist_from_min, distance, min_distance, T, cs,
-            no_improvement, index_step, was_changed, unseen,
-            delta_sign,
-            *destroy_op_onehot,
-            bucket_norm, repair_norm,
-            remaining_ratio, reserved
+            reduced_dist,       # [0]
+            optimality_gap,     # [1] (Updated)
+            dist_scaled,        # [2]
+            min_dist_scaled,    # [3]
+            T,                  # [4]
+            cost_trajectory,    # [5] (Updated)
+            no_improvement,     # [6]
+            index_step,         # [7]
+            was_changed,        # [8]
+            unseen,             # [9]
+            delta_sign,         # [10]
+            *destroy_op_onehot, # [11-15]
+            bucket_norm,        # [16]
+            repair_norm,        # [17]
+            remaining_ratio,    # [18]
+            feasibility_pressure # [19] (New - Replaces 'reserved')
         ], dtype=np.float32)
         
         return state
