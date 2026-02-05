@@ -59,7 +59,7 @@ def train_sb3():
     # --- DATA LOADING ---
     data_dirs = [
         os.path.join(project_root, 'Benchmark', 'data', 'homberger_100'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200_customer_instances')
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200')
     ]
     instance_files = []
     for data_dir in data_dirs:
@@ -116,14 +116,14 @@ def train_sb3():
     model = PPO(
         policy="MlpPolicy",
         env=env,
-        learning_rate=3e-4,
+        learning_rate=3e-04,
         n_steps=2048,
         batch_size=64,
         n_epochs=10,
         gamma=0.99,
         gae_lambda=0.95,
         clip_range=0.2,
-        ent_coef=0.05,  # Increased from 0.01 to encourage operator diversity
+        ent_coef=0.01,  
         verbose=1,
         tensorboard_log=None,
         device="cpu"

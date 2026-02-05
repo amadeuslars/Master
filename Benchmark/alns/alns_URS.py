@@ -21,6 +21,7 @@ from utils.operators import (
     shaw_removal, 
     worst_removal, 
     cluster_removal,
+    least_used_vehicle_removal,
     greedy_insertion,
     regret_insertion)
 
@@ -51,15 +52,15 @@ WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weigh
 
 def run_alns():
     # Load data from Solomon .txt instance
-    instance_file = '../data/homberger_600/C1_6_1.TXT'
+    instance_file = '../data/homberger_100/r106.TXT'
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
     
     # Setup operators & Tracker
     # Added Shaw Removal to the list
-    destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal]
+    destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
     repair_ops = [greedy_insertion, regret_insertion]
     
-    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw']
+    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw', 'Least']
     repair_names = ['Greedy', 'Regret']
     tracker = ALNSTracker(destroy_names, repair_names)
 

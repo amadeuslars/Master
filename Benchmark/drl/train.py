@@ -72,7 +72,7 @@ def train_drlh():
     # --- DATA LOADING ---
     data_dirs = [
         os.path.join(project_root, 'Benchmark', 'data', 'homberger_100'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200_customer_instances')
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200')
     ]
     instance_files = []
     for data_dir in data_dirs:
@@ -107,7 +107,7 @@ def train_drlh():
     # --- TRAINING LOOP ---
     MAX_EPISODES = 5000  
     UPDATE_TIMESTEP = 200 
-    CHECKPOINT_FREQ = 500
+    CHECKPOINT_FREQ = 100
     
     time_step = 0
     
