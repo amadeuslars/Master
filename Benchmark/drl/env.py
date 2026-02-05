@@ -51,7 +51,7 @@ class VRPTWEnv(gym.Env):
 
         # --- RRT Params ---
         self.rrt_start_deviation = 0.10 
-        self.max_iterations = 1000
+        self.max_iterations = 2000
 
         # --- Internal State ---
         self.current_sol = None

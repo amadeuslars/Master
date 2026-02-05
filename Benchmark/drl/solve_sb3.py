@@ -217,7 +217,7 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
 
 if __name__ == "__main__":
     # Example usage - modify these paths
-    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_400', 'RC2_4_4.TXT')
+    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_100', 'r106.txt')
     MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_104239', 'checkpoint_50000.zip')
     
     if os.path.exists(MODEL):
