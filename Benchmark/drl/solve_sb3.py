@@ -67,11 +67,11 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
         step += 1
         action, _states = model.predict(obs)
         
-        # Decode action
-        destroy_idx = action // 10  # 0-4 (5 destroy ops × 5 buckets = 25, so destroy+bucket pair = action // 2)
-        repair_idx = action % 2      # 0-1 (2 repair ops)
-        bucket_idx = (action // 2) % 5  # Which bucket within the destroy op
-        destroy_op_idx = (action // 2) // 5  # Which destroy operator
+        # Decode action (MUST match env.py exactly)
+        repair_idx = action % 2
+        bucket_and_destroy = action // 2
+        bucket_idx = bucket_and_destroy % 5
+        destroy_op_idx = bucket_and_destroy // 5
         
         action_history.append(action)
         
@@ -217,11 +217,11 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
 
 if __name__ == "__main__":
     # Example usage - modify these paths
-    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'C1_6_1.TXT')
-    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260203_163025', 'checkpoint_550000.zip')
+    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_400', 'RC2_4_4.TXT')
+    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_104239', 'checkpoint_50000.zip')
     
     if os.path.exists(MODEL):
-        solve_with_sb3(INSTANCE, MODEL)  # Change to False to sample stochastically
+        solve_with_sb3(INSTANCE, MODEL) 
     else:
         print(f"\nModel not found at: {MODEL}")
         print("Update the MODEL path in this script to your actual checkpoint location.")

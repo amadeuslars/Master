@@ -17,11 +17,11 @@ from Benchmark.utils.utils import load_raw_solomon_data
 def solve_with_drl():
     # --- CONFIGURATION ---
     # Must match the instance you trained on (or similar type)
-    INSTANCE_NAME = 'r106.txt'  
+    INSTANCE_NAME = 'RC2_4_4.txt'  
     
     # Construct absolute path to the instance
-    file_path = os.path.join(project_root, 'Benchmark', 'Instances', INSTANCE_NAME)
-    model_path = os.path.join(current_dir, 'drlh_vrptw_model.pth')
+    file_path = os.path.join(project_root, 'Benchmark', 'Instances', 'Testing', INSTANCE_NAME)
+    model_path = os.path.join('logs', 'drl_run_20260204_110030', 'drl_checkpoint_300.pth')
     
     print(f"--- Loading Raw Data from: {file_path} ---")
     
@@ -53,6 +53,8 @@ def solve_with_drl():
     print("\nStarting DRL Solver...")
     
     step_count = 0
+    prev_best = float('inf')
+    
     while not done:
         step_count += 1
         
@@ -67,6 +69,12 @@ def solve_with_drl():
             
         state, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
+        
+        # Print on new best solution
+        current_best = env.best_sol._cost
+        if current_best < prev_best:
+            print(f"[Step {step_count}] New Best: {current_best:.2f} (↓{prev_best - current_best:.2f})")
+            prev_best = current_best
         
         # Optional: Print progress every 50 steps
         if step_count % 50 == 0:

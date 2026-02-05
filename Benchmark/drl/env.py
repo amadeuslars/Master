@@ -45,8 +45,8 @@ class VRPTWEnv(gym.Env):
         self.action_pairs = [(d, r) for d in self.destroy_ops for r in self.repair_ops]
         self.action_space = spaces.Discrete(len(self.action_pairs))
         
-        # --- Observation Space (20D: 10 core + 1 sign + 5 one-hot destroy + 1 bucket + 1 repair + 2 reserved) ---
-        state_dim = 20
+        # --- Observation Space (19D: 9 core + 1 sign + 5 one-hot destroy + 1 bucket + 1 repair + 2 domain) ---
+        state_dim = 19
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(state_dim,), dtype=np.float32)
 
         # --- RRT Params ---
@@ -71,6 +71,8 @@ class VRPTWEnv(gym.Env):
         self.last_bucket = 0
         self.last_repair = 0
         self.remaining_ratio = 1.0
+        self.initial_cost = 0.0
+        self.is_unseen = 0.0  # Track before adding to seen set
         
         # --- Logging Stats (For TensorBoard) ---
         self.action_counts = np.zeros(len(self.action_pairs))
@@ -95,10 +97,12 @@ class VRPTWEnv(gym.Env):
         self.last_bucket = 0
         self.last_repair = 0
         self.remaining_ratio = 1.0
+        self.is_unseen = 0.0
         
         self.current_sol = create_initial_solution(self.num_customers, self.num_vehicles)
         evaluate_solution(self.current_sol, self.dist_matrix, self.cust_addr_idx)
         self.last_distance = self.current_sol._cost
+        self.initial_cost = self.current_sol._cost
         
         self.best_sol = self.current_sol.copy()
         self.best_sol._cost = self.current_sol._cost
@@ -167,9 +171,9 @@ class VRPTWEnv(gym.Env):
         else:
             reward = 0.0
 
-        # Track if this is a new/unseen solution
+        # Track if this is a new/unseen solution (BEFORE adding to set)
         sol_tuple = tuple(sorted([tuple(r) for r in self.current_sol.routes]))
-        unseen = 1.0 if sol_tuple not in self.seen_solutions else 0.0
+        self.is_unseen = 1.0 if sol_tuple not in self.seen_solutions else 0.0
         self.seen_solutions.add(sol_tuple)
 
         # 4. Termination
@@ -179,7 +183,7 @@ class VRPTWEnv(gym.Env):
         # Pass detailed stats in info
         info = {
             'best_cost': self.best_sol._cost,
-            'initial_cost': self.current_sol._cost if self.iteration == 1 else 0, # Approximate
+            'initial_cost': self.initial_cost,
             'action_counts': self.action_counts,
             'improvement_counts': self.improvement_counts
         }
@@ -188,7 +192,7 @@ class VRPTWEnv(gym.Env):
 
     def _get_state(self):
         """
-        Return 20D state vector representing the Hybrid State:
+        Return 19D state vector representing the Hybrid State:
         [0]: Reduced Distance (Improvement magnitude since last step)
         [1]: Optimality Gap (Normalized % difference from Global Best)
         [2]: Current Cost (Scaled)
@@ -196,15 +200,14 @@ class VRPTWEnv(gym.Env):
         [4]: Temperature/Threshold (Current RRT allowance)
         [5]: Cost Trajectory (Raw differential)
         [6]: Stagnation (No improvement counter)
-        [7]: Step Progress (Iteration count)
-        [8]: Solution Changed (Binary flag)
-        [9]: Unseen Solution (Binary flag)
-        [10]: Delta Sign (Direction of last move)
-        [11-15]: One-hot Destroy Operator (Previous action context)
-        [16]: Bucket Index (Normalized intensity)
-        [17]: Repair Operator (Binary context)
-        [18]: Remaining Budget (1.0 -> 0.0)
-        [19]: Feasibility Pressure (Ratio of unassigned/dummy customers)
+        [7]: Solution Changed (Binary flag)
+        [8]: Unseen Solution (Binary flag)
+        [9]: Delta Sign (Direction of last move)
+        [10-14]: One-hot Destroy Operator (Previous action context)
+        [15]: Bucket Index (Normalized intensity)
+        [16]: Repair Operator (Binary context)
+        [17]: Remaining Budget (1.0 -> 0.0)
+        [18]: Feasibility Pressure (Ratio of unassigned/dummy customers)
         """
         
         # --- 1. Core Metrics ---
@@ -215,23 +218,22 @@ class VRPTWEnv(gym.Env):
         # Thesis Consistency: "Optimality Gap" should be normalized
         optimality_gap = (distance - min_distance) / min_distance
         
-        # Scaling raw costs helps neural net stability (approx range 0.0-5.0)
-        dist_scaled = distance / 10000.0
-        min_dist_scaled = min_distance / 10000.0
+        # Normalize by initial cost for instance-agnostic representation
+        initial = max(self.initial_cost, 1e-6)  # Avoid div/0
+        dist_scaled = distance / initial
+        min_dist_scaled = min_distance / initial
         
-        T = self.T  # Current RRT threshold value
+        # RRT threshold value (not temperature - actual acceptance slack)
+        threshold_value = self.rrt_start_deviation * self.remaining_ratio * min_distance
         
-        # Cost Trajectory (Placeholder 'cs' in original code, now updated)
-        # Using reduced_dist captures the immediate trajectory
-        cost_trajectory = reduced_dist 
+        # Cost Trajectory: use raw delta (not duplicate of reduced_dist)
+        cost_delta = distance - min_distance  # Absolute gap
         
         no_improvement = self.no_improvement_counter
-        index_step = self.iteration
         was_changed = self.was_changed
         
-        # Unseen Hash Check
-        sol_tuple = tuple(sorted([tuple(r) for r in self.current_sol.routes]))
-        unseen = 1.0 if (sol_tuple not in self.seen_solutions) else 0.0
+        # Use pre-stored unseen status
+        unseen = self.is_unseen
         
         # --- 2. Action Context ---
         delta_sign = -1.0 if reduced_dist > 0 else 1.0
@@ -258,24 +260,23 @@ class VRPTWEnv(gym.Env):
         dummy_route_len = len(self.current_sol.routes[-1])
         feasibility_pressure = dummy_route_len / max(self.num_customers, 1)
         
-        # Combine into 20D vector
+        # Combine into 19D vector
         state = np.array([
-            reduced_dist,       # [0]
-            optimality_gap,     # [1] (Updated)
-            dist_scaled,        # [2]
-            min_dist_scaled,    # [3]
-            T,                  # [4]
-            cost_trajectory,    # [5] (Updated)
+            reduced_dist,       # [0] - improvement this step
+            optimality_gap,     # [1] - normalized gap
+            dist_scaled,        # [2] - current/initial
+            min_dist_scaled,    # [3] - best/initial
+            threshold_value,    # [4] - RRT acceptance slack
+            cost_delta,         # [5] - absolute gap from best
             no_improvement,     # [6]
-            index_step,         # [7]
-            was_changed,        # [8]
-            unseen,             # [9]
-            delta_sign,         # [10]
-            *destroy_op_onehot, # [11-15]
-            bucket_norm,        # [16]
-            repair_norm,        # [17]
-            remaining_ratio,    # [18]
-            feasibility_pressure # [19] (New - Replaces 'reserved')
+            was_changed,        # [7]
+            unseen,             # [8]
+            delta_sign,         # [9]
+            *destroy_op_onehot, # [10-14]
+            bucket_norm,        # [15]
+            repair_norm,        # [16]
+            remaining_ratio,    # [17]
+            feasibility_pressure # [18]
         ], dtype=np.float32)
         
         return state
