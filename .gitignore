@@ -62,27 +62,8 @@ venv.bak/
 # System files
 .DS_Store
 
-# Data files
-data.xlsx
-~$data.xlsx
-start_osrm_server.sh
-# geocoded_addresses.csv
-# distance_matrix.csv
-# customers.csv
-# time_matrix.csv
-# vehicles.csv
-
 #OSRM data
 osrm-data/
 
-# Benchmark original data (Solomon .txt files)
-Benchmark/data/
 
-# Benchmark other instances (keep only C101 as example)
-Benchmark/R*/
-Benchmark/RC*/
-Benchmark/processed/
-
-# Training logs
-logs/
 

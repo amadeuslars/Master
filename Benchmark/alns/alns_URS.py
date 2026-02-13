@@ -28,7 +28,7 @@ from utils.operators import (
 # --- Configuration ---
 DUMMY_VEHICLE_NAME = 'dummy'
 DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 1000
+MAX_ITERATIONS = 2000
 SEGMENT_SIZE = 50 
 
 # SA Parameters

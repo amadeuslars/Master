@@ -152,7 +152,12 @@ def simple_relocate(solution, distance_matrix_array, customer_addr_idx, customer
     Runs faster than segment relocation, good for continuous balancing.
     """
     improved = False
-    capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
+    # Handle both dict and DataFrame formats
+    if isinstance(vehicles_df, dict):
+        capacity = vehicles_df['capacity']
+        capacities = [capacity] * (len(solution.routes) - 1)
+    else:
+        capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
     
     for r_src_idx, src_route in enumerate(solution.routes[:-1]):
         if not src_route: continue
@@ -214,7 +219,12 @@ def cross_route_segment_relocation(solution, distance_matrix_array, customer_add
     Computational expensive, run periodically.
     """
     improved = False
-    capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
+    # Handle both dict and DataFrame formats
+    if isinstance(vehicles_df, dict):
+        capacity = vehicles_df['capacity']
+        capacities = [capacity] * (len(solution.routes) - 1)
+    else:
+        capacities = [vehicles_df.loc[v, 'capacity'] for v in solution.vehicles[:-1]]
     
     # Try relocating segments of 1, 2, 3 customers
     for seg_len in [1, 2, 3]:
