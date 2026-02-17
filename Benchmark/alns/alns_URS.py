@@ -28,9 +28,7 @@ from utils.operators2 import (
     regret_insertion)
 
 # --- Configuration ---
-DUMMY_VEHICLE_NAME = 'dummy'
-DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 2000
+MAX_ITERATIONS = 1000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
@@ -73,7 +71,6 @@ def run_alns(instance_file):
     for it in range(MAX_ITERATIONS):
 
         # Select operators using roulette wheel (weighted random)
-        
         d_idx = np.random.choice(len(destroy_ops))
         r_idx = np.random.choice(len(repair_ops))
 
@@ -146,7 +143,7 @@ def run_alns(instance_file):
 if __name__ == "__main__":
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     NUM_RUNS = 10
-    ALGORITHM = "RRT"
+    ALGORITHM = "URS"
 
     # --- Add instance paths here ---
     INSTANCES = [
@@ -159,7 +156,7 @@ if __name__ == "__main__":
         print("No instances specified. Add paths to the INSTANCES list.")
         sys.exit(1)
 
-    output_csv = os.path.join(project_root, 'logs', 'rrt_results_banter.csv')
+    output_csv = os.path.join(project_root, 'logs', 'urs_results.csv')
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
 
     with open(output_csv, 'w', newline='') as f:

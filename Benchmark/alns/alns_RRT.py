@@ -28,7 +28,7 @@ from utils.operators2 import (
     regret_insertion)
 
 # --- Configuration ---
-MAX_ITERATIONS = 10000
+MAX_ITERATIONS = 1000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
