@@ -129,22 +129,6 @@ def evaluate_solution(solution, distance_matrix_array, customer_addr_idx, depot_
     solution._cost = total_cost
     return total_cost
 
-def precompute_nearest_neighbors(distance_matrix_array, num_neighbors=20):
-    n = distance_matrix_array.shape[0]
-    k = min(num_neighbors, n - 1)
-    neighbors = []
-    for i in range(n):
-        row = distance_matrix_array[i]
-        idxs = np.argpartition(row, k)[:k+1]
-        idxs = idxs[idxs != i]
-        if idxs.shape[0] > k:
-            order = np.argsort(row[idxs])[:k]
-            idxs = idxs[order]
-        else:
-            order = np.argsort(row[idxs])
-            idxs = idxs[order]
-        neighbors.append(set(map(int, idxs.tolist())))
-    return neighbors
 
 def simple_relocate(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_df, depot_idx=0):
     """
