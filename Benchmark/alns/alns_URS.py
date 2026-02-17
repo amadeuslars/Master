@@ -1,8 +1,9 @@
-import numpy as np
 import random
-import math
 import sys
 import os
+import csv
+import numpy as np
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -10,14 +11,15 @@ from utils.utils import (
     precompute_nearest_neighbors, 
     create_initial_solution, 
     evaluate_solution,
+    load_raw_solomon_data,
     two_opt_local_search,
     cross_route_segment_relocation,
-    simple_relocate,
-    load_raw_solomon_data)
+    simple_relocate)
 
+from utils.ml import QLearningAgent
 from utils.visualization import ALNSTracker
-from utils.operators import (
-    random_removal,
+from utils.operators2 import (
+    random_removal, 
     shaw_removal, 
     worst_removal, 
     cluster_removal,
@@ -26,111 +28,58 @@ from utils.operators import (
     regret_insertion)
 
 # --- Configuration ---
-DUMMY_VEHICLE_NAME = 'dummy'
-DUMMY_PENALTY = 10000.0
-MAX_ITERATIONS = 2000
+MAX_ITERATIONS = 10000
 SEGMENT_SIZE = 50 
 
-# SA Parameters
-START_TEMPERATURE = 200.0
-WARMUP_ITERATIONS = 100   
-ESCAPE_THRESHOLD = 1000
-
-# Scoring (Rewards for RL)
-SCORE_NEW_GLOBAL_BEST = 35
-SCORE_BETTER_THAN_CURRENT = 10
-SCORE_ACCEPTED_WORSE = 5
-SCORE_REJECTED = 0
-
-# Roulette Wheel Parameters
-WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weight)
+# RRT Parameters
+RRT_START_PERCENTAGE = 0.10  # Deviation allowed at start (20%)
 
 
 # ---------------------------------------------------------
-#  MAIN ALNS LOOP
+#  MAIN ALNS LOOP (RRT)
 # ---------------------------------------------------------
 
-def run_alns():
+def run_alns(instance_file):
+
     # Load data from Solomon .txt instance
-    instance_file = '../data/homberger_100/r106.TXT'
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
-    
-    # Setup operators & Tracker
-    # Added Shaw Removal to the list
+    dist_matrix = dist_matrix.astype(np.float64)
+    cust_addr_idx = cust_addr_idx.astype(np.intp)
+    cust_arrays['demand'] = cust_arrays['demand'].astype(np.float64)
+    cust_arrays['tw_start'] = cust_arrays['tw_start'].astype(np.float64)
+    cust_arrays['tw_end'] = cust_arrays['tw_end'].astype(np.float64)
+    cust_arrays['service_time'] = cust_arrays['service_time'].astype(np.float64)
+
     destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
     repair_ops = [greedy_insertion, regret_insertion]
-    
-    destroy_names = ['Random', 'Worst', 'Cluster', 'Shaw', 'Least']
-    repair_names = ['Greedy', 'Regret']
-    tracker = ALNSTracker(destroy_names, repair_names)
 
     num_customers = len(customers_df['customer_id'])
     num_real_vehicles = int(vehicles_df['num_vehicles'])
+    neighbor_sets = None
+
     
-    print("Precomputing nearest neighbors...")
-    neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=10)
-    
-    # Initialize roulette wheel weights (start equal for all operators)
-    destroy_weights = np.ones(len(destroy_ops))
-    repair_weights = np.ones(len(repair_ops))
-    
-    # Initial Solution
     current_sol = create_initial_solution(num_customers, num_real_vehicles)
     evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
     
     best_sol = current_sol.copy()
     best_sol._cost = current_sol._cost
-    curr_temp = START_TEMPERATURE
-    
-    print(f"Initial Cost: {current_sol._cost:.2f}")
-    
-    # --- Warm-up ---
-    print(f"Warming up ({WARMUP_ITERATIONS} iters)...")
-    deltas = []
-    MAX_FEASIBLE_COST = 100000  # Cap for filtering out dummy-penalty solutions
-    
-    for it in range(WARMUP_ITERATIONS):
-        # Only use Random/Greedy for fast warmup
-        d_idx = 0 
-        r_idx = 0
-        
-        n_remove = random.randint(int(num_customers * 0.1), int(num_customers * 0.2))
-        temp_sol = destroy_ops[d_idx](current_sol, n_remove, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays)
-        temp_sol = repair_ops[r_idx](temp_sol, distance_matrix_array=dist_matrix, customer_addr_idx=cust_addr_idx, customer_arrays=cust_arrays, vehicles_df=vehicles_df, neighbor_sets=neighbor_sets)
-        
-        c = evaluate_solution(temp_sol, dist_matrix, cust_addr_idx)
-        
-        # Only track deltas from feasible solutions (no dummy penalties)
-        if c < MAX_FEASIBLE_COST and current_sol._cost < MAX_FEASIBLE_COST:
-            deltas.append(abs(c - current_sol._cost))
-        
-        if c < current_sol._cost:
-            current_sol = temp_sol
-            if c < best_sol._cost:
-                best_sol = temp_sol.copy()
-                best_sol._cost = c
+    best_found_at = 0
 
-    # Temperature Calibration based on feasible solution variations
-    if deltas and len(deltas) > 10:
-        typical_delta = np.mean(deltas)
-    else:
-        # Fallback: use 10% of typical good solution cost as delta
-        typical_delta = 3500.0  # ~10% of 35000 (mid-range good solution)
+    print(f"Initial Cost: {current_sol._cost:.2f}")
+    print(f"Starting Main Loop (RRT Strategy). Start Deviation: {RRT_START_PERCENTAGE*100}%")
     
-    FINAL_TEMPERATURE = 0.5
-    curr_temp = typical_delta / math.log(2.0) 
-    cooling_rate = (FINAL_TEMPERATURE / curr_temp) ** (1.0 / (MAX_ITERATIONS - WARMUP_ITERATIONS))
-    
-    print(f"Starting Main Loop. Typical Delta: {typical_delta:.1f}, Start Temp: {curr_temp:.1f}, Cooling: {cooling_rate:.5f}")
-    
-    # --- Main Loop ---
-    for it in range(WARMUP_ITERATIONS, MAX_ITERATIONS):
+    for it in range(MAX_ITERATIONS):
+
+        # Select operators using roulette wheel (weighted random)
         
-        # Select operators uniformly at random
         d_idx = np.random.choice(len(destroy_ops))
         r_idx = np.random.choice(len(repair_ops))
+
+        # RRT Threshold
+        remaining_ratio = (MAX_ITERATIONS - it) / MAX_ITERATIONS
+        threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol._cost
+        acceptance_threshold = best_sol._cost + threshold_value
         
-        # Dynamic removal size (10% to 30% of customers)
         low = int(num_customers * 0.02)
         high = int(num_customers * 0.40)
         n_remove = random.randint(low, high)
@@ -150,59 +99,84 @@ def run_alns():
             vehicles_df=vehicles_df, 
             neighbor_sets=neighbor_sets
         )
-        
+           
         new_cost = evaluate_solution(repaired, dist_matrix, cust_addr_idx)
         current_cost = current_sol._cost
         
-        # Acceptance
         accepted = False
-        new_global_best = False
-        reward = SCORE_REJECTED
-        delta = new_cost - current_cost
         
-        if delta < 0:
+        if new_cost < best_sol._cost:
             accepted = True
-            if new_cost < best_sol._cost:
-                new_global_best = True
-                reward = SCORE_NEW_GLOBAL_BEST
-                best_sol = repaired.copy()
-                best_sol._cost = new_cost
-                print(f"Iter {it} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
-            else:
-                reward = SCORE_BETTER_THAN_CURRENT
-        else:
-            if random.random() < math.exp(-delta / curr_temp):
-                accepted = True
-                reward = SCORE_ACCEPTED_WORSE
-        
+            new_global_best = True
+            best_sol = repaired.copy()
+            best_sol._cost = new_cost
+            best_found_at = it
+            print(f"Iter {it} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
+            
+        elif new_cost < current_cost:
+            accepted = True
+            
+            
+        elif new_cost < acceptance_threshold:
+            accepted = True
+            
+            
         if accepted:
             current_sol = repaired
-        
-        # Track progress
-        if it % 10 == 0:
-            tracker.record_iteration(it, best_sol._cost, current_sol._cost,
-                                     destroy_weights.tolist(),
-                                     repair_weights.tolist(),
-                                     new_global_best)
-          
+            
         if (it + 1) % SEGMENT_SIZE == 0:
-            print(f"--- Iter {it+1} | Temp: {curr_temp:.2f} | Best: {best_sol._cost:.2f} | Current: {current_sol._cost:.2f} ---")
+            print(f"--- Iter {it+1} | Threshold: +{threshold_value:.2f} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
 
-        curr_temp *= cooling_rate
-
-    # Final Report
     print("\n" + "="*40)
     print("FINAL RESULTS")
     print("="*40)
     print(f"Best Cost: {best_sol._cost:.2f}")
-    
+    print(f"Best found at iteration: {best_found_at}")
+
     print("Routes:")
     for i, r in enumerate(best_sol.routes[:-1]):
         if r:
             load = sum(cust_arrays['demand'][c-1] for c in r)
             print(f"V{i+1}: {r} | Load: {load}")
-            
-    tracker.plot_all(prefix='alns_optimized', save=False, show=False)
+
+    return best_sol._cost, best_found_at
 
 if __name__ == "__main__":
-    run_alns()
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    NUM_RUNS = 10
+    ALGORITHM = "RRT"
+
+    # --- Add instance paths here ---
+    INSTANCES = [
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'C1_6_1.TXT'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'R1_6_1.TXT'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'RC1_6_1.TXT'),
+    ]
+
+    if not INSTANCES:
+        print("No instances specified. Add paths to the INSTANCES list.")
+        sys.exit(1)
+
+    output_csv = os.path.join(project_root, 'logs', 'rrt_results_banter.csv')
+    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
+
+    with open(output_csv, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['algorithm', 'instance', 'run', 'best_cost', 'iteration_found_best'])
+
+        for instance_path in INSTANCES:
+            instance_name = os.path.basename(instance_path)
+            print(f"\n{'='*60}")
+            print(f"INSTANCE: {instance_name}")
+            print(f"{'='*60}")
+
+            for run in range(1, NUM_RUNS + 1):
+                print(f"\n--- Run {run}/{NUM_RUNS} ---")
+                start = time.perf_counter()
+                cost, best_iter = run_alns(instance_path)
+                elapsed = time.perf_counter() - start
+                print(f"Elapsed time: {elapsed:.3f}s")
+                writer.writerow([ALGORITHM, instance_name, run, f"{cost:.2f}", best_iter])
+                f.flush()
+
+    print(f"\nResults saved to: {output_csv}")
