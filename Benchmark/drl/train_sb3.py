@@ -125,7 +125,7 @@ def train_sb3():
         clip_range=0.2,
         ent_coef=0.01,  
         verbose=1,
-        tensorboard_log=None,
+        tensorboard_log=log_dir,
         device="cpu"
     )
     
