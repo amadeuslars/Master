@@ -8,11 +8,9 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils import create_initial_solution, evaluate_solution, precompute_nearest_neighbors
-from utils.operators import (
+from utils.operators2 import (
     random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal,
-    greedy_insertion, regret_insertion
-)
-
+    greedy_insertion,regret_insertion)
 class VRPTWEnv(gym.Env):
     def __init__(self, customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays, seed=42):
         super(VRPTWEnv, self).__init__()

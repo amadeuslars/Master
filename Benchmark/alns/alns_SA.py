@@ -17,7 +17,7 @@ from utils.utils import (
 
 from utils.ml import QLearningAgent
 from utils.visualization import ALNSTracker
-from utils.operators import (
+from Benchmark.utils.operators import (
     random_removal,
     shaw_removal, 
     worst_removal, 

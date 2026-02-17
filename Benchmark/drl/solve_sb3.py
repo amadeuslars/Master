@@ -3,6 +3,7 @@ Solve VRPTW instances using a trained SB3 PPO model.
 """
 import sys
 import os
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
@@ -38,6 +39,12 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
     # Load data
     data = load_raw_solomon_data(instance_path)
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = data
+    dist_matrix = dist_matrix.astype(np.float64)
+    cust_addr_idx = cust_addr_idx.astype(np.intp)
+    cust_arrays['demand'] = cust_arrays['demand'].astype(np.float64)
+    cust_arrays['tw_start'] = cust_arrays['tw_start'].astype(np.float64)
+    cust_arrays['tw_end'] = cust_arrays['tw_end'].astype(np.float64)
+    cust_arrays['service_time'] = cust_arrays['service_time'].astype(np.float64)
     
     # Create environment
     env = VRPTWEnv(customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays)
@@ -89,6 +96,7 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
             print(f"  [Step {step}] New best: {current_best:.2f} (↓{improvement:.2f}) "
                   f"[{destroy_ops[destroy_op_idx]}|{buckets[bucket_idx]}|{repair_ops[repair_idx]}]")
             prev_best = current_best
+            best_found_at = step
         
         # Progress update every 100 steps
         if step % 100 == 0:
@@ -116,7 +124,7 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
     # plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops, 
     #              os.path.basename(instance_path))
     
-    return env.best_sol._cost, env.best_sol
+    return env.best_sol._cost, env.best_sol, best_found_at
 
 
 def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops, instance_name):
