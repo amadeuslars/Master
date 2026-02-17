@@ -58,7 +58,6 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
     obs, _ = env.reset()
     done = False
     step = 0
-    best_found_at = 0
     prev_best = env.best_sol._cost
     print(f"  Initial solution: {prev_best:.2f}")
     
@@ -223,40 +222,36 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
 
 
 if __name__ == "__main__":
-    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_133937', 'ppo_vrptw_final.zip')
+    # Example usage - modify these paths
+    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_100', 'r106.txt')
+    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_133937', 'checkpoint_300000.zip')
+    
     NUM_RUNS = 10
-    ALGORITHM = "DRLH"
-
-    # --- Add instance paths here ---
-    INSTANCES = [
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'C2_6_3.TXT'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'R2_6_4.TXT'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'RC2_6_5.TXT'),
-    ]
-
-    if not INSTANCES:
-        print("No instances specified. Add paths to the INSTANCES list.")
-        sys.exit(1)
-
-    if not os.path.exists(MODEL):
-        print(f"Model not found at: {MODEL}")
-        sys.exit(1)
-
-    output_csv = os.path.join(project_root, 'logs', 'drlh_results.csv')
-    with open(output_csv, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['algorithm', 'instance', 'run', 'best_cost', 'iteration_found_best'])
-
-        for instance_path in INSTANCES:
-            instance_name = os.path.basename(instance_path)
+    
+    if os.path.exists(MODEL):
+        all_best = []
+        
+        for i in range(NUM_RUNS):
             print(f"\n{'='*60}")
-            print(f"INSTANCE: {instance_name}")
+            print(f"RUN {i+1}/{NUM_RUNS}")
             print(f"{'='*60}")
-
-            for run in range(1, NUM_RUNS + 1):
-                print(f"\n--- Run {run}/{NUM_RUNS} ---")
-                cost, _, best_iter = solve_with_sb3(instance_path, MODEL)
-                writer.writerow([ALGORITHM, instance_name, run, f"{cost:.2f}", best_iter])
-                f.flush()
-
-    print(f"\nResults saved to: {output_csv}")
+            
+            cost, solution = solve_with_sb3(INSTANCE, MODEL)
+            all_best.append(cost)
+        
+        # Print summary
+        print("\n" + "="*60)
+        print("SUMMARY: ALL RUNS")
+        print("="*60)
+        for i, cost in enumerate(all_best):
+            print(f"  Run {i+1}: {cost:.2f}")
+        
+        print("-"*40)
+        print(f"  Best:    {min(all_best):.2f}")
+        print(f"  Worst:   {max(all_best):.2f}")
+        print(f"  Average: {np.mean(all_best):.2f}")
+        print(f"  Std Dev: {np.std(all_best):.2f}")
+        print("="*60)
+    else:
+        print(f"\nModel not found at: {MODEL}")
+        print("Update the MODEL path in this script to your actual checkpoint location.")

@@ -28,7 +28,9 @@ from utils.operators2 import (
     regret_insertion)
 
 # --- Configuration ---
-MAX_ITERATIONS = 10000
+DUMMY_VEHICLE_NAME = 'dummy'
+DUMMY_PENALTY = 10000.0
+MAX_ITERATIONS = 2000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
