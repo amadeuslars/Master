@@ -8,7 +8,6 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils import (
-    precompute_nearest_neighbors, 
     create_initial_solution, 
     evaluate_solution,
     load_raw_solomon_data,
@@ -43,12 +42,6 @@ def run_alns(instance_file):
 
     # Load data from Solomon .txt instance
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
-    dist_matrix = dist_matrix.astype(np.float64)
-    cust_addr_idx = cust_addr_idx.astype(np.intp)
-    cust_arrays['demand'] = cust_arrays['demand'].astype(np.float64)
-    cust_arrays['tw_start'] = cust_arrays['tw_start'].astype(np.float64)
-    cust_arrays['tw_end'] = cust_arrays['tw_end'].astype(np.float64)
-    cust_arrays['service_time'] = cust_arrays['service_time'].astype(np.float64)
 
     destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
     repair_ops = [greedy_insertion, regret_insertion]
@@ -95,8 +88,7 @@ def run_alns(instance_file):
             distance_matrix_array=dist_matrix, 
             customer_addr_idx=cust_addr_idx,
             customer_arrays=cust_arrays, 
-            vehicles_df=vehicles_df, 
-            neighbor_sets=neighbor_sets
+            vehicles_df=vehicles_df
         )
            
         new_cost = evaluate_solution(repaired, dist_matrix, cust_addr_idx)

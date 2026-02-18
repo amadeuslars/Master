@@ -17,7 +17,7 @@ from Benchmark.drl.env import VRPTWEnv
 from Benchmark.utils.utils import load_raw_solomon_data
 
 
-def solve_with_sb3(instance_path, model_path, deterministic=True):
+def solve_with_sb3(instance_path, model_path):
     """
     Solve a VRPTW instance using a trained SB3 model.
     
@@ -39,12 +39,6 @@ def solve_with_sb3(instance_path, model_path, deterministic=True):
     # Load data
     data = load_raw_solomon_data(instance_path)
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = data
-    dist_matrix = dist_matrix.astype(np.float64)
-    cust_addr_idx = cust_addr_idx.astype(np.intp)
-    cust_arrays['demand'] = cust_arrays['demand'].astype(np.float64)
-    cust_arrays['tw_start'] = cust_arrays['tw_start'].astype(np.float64)
-    cust_arrays['tw_end'] = cust_arrays['tw_end'].astype(np.float64)
-    cust_arrays['service_time'] = cust_arrays['service_time'].astype(np.float64)
     
     # Create environment
     env = VRPTWEnv(customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays)
@@ -223,8 +217,8 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
 
 if __name__ == "__main__":
     # Example usage - modify these paths
-    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_100', 'r106.txt')
-    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_133937', 'checkpoint_300000.zip')
+    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'C1_6_1.txt')
+    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_133937', 'checkpoint_50000.zip')
     
     NUM_RUNS = 10
     
@@ -236,7 +230,7 @@ if __name__ == "__main__":
             print(f"RUN {i+1}/{NUM_RUNS}")
             print(f"{'='*60}")
             
-            cost, solution = solve_with_sb3(INSTANCE, MODEL)
+            cost, solution, _ = solve_with_sb3(INSTANCE, MODEL)
             all_best.append(cost)
         
         # Print summary
