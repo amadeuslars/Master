@@ -7,7 +7,7 @@ import os
 # --- PATH SETUP ---
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.utils import create_initial_solution, evaluate_solution, precompute_nearest_neighbors
+from utils.utils import create_initial_solution, evaluate_solution
 from utils.operators2 import (
     random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal,
     greedy_insertion,regret_insertion)
@@ -23,8 +23,6 @@ class VRPTWEnv(gym.Env):
         self.cust_arrays = cust_arrays
         self.num_customers = len(customers_df['customer_id']) if isinstance(customers_df, dict) else len(customers_df)
         self.num_vehicles = int(vehicles_df['num_vehicles']) if isinstance(vehicles_df, dict) else int(vehicles_df.loc['Standard', 'num_vehicles'])
-        
-        self.neighbor_sets = precompute_nearest_neighbors(dist_matrix, num_neighbors=30)
 
         # --- Actions ---
         remove_buckets = [(0.02, 0.05), (0.05, 0.10), (0.10, 0.20), (0.20, 0.30), (0.30, 0.40)]
@@ -128,7 +126,7 @@ class VRPTWEnv(gym.Env):
         
         repaired = r_op(destroyed, distance_matrix_array=self.dist_matrix, 
                         customer_addr_idx=self.cust_addr_idx, customer_arrays=self.cust_arrays, 
-                        vehicles_df=self.vehicles_df, neighbor_sets=self.neighbor_sets)
+                        vehicles_df=self.vehicles_df)
         
         new_cost = evaluate_solution(repaired, self.dist_matrix, self.cust_addr_idx)
         prev_cost = self.current_sol._cost

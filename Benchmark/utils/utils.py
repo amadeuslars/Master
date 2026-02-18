@@ -312,7 +312,7 @@ def load_raw_solomon_data(file_path):
     # 4. Build distance matrix directly (Depot is index 0, customers 1..n)
     all_locs = [(instance.depot['x'], instance.depot['y'])] + [(c['x'], c['y']) for c in instance.customers]
     n = len(all_locs)
-    dist_matrix = np.zeros((n, n), dtype=np.float32)
+    dist_matrix = np.zeros((n, n), dtype=np.float64)
     
     for i in range(n):
         for j in range(n):
@@ -321,14 +321,14 @@ def load_raw_solomon_data(file_path):
             dist_matrix[i, j] = np.sqrt(dx**2 + dy**2)
     
     # 5. Customer address indices (customer ID to matrix index mapping)
-    customer_addr_idx = customer_ids.astype(np.int32)
+    customer_addr_idx = customer_ids.astype(np.intp)
     
     # 6. Build customer arrays dict
     cust_arrays = {
-        'demand': np.array([c['demand'] for c in instance.customers], dtype=np.float32),
-        'tw_start': np.array([c['ready_time'] for c in instance.customers], dtype=np.float32),
-        'tw_end': np.array([c['due_date'] for c in instance.customers], dtype=np.float32),
-        'service_time': np.array([c['service_time'] for c in instance.customers], dtype=np.float32),
+        'demand': np.array([c['demand'] for c in instance.customers], dtype=np.float64),
+        'tw_start': np.array([c['ready_time'] for c in instance.customers], dtype=np.float64),
+        'tw_end': np.array([c['due_date'] for c in instance.customers], dtype=np.float64),
+        'service_time': np.array([c['service_time'] for c in instance.customers], dtype=np.float64),
     }
     
     # 7. Return minimal customers_df for compatibility
