@@ -46,7 +46,7 @@ class VRPTWEnv(gym.Env):
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(state_dim,), dtype=np.float32)
 
         # --- RRT Params ---
-        self.rrt_start_deviation = 0.20 
+        self.rrt_start_deviation = 0.10 
         self.max_iterations = 1000
 
         # --- Internal State ---
