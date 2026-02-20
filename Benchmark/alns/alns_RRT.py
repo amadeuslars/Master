@@ -17,14 +17,7 @@ from utils.utils import (
 
 from utils.ml import QLearningAgent
 from utils.visualization import ALNSTracker
-from utils.operators2 import (
-    random_removal, 
-    shaw_removal, 
-    worst_removal, 
-    cluster_removal,
-    least_used_vehicle_removal,
-    greedy_insertion,
-    regret_insertion)
+from utils.actions import build_actions, NUM_ACTIONS
 
 # --- Configuration ---
 MAX_ITERATIONS = 1000
@@ -51,16 +44,14 @@ def run_alns(instance_file):
     # Load data from Solomon .txt instance
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
 
-    destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
-    repair_ops = [greedy_insertion, regret_insertion]
+    actions = build_actions()
 
     num_customers = len(customers_df['customer_id'])
     num_real_vehicles = int(vehicles_df['num_vehicles'])
     neighbor_sets = None
 
-    # Initialize roulette wheel weights (start equal for all operators)
-    destroy_weights = np.ones(len(destroy_ops))
-    repair_weights = np.ones(len(repair_ops))
+    # Initialize roulette wheel weights (one weight per composite action)
+    action_weights = np.ones(NUM_ACTIONS)
     
     current_sol = create_initial_solution(num_customers, num_real_vehicles)
     evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
@@ -71,45 +62,32 @@ def run_alns(instance_file):
 
     print(f"Initial Cost: {current_sol._cost:.2f}")
 
-    print("\n--- Solution object passed to operators ---")
-    print(f"  type: {type(current_sol)}")
-    print(f"  .routes: {current_sol.routes}")
-    print(f"  .vehicles: {current_sol.vehicles}")
-    print(f"  ._cost: {current_sol._cost}")
-    print(f"  .unassigned: {current_sol.unassigned}")
-    print()
-
     print(f"Starting Main Loop (RRT Strategy). Start Deviation: {RRT_START_PERCENTAGE*100}%")
     
     for it in range(MAX_ITERATIONS):
 
-        # Select operators using roulette wheel (weighted random)
-        d_probs = destroy_weights / destroy_weights.sum()
-        r_probs = repair_weights / repair_weights.sum()
-        d_idx = np.random.choice(len(destroy_ops), p=d_probs)
-        r_idx = np.random.choice(len(repair_ops), p=r_probs)
+        # Select composite action using roulette wheel
+        action_probs = action_weights / action_weights.sum()
+        action_idx = np.random.choice(NUM_ACTIONS, p=action_probs)
+        d_op, r_op, label = actions[action_idx]
 
         # RRT Threshold
         remaining_ratio = (MAX_ITERATIONS - it) / MAX_ITERATIONS
         threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol._cost
         acceptance_threshold = best_sol._cost + threshold_value
-        
-        low = int(num_customers * 0.02)
-        high = int(num_customers * 0.40)
-        n_remove = random.randint(low, high)
-        
-        destroyed = destroy_ops[d_idx](
-            current_sol, n_remove, 
-            distance_matrix_array=dist_matrix, 
+
+        destroyed = d_op(
+            current_sol,
+            distance_matrix_array=dist_matrix,
             customer_addr_idx=cust_addr_idx,
             customer_arrays=cust_arrays
         )
-        
-        repaired = repair_ops[r_idx](
-            destroyed, 
-            distance_matrix_array=dist_matrix, 
+
+        repaired = r_op(
+            destroyed,
+            distance_matrix_array=dist_matrix,
             customer_addr_idx=cust_addr_idx,
-            customer_arrays=cust_arrays, 
+            customer_arrays=cust_arrays,
             vehicles_df=vehicles_df
         )
            
@@ -139,9 +117,8 @@ def run_alns(instance_file):
         if accepted:
             current_sol = repaired
 
-        # Update operator weights based on performance (roulette wheel)
-        destroy_weights[d_idx] = WEIGHT_DECAY * destroy_weights[d_idx] + (1 - WEIGHT_DECAY) * reward
-        repair_weights[r_idx] = WEIGHT_DECAY * repair_weights[r_idx] + (1 - WEIGHT_DECAY) * reward
+        # Update action weight based on performance (roulette wheel)
+        action_weights[action_idx] = WEIGHT_DECAY * action_weights[action_idx] + (1 - WEIGHT_DECAY) * reward
             
         if (it + 1) % SEGMENT_SIZE == 0:
             print(f"--- Iter {it+1} | Threshold: +{threshold_value:.2f} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
@@ -167,7 +144,7 @@ if __name__ == "__main__":
 
     # --- Add instance paths here ---
     INSTANCES = [
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_100', 'rc201.txt'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200', 'C1_2_1.TXT'),
         # os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'R1_6_1.TXT'),
         # os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'RC1_6_1.TXT'),
     ]

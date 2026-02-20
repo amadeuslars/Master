@@ -17,14 +17,7 @@ from utils.utils import (
 
 from utils.ml import QLearningAgent
 from utils.visualization import ALNSTracker
-from utils.operators2 import (
-    random_removal, 
-    shaw_removal, 
-    worst_removal, 
-    cluster_removal,
-    least_used_vehicle_removal,
-    greedy_insertion,
-    regret_insertion)
+from utils.actions import build_actions, NUM_ACTIONS
 
 # --- Configuration ---
 MAX_ITERATIONS = 1000
@@ -43,14 +36,13 @@ def run_alns(instance_file):
     # Load data from Solomon .txt instance
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = load_raw_solomon_data(instance_file)
 
-    destroy_ops = [random_removal, worst_removal, cluster_removal, shaw_removal, least_used_vehicle_removal]
-    repair_ops = [greedy_insertion, regret_insertion]
+    actions = build_actions()
 
     num_customers = len(customers_df['customer_id'])
     num_real_vehicles = int(vehicles_df['num_vehicles'])
     neighbor_sets = None
 
-    
+
     current_sol = create_initial_solution(num_customers, num_real_vehicles)
     evaluate_solution(current_sol, dist_matrix, cust_addr_idx)
     
@@ -63,31 +55,27 @@ def run_alns(instance_file):
     
     for it in range(MAX_ITERATIONS):
 
-        # Select operators using roulette wheel (weighted random)
-        d_idx = np.random.choice(len(destroy_ops))
-        r_idx = np.random.choice(len(repair_ops))
+        # Select composite action uniformly at random
+        action_idx = random.randint(0, NUM_ACTIONS - 1)
+        d_op, r_op, label = actions[action_idx]
 
         # RRT Threshold
         remaining_ratio = (MAX_ITERATIONS - it) / MAX_ITERATIONS
         threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol._cost
         acceptance_threshold = best_sol._cost + threshold_value
-        
-        low = int(num_customers * 0.02)
-        high = int(num_customers * 0.40)
-        n_remove = random.randint(low, high)
-        
-        destroyed = destroy_ops[d_idx](
-            current_sol, n_remove, 
-            distance_matrix_array=dist_matrix, 
+
+        destroyed = d_op(
+            current_sol,
+            distance_matrix_array=dist_matrix,
             customer_addr_idx=cust_addr_idx,
             customer_arrays=cust_arrays
         )
-        
-        repaired = repair_ops[r_idx](
-            destroyed, 
-            distance_matrix_array=dist_matrix, 
+
+        repaired = r_op(
+            destroyed,
+            distance_matrix_array=dist_matrix,
             customer_addr_idx=cust_addr_idx,
-            customer_arrays=cust_arrays, 
+            customer_arrays=cust_arrays,
             vehicles_df=vehicles_df
         )
            
@@ -139,9 +127,9 @@ if __name__ == "__main__":
 
     # --- Add instance paths here ---
     INSTANCES = [
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'C1_6_1.TXT'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'R1_6_1.TXT'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'RC1_6_1.TXT'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_400', 'C1_4_1.TXT'),
+        # os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'R1_6_1.TXT'),
+        # os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'RC1_6_1.TXT'),
     ]
 
     if not INSTANCES:

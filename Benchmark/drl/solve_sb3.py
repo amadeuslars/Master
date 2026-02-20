@@ -45,7 +45,7 @@ def solve_with_sb3(instance_path, model_path):
     
     # Load trained model
     print(f"--- Loading model: {model_path} ---")
-    model = PPO.load(model_path, env=env)
+    model = PPO.load(model_path, env=env, deterministic = True)
     
     # Run episode with tracking
     print("--- Solving with trained agent ---")
@@ -58,22 +58,21 @@ def solve_with_sb3(instance_path, model_path):
     # Tracking arrays
     cost_history = []
     action_history = []
-    
+
     # Decode action to operator info
-    # Action space: 50 actions = 5 destroy ops × 5 buckets × 2 repair ops
-    destroy_ops = ['random', 'worst', 'cluster', 'shaw', 'least_used']
-    buckets = ['2-5%', '5-10%', '10-20%', '20-30%', '30-40%']
+    # Action space: 20 actions = 2 destroy ops × 5 sizes × 2 repair ops
+    destroy_ops = ['random', 'worst', 'cluster']
+    buckets = ['xs(2-5)', 'sm(5-10)', 'md(10-20)', 'lg(20-30)', 'xl(30-40)']
     repair_ops = ['greedy', 'regret']
-    
+
     while not done:
         step += 1
         action, _states = model.predict(obs)
-        
-        # Decode action (MUST match env.py exactly)
+
+        # Decode action (MUST match env.py / actions.py exactly)
         repair_idx = action % 2
-        bucket_and_destroy = action // 2
-        bucket_idx = bucket_and_destroy % 5
-        destroy_op_idx = bucket_and_destroy // 5
+        bucket_idx = (action // 2) % 5
+        destroy_op_idx = action // 10
         
         action_history.append(action)
         
@@ -132,7 +131,7 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
     for action in action_history:
         repair_idx = action % 2
         bucket_idx = (action // 2) % 5
-        destroy_op_idx = (action // 2) // 5
+        destroy_op_idx = action // 10
         
         destroy_counts[destroy_op_idx] += 1
         bucket_counts[bucket_idx] += 1
@@ -217,8 +216,8 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
 
 if __name__ == "__main__":
     # Example usage - modify these paths
-    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'C1_6_1.txt')
-    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260205_133937', 'checkpoint_50000.zip')
+    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_400', 'C1_4_1.txt')
+    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260220_113616', 'checkpoint_500000.zip')
     
     NUM_RUNS = 10
     
