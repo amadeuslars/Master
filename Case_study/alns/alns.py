@@ -6,7 +6,10 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils import load_vrp_data, generate_initial_solution, evaluate_solution
-from utils.operators import random_removal, greedy_insertion
+from utils.operators import (
+    random_removal, worst_removal, cluster_removal, shaw_removal,
+    least_used_vehicle_removal, greedy_insertion, regret_insertion
+)
 
 # --- Configuration ---
 
