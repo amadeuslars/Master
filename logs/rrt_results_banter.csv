@@ -1,11 +1,1 @@
 algorithm,instance,run,best_cost,iteration_found_best
-RRT,rc201.txt,1,1295.40,306
-RRT,rc201.txt,2,1295.85,553
-RRT,rc201.txt,3,1309.65,936
-RRT,rc201.txt,4,1325.28,749
-RRT,rc201.txt,5,1299.55,466
-RRT,rc201.txt,6,1302.50,986
-RRT,rc201.txt,7,1303.97,461
-RRT,rc201.txt,8,1288.13,751
-RRT,rc201.txt,9,1294.33,385
-RRT,rc201.txt,10,1293.21,893

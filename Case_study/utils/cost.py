@@ -15,7 +15,7 @@ def calculate_route_cost(solution, customer_addr_idx, time_matrix_array, depot_i
     # Traverse route from depot through all customers
     # solution is expected to be a list of customer INDICES (ints)
     for cust_row_idx in solution:
-        current_idx = customer_addr_idx[cust_row_idx]
+        current_idx = customer_addr_idx[cust_row_idx - 1]
         total_travel_time += time_matrix_array[last_idx, current_idx]
         last_idx = current_idx
 

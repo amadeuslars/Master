@@ -70,6 +70,15 @@ def run_alns(instance_file):
     best_found_at = 0
 
     print(f"Initial Cost: {current_sol._cost:.2f}")
+
+    print("\n--- Solution object passed to operators ---")
+    print(f"  type: {type(current_sol)}")
+    print(f"  .routes: {current_sol.routes}")
+    print(f"  .vehicles: {current_sol.vehicles}")
+    print(f"  ._cost: {current_sol._cost}")
+    print(f"  .unassigned: {current_sol.unassigned}")
+    print()
+
     print(f"Starting Main Loop (RRT Strategy). Start Deviation: {RRT_START_PERCENTAGE*100}%")
     
     for it in range(MAX_ITERATIONS):
