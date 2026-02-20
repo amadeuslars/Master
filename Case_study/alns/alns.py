@@ -12,7 +12,6 @@ from utils.operators import random_removal, greedy_insertion
 
 MAX_ITERATIONS = 10000       
 
-
 def run_alns():
     
     customers_dict, vehicles_dict, vehicle_names, time_matrix_array, depot_idx, addr_idx, customer_arrays = load_vrp_data()
