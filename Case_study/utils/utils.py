@@ -13,24 +13,28 @@ class Solution:
     def __init__(self, routes, vehicles, unassigned=None):
         self.routes = routes  # List of lists (customer indices)
         self.vehicles = vehicles  # List of vehicle names
-        self.unassigned = unassigned if unassigned is not None else []
         self.cost = 0.0
-    
+        self.lunch_breaks = [None] * len(routes)  # Per-route: position (1..n) after which lunch is taken
+
     def get_vehicle_counts(self):
         return Counter(self.vehicles)
 
     def copy(self):
         new = Solution([r[:] for r in self.routes], list(self.vehicles), list(self.unassigned) if hasattr(self, 'unassigned') else None)
         new.cost = self.cost
+        new.lunch_breaks = list(self.lunch_breaks)
         return new
 
 
 
-def load_vrp_data(customers_file='Case_study/data/customers.csv', vehicles_file='Case_study/data/vehicles.csv', time_matrix_file='Case_study/data/time_matrix.csv'):
+def load_vrp_data(customers_file='Case_study/data/customers.csv', vehicles_file='Case_study/data/vehicles.csv', time_matrix_file='Case_study/data/time_matrix.csv', dist_matrix_file = 'Case_study/data/distance_matrix.csv' ):
     customers_df = pd.read_csv(customers_file)
     vehicles_df = pd.read_csv(vehicles_file)
     time_matrix_df = pd.read_csv(time_matrix_file, index_col=0)
     time_matrix_df = time_matrix_df.apply(pd.to_numeric, errors='coerce').fillna(0.0) / 3600.0
+    dist_matrix_df = pd.read_csv(dist_matrix_file, index_col=0)
+    dist_matrix_df = dist_matrix_df.apply(pd.to_numeric, errors='coerce').fillna(0.0)
+    distance_matrix_array = dist_matrix_df.to_numpy(dtype=np.float64)
 
     num_customers = len(customers_df)
 
@@ -84,15 +88,16 @@ def load_vrp_data(customers_file='Case_study/data/customers.csv', vehicles_file=
         'biltype': biltype_raw,
     }
 
-    return customers_dict, vehicles_dict, vehicle_names, time_matrix_array, depot_idx, addr_idx, customer_arrays
+    return customers_dict, vehicles_dict, vehicle_names, time_matrix_array, distance_matrix_array, depot_idx, addr_idx, customer_arrays
 
 def evaluate_solution(solution, customer_addr_idx, time_matrix_array, depot_idx):
     total_cost = 0.0
     for i, route in enumerate(solution.routes):
-        route_cost = calculate_route_cost(route, customer_addr_idx, time_matrix_array, depot_idx)
-        total_cost += route_cost
         if solution.vehicles[i] == 'dummy':
             total_cost += 100 * len(route)
+        else:
+            route_cost = calculate_route_cost(route, customer_addr_idx, time_matrix_array, depot_idx)
+            total_cost += route_cost
     solution.cost = total_cost
     return total_cost
 

@@ -33,42 +33,50 @@ def geocode_addresses(addresses):
 # --- Main script ---
 if __name__ == "__main__":
     try:
-        # 1. Read the Excel file
-        data = pd.read_excel('data.xlsx')
-        print("Successfully loaded data.xlsx")
-        
+        # 1. Read the customers.csv file
+        data = pd.read_csv('Case_study/data/customers.csv')
+        print("Successfully loaded customers.csv")
+
         # 2. Select the 'Adresse' column
         if 'Adresse' in data.columns:
             addresses = data['Adresse'].dropna().unique()
-            
-            # 3. Geocode a sample of the addresses (e.g., the first 5)
-            addresses = addresses
+
+            # 3. Geocode addresses
             geocoded_locations = geocode_addresses(addresses)
-            
+
             # 4. Create a DataFrame with the results
             geo_df = pd.DataFrame(geocoded_locations, columns=['Adresse', 'Latitude', 'Longitude'])
-            
+
             print("\n--- Geocoding Results ---")
             print(geo_df)
 
-            depot_address = {
-                'Adresse': ['Depot'],
-                'Latitude': [62.4293036],
-                'Longitude': [6.3280543]
-            }
+            # 5. Append new geocoded addresses to geocoded_addresses.csv in the correct location
+            output_filename = 'Case_study/data/geocoded_addresses.csv'
+            try:
+                existing_df = pd.read_csv(output_filename)
+                # Only add addresses not already present
+                new_df = geo_df[~geo_df['Adresse'].isin(existing_df['Adresse'])]
+                combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+            except FileNotFoundError:
+                combined_df = geo_df
 
-            depot_df = pd.DataFrame(depot_address)
-            geo_df = pd.concat([geo_df, depot_df], ignore_index=True)
+            # Optionally, add depot if not present
+            if 'Depot' not in combined_df['Adresse'].values:
+                depot_address = {
+                    'Adresse': ['Depot'],
+                    'Latitude': [62.4293036],
+                    'Longitude': [6.3280543]
+                }
+                depot_df = pd.DataFrame(depot_address)
+                combined_df = pd.concat([combined_df, depot_df], ignore_index=True)
 
-            # 5. Save the DataFrame to a CSV file
-            output_filename = 'geocoded_addresses.csv'
-            geo_df.to_csv(output_filename, index=False)
-            print(f"\nSuccessfully saved geocoded addresses to '{output_filename}'")
+            combined_df.to_csv(output_filename, index=False)
+            print(f"\nSuccessfully updated geocoded addresses in '{output_filename}'")
 
         else:
-            print("\nERROR: Column 'Adresse' not found in data.xlsx!")
+            print("\nERROR: Column 'Adresse' not found in customers.csv!")
 
     except FileNotFoundError:
-        print("ERROR: 'data.xlsx' not found. Please make sure the file is in the same directory.")
+        print("ERROR: '../data/customers.csv' not found. Please make sure the file is in the correct directory.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")

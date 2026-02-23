@@ -128,6 +128,11 @@ python drl/train_sb3.py    # Train PPO agent
 - Feasibility check order: capacity -> time windows -> vehicle compatibility
 - `vehicles_dict` is keyed by vehicle name -> capacity dict (e.g. `vehicles_dict['small']['PPL total']`)
 
+### TODO / Future Work
+- **Lunch break scheduling**: Currently `find_lunch_break_position` picks the earliest feasible slot, so lunch almost always falls after the first customer. This needs refinement once shift structure is clearer. There are two shifts (early and late): early shift lunch should be around noon (~12:00), late shift lunch around 18:00. Revisit when shift data is available.
+- **Time metric estimation**: Service time (20min), loading time (1h), and deloading time (20min) are currently static defaults. These vary significantly by customer type (e.g. large store vs small kiosk) and vehicle type (e.g. large truck takes longer to load). Look into per-customer and per-vehicle estimates based on real data from HI Giørtz.
+- **Unassigned customer insertion**: Customers that remain unassigned after a search should be tried inserted in a way that minimizes the degree of constraint violation, so that mitigating measures (e.g. adding a trailer, adjusting vehicle assignment) can be identified and suggested.
+
 ### Claude Code Usage
 - Be sparse with token usage — avoid reading files unnecessarily
 - Ask before doing broad codebase exploration

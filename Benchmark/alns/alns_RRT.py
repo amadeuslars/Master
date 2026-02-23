@@ -15,8 +15,6 @@ from utils.utils import (
     cross_route_segment_relocation,
     simple_relocate)
 
-from utils.ml import QLearningAgent
-from utils.visualization import ALNSTracker
 from utils.actions import build_actions, NUM_ACTIONS
 
 # --- Configuration ---
@@ -48,7 +46,6 @@ def run_alns(instance_file):
 
     num_customers = len(customers_df['customer_id'])
     num_real_vehicles = int(vehicles_df['num_vehicles'])
-    neighbor_sets = None
 
     # Initialize roulette wheel weights (one weight per composite action)
     action_weights = np.ones(NUM_ACTIONS)
