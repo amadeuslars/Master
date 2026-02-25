@@ -5,7 +5,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.feasibility import check_time_window_feasibility, check_capacity_feasibility, check_vehicle_store_compatibility
+from utils.feasibility import check_time_window_feasibility, check_capacity_feasibility, check_vehicle_store_compatibility, check_max_route_duration, check_lunch_break_feasibility, find_lunch_break_position
 
 # ---------------------------------------------------------
 #  OPERATORS (Destroy) — identical to benchmark
@@ -205,8 +205,13 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
                          distance_matrix_array[cust_addr, nxt] -
                          distance_matrix_array[prev, nxt])
                 candidate_route = route[:i] + [cust] + route[i:]
-                if check_time_window_feasibility(candidate_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                    feasible_points.append((delta, r_idx, i))
+                if not check_time_window_feasibility(candidate_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    continue
+                if not check_max_route_duration(candidate_route, customer_addr_idx, distance_matrix_array, depot_idx):
+                    continue
+                if not check_lunch_break_feasibility(candidate_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    continue
+                feasible_points.append((delta, r_idx, i))
 
         if feasible_points:
             costs = np.array([p[0] for p in feasible_points], dtype=np.float64)
@@ -216,6 +221,9 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
             idx = np.random.choice(len(feasible_points), p=probs)
             _, selected_r, selected_p = feasible_points[idx]
             new_sol.routes[selected_r].insert(selected_p, cust)
+            new_sol.lunch_breaks[selected_r] = find_lunch_break_position(
+                new_sol.routes[selected_r], distance_matrix_array, customer_addr_idx,
+                customer_arrays, depot_idx)
         else:
             new_sol.routes[-1].append(cust)
     return new_sol
@@ -250,8 +258,13 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
                              distance_matrix_array[cust_addr, nxt] -
                              distance_matrix_array[prev, nxt])
                     temp_route = route[:i] + [cust] + route[i:]
-                    if check_time_window_feasibility(temp_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                        feasible_options.append((delta, r_idx, i))
+                    if not check_time_window_feasibility(temp_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                        continue
+                    if not check_max_route_duration(temp_route, customer_addr_idx, distance_matrix_array, depot_idx):
+                        continue
+                    if not check_lunch_break_feasibility(temp_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                        continue
+                    feasible_options.append((delta, r_idx, i))
 
             if not feasible_options:
                 continue
@@ -283,6 +296,9 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
         _, final_r, final_p = available_options[choice_idx]
 
         new_sol.routes[final_r].insert(final_p, target_cust)
+        new_sol.lunch_breaks[final_r] = find_lunch_break_position(
+            new_sol.routes[final_r], distance_matrix_array, customer_addr_idx,
+            customer_arrays, depot_idx)
         unassigned.remove(target_cust)
 
     return new_sol

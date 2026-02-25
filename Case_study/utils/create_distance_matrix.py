@@ -5,9 +5,9 @@ import time
 
 # --- Configuration ---
 OSRM_SERVER_URL = "http://localhost:5001" # OSRM server is running on port 5001
-GEOCODED_DATA_FILE = "geocoded_addresses.csv"
-DISTANCE_MATRIX_FILE = "distance_matrix.csv"
-TIME_MATRIX_FILE = "time_matrix.csv"
+GEOCODED_DATA_FILE = "Case_study/data/geocoded_addresses.csv"
+DISTANCE_MATRIX_FILE = "Case_study/data/distance_matrix.csv"
+TIME_MATRIX_FILE = "Case_study/data/time_matrix.csv"
 
 def get_osrm_matrix(coordinates):
     """
