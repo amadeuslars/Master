@@ -7,6 +7,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
+import time
 
 # --- PATH SETUP ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +17,8 @@ sys.path.insert(0, project_root)
 from Benchmark.drl.env import VRPTWEnv
 from Benchmark.utils.utils import load_raw_solomon_data
 
+# Configuration
+MAX_ITERATIONS = 5000
 
 def solve_with_sb3(instance_path, model_path):
     """
@@ -41,7 +44,7 @@ def solve_with_sb3(instance_path, model_path):
     customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays = data
     
     # Create environment
-    env = VRPTWEnv(customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays)
+    env = VRPTWEnv(customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays, MAX_ITERATIONS)
     
     # Load trained model
     print(f"--- Loading model: {model_path} ---")
@@ -215,36 +218,41 @@ def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops,
 
 
 if __name__ == "__main__":
-    # Example usage - modify these paths
-    INSTANCE = os.path.join(project_root, 'Benchmark', 'data', 'homberger_400', 'C1_4_1.txt')
-    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260220_113616', 'checkpoint_500000.zip')
-    
+    import glob
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     NUM_RUNS = 10
-    
-    if os.path.exists(MODEL):
-        all_best = []
-        
-        for i in range(NUM_RUNS):
+    ALGORITHM = "DRLH"
+    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260220_113616', 'ppo_vrptw_final.zip')
+
+    INSTANCE_DIR = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600_1')
+
+    # Find all .TXT and .txt files in the chosen directory
+    INSTANCES = sorted(glob.glob(os.path.join(INSTANCE_DIR, '*.TXT')) +
+                      glob.glob(os.path.join(INSTANCE_DIR, '*.txt')))
+
+
+    # Get the last part of the instance directory (e.g., 'homberger_600')
+    instance_dir_name = os.path.basename(INSTANCE_DIR.rstrip('/'))
+    output_csv = os.path.join(project_root, 'logs', f'drlh_results_{instance_dir_name}_{MAX_ITERATIONS}iter_missing.csv')
+    os.makedirs(os.path.dirname(output_csv), exist_ok=True)
+
+    with open(output_csv, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['algorithm', 'instance', 'run', 'best_cost', 'iteration_found_best'])
+
+        for instance_path in INSTANCES:
+            instance_name = os.path.basename(instance_path)
             print(f"\n{'='*60}")
-            print(f"RUN {i+1}/{NUM_RUNS}")
+            print(f"INSTANCE: {instance_name}")
             print(f"{'='*60}")
-            
-            cost, solution, _ = solve_with_sb3(INSTANCE, MODEL)
-            all_best.append(cost)
-        
-        # Print summary
-        print("\n" + "="*60)
-        print("SUMMARY: ALL RUNS")
-        print("="*60)
-        for i, cost in enumerate(all_best):
-            print(f"  Run {i+1}: {cost:.2f}")
-        
-        print("-"*40)
-        print(f"  Best:    {min(all_best):.2f}")
-        print(f"  Worst:   {max(all_best):.2f}")
-        print(f"  Average: {np.mean(all_best):.2f}")
-        print(f"  Std Dev: {np.std(all_best):.2f}")
-        print("="*60)
-    else:
-        print(f"\nModel not found at: {MODEL}")
-        print("Update the MODEL path in this script to your actual checkpoint location.")
+
+            for run in range(1, NUM_RUNS + 1):
+                print(f"\n--- Run {run}/{NUM_RUNS} ---")
+                start = time.perf_counter()
+                cost, _, best_iter = solve_with_sb3(instance_path, MODEL)
+                elapsed = time.perf_counter() - start
+                print(f"Elapsed time: {elapsed:.3f}s")
+                writer.writerow([ALGORITHM, instance_name, run, f"{cost:.2f}", best_iter])
+                f.flush()
+
+    print(f"\nResults saved to: {output_csv}")

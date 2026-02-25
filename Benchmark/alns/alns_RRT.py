@@ -10,15 +10,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import ( 
     create_initial_solution, 
     evaluate_solution,
-    load_raw_solomon_data,
-    two_opt_local_search,
-    cross_route_segment_relocation,
-    simple_relocate)
+    load_raw_solomon_data)
 
 from utils.actions import build_actions, NUM_ACTIONS
 
 # --- Configuration ---
-MAX_ITERATIONS = 1000
+MAX_ITERATIONS = 5000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
@@ -135,22 +132,20 @@ def run_alns(instance_file):
     return best_sol._cost, best_found_at
 
 if __name__ == "__main__":
+    import glob
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     NUM_RUNS = 10
     ALGORITHM = "RRT"
+    INSTANCE_DIR = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600')
 
-    # --- Add instance paths here ---
-    INSTANCES = [
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200', 'C1_2_1.TXT'),
-        # os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'R1_6_1.TXT'),
-        # os.path.join(project_root, 'Benchmark', 'data', 'homberger_600', 'RC1_6_1.TXT'),
-    ]
+    # Find all .TXT and .txt files in the chosen directory
+    INSTANCES = sorted(glob.glob(os.path.join(INSTANCE_DIR, '*.TXT')) +
+                      glob.glob(os.path.join(INSTANCE_DIR, '*.txt')))
 
-    if not INSTANCES:
-        print("No instances specified. Add paths to the INSTANCES list.")
-        sys.exit(1)
 
-    output_csv = os.path.join(project_root, 'logs', 'rrt_results_banter.csv')
+    # Get the last part of the instance directory (e.g., 'homberger_600')
+    instance_dir_name = os.path.basename(INSTANCE_DIR.rstrip('/'))
+    output_csv = os.path.join(project_root, 'logs', f'rrt_results_{instance_dir_name}_{MAX_ITERATIONS}iter.csv')
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
 
     with open(output_csv, 'w', newline='') as f:

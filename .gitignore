@@ -62,8 +62,4 @@ venv.bak/
 # System files
 .DS_Store
 
-#OSRM data
-osrm-data/
-
-
 

@@ -12,7 +12,7 @@ from utils.operators import (
     least_used_vehicle_removal, greedy_insertion, regret_insertion
 )
 # --- Configuration ---
-MAX_ITERATIONS = 1000
+MAX_ITERATIONS = 100
 SEGMENT_SIZE = 50 
 
 # RRT Parameters

@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import create_initial_solution, evaluate_solution
 from utils.actions import build_actions, decode_action, NUM_ACTIONS
 class VRPTWEnv(gym.Env):
-    def __init__(self, customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays, seed=42):
+    def __init__(self, customers_df, vehicles_df, dist_matrix, cust_addr_idx, cust_arrays, max_iterations):
         super(VRPTWEnv, self).__init__()
         
         # --- Data Loading ---
@@ -32,7 +32,7 @@ class VRPTWEnv(gym.Env):
 
         # --- RRT Params ---
         self.rrt_start_deviation = 0.10 
-        self.max_iterations = 1000
+        self.max_iterations = max_iterations
 
         # --- Internal State ---
         self.current_sol = None
