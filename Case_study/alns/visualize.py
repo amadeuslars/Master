@@ -1,4 +1,5 @@
 import folium
+import math
 import pandas as pd
 import requests
 import sys, os
@@ -90,6 +91,9 @@ def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, out
     fg_hide = folium.FeatureGroup(name="Hide all routes", show=True)
     fg_hide.add_to(m)
 
+    # Pre-pass: track address occurrences to offset overlapping markers
+    addr_occurrence = {}
+
     # Store overlays to control their default visibility
     overlays = []
     active_route_count = 0
@@ -108,11 +112,20 @@ def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, out
         for stop_num, c in enumerate(route, start=1):
             row = customers_df.iloc[c - 1]
             addr = str(row['Adresse']).strip()
-            coords = geo_lookup.get(addr)
-            if coords is None:
+            base_coords = geo_lookup.get(addr)
+            if base_coords is None:
                 continue
 
-            waypoints.append(coords)
+            idx = addr_occurrence.get(addr, 0)
+            addr_occurrence[addr] = idx + 1
+            if idx == 0:
+                coords = base_coords
+            else:
+                angle = idx * (2 * math.pi / 8)
+                delta = 0.00008  # ~8 metres
+                coords = (base_coords[0] + delta * math.cos(angle), base_coords[1] + delta * math.sin(angle))
+
+            waypoints.append(base_coords)  # OSRM route uses real address, not offset
 
             name = row.get('Kundenavn', '')
             kundenr = row.get('Kundenr', '')

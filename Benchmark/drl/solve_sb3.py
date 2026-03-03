@@ -18,7 +18,7 @@ from Benchmark.drl.env import VRPTWEnv
 from Benchmark.utils.utils import load_raw_solomon_data
 
 # Configuration
-MAX_ITERATIONS = 5000
+MAX_ITERATIONS = 25000
 
 def solve_with_sb3(instance_path, model_path):
     """
@@ -222,18 +222,19 @@ if __name__ == "__main__":
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     NUM_RUNS = 10
     ALGORITHM = "DRLH"
-    MODEL = os.path.join(project_root, 'logs', 'drl_sb3_20260220_113616', 'ppo_vrptw_final.zip')
+    MODEL = os.path.join(project_root, 'logs', '5310_all_files_agent', 'ppo_vrptw_final.zip')
 
-    INSTANCE_DIR = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600_1')
+    INSTANCE_DIR = os.path.join(project_root, 'Benchmark', 'data', 'continue')
 
-    # Find all .TXT and .txt files in the chosen directory
     INSTANCES = sorted(glob.glob(os.path.join(INSTANCE_DIR, '*.TXT')) +
-                      glob.glob(os.path.join(INSTANCE_DIR, '*.txt')))
+                       glob.glob(os.path.join(INSTANCE_DIR, '*.txt')))
+    INSTANCES = [f for f in INSTANCES if os.path.basename(f).upper().startswith(('C1', 'R1', 'RC1'))]
+
 
 
     # Get the last part of the instance directory (e.g., 'homberger_600')
     instance_dir_name = os.path.basename(INSTANCE_DIR.rstrip('/'))
-    output_csv = os.path.join(project_root, 'logs', f'drlh_results_{instance_dir_name}_{MAX_ITERATIONS}iter_missing.csv')
+    output_csv = os.path.join(project_root, 'logs', f'drlh_results_{instance_dir_name}_{MAX_ITERATIONS}iter_5310_all.csv')
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
 
     with open(output_csv, 'w', newline='') as f:

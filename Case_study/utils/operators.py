@@ -29,7 +29,7 @@ def random_removal(solution, num_to_remove, **kwargs):
     new_sol.routes[-1].extend(list(to_remove))
     return new_sol
 
-def worst_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, depot_idx=0, **kwargs):
+def worst_removal(solution, num_to_remove, time_matrix_array, customer_addr_idx, depot_idx=0, **kwargs):
     new_sol = solution.copy()
     savings_list = []
 
@@ -41,8 +41,8 @@ def worst_removal(solution, num_to_remove, distance_matrix_array, customer_addr_
             prev_addr = depot_idx if i == 0 else customer_addr_idx[route[i-1]-1]
             next_addr = depot_idx if i == len(route)-1 else customer_addr_idx[route[i+1]-1]
 
-            removed_cost = distance_matrix_array[prev_addr, cust_addr] + distance_matrix_array[cust_addr, next_addr]
-            added_cost = distance_matrix_array[prev_addr, next_addr]
+            removed_cost = time_matrix_array[prev_addr, cust_addr] + time_matrix_array[cust_addr, next_addr]
+            added_cost = time_matrix_array[prev_addr, next_addr]
             savings = removed_cost - added_cost
 
             savings_list.append((savings, cust))
@@ -60,7 +60,7 @@ def worst_removal(solution, num_to_remove, distance_matrix_array, customer_addr_
     new_sol.routes[-1].extend(list(targets))
     return new_sol
 
-def cluster_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, **kwargs):
+def cluster_removal(solution, num_to_remove, time_matrix_array, customer_addr_idx, **kwargs):
     new_sol = solution.copy()
     candidates = []
     for r in new_sol.routes[:-1]:
@@ -75,7 +75,7 @@ def cluster_removal(solution, num_to_remove, distance_matrix_array, customer_add
     for cust in candidates:
         if cust == center_cust: continue
         idx = customer_addr_idx[cust-1]
-        dist = distance_matrix_array[center_idx, idx]
+        dist = time_matrix_array[center_idx, idx]
         distances.append((dist, cust))
 
     distances.sort(key=lambda x: x[0])
@@ -90,7 +90,7 @@ def cluster_removal(solution, num_to_remove, distance_matrix_array, customer_add
     new_sol.routes[-1].extend(list(targets))
     return new_sol
 
-def shaw_removal(solution, num_to_remove, distance_matrix_array, customer_addr_idx, customer_arrays, **kwargs):
+def shaw_removal(solution, num_to_remove, time_matrix_array, customer_addr_idx, customer_arrays, **kwargs):
     new_sol = solution.copy()
     candidates = []
     for r in new_sol.routes[:-1]:
@@ -103,7 +103,7 @@ def shaw_removal(solution, num_to_remove, distance_matrix_array, customer_addr_i
 
     w_dist, w_time, w_dem = 9.0, 3.0, 2.0
 
-    max_dist = np.max(distance_matrix_array) if np.max(distance_matrix_array) > 0 else 1.0
+    max_dist = np.max(time_matrix_array) if np.max(time_matrix_array) > 0 else 1.0
     max_time = np.max(customer_arrays['tw_end']) if np.max(customer_arrays['tw_end']) > 0 else 1.0
     max_dem = np.max(customer_arrays['demand']) if np.max(customer_arrays['demand']) > 0 else 1.0
 
@@ -121,7 +121,7 @@ def shaw_removal(solution, num_to_remove, distance_matrix_array, customer_addr_i
 
         for cust in sample_pool:
             c_idx = customer_addr_idx[cust-1]
-            dist_val = distance_matrix_array[ref_idx, c_idx] / max_dist
+            dist_val = time_matrix_array[ref_idx, c_idx] / max_dist
             time_val = abs(ref_tw - customer_arrays['tw_start'][cust-1]) / max_time
             dem_val = abs(ref_d - customer_arrays['demand'][cust-1]) / max_dem
 
@@ -177,7 +177,7 @@ def least_used_vehicle_removal(solution, num_to_remove, **kwargs):
 #  OPERATORS (Repair) — benchmark logic + case study feasibility
 # ---------------------------------------------------------
 
-def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
+def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
     """Greedy insertion with Blended Softmax selection."""
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
@@ -201,15 +201,15 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
             route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
             for i in range(len(route) + 1):
                 prev, nxt = route_addrs[i], route_addrs[i+1]
-                delta = (distance_matrix_array[prev, cust_addr] +
-                         distance_matrix_array[cust_addr, nxt] -
-                         distance_matrix_array[prev, nxt])
+                delta = (time_matrix_array[prev, cust_addr] +
+                         time_matrix_array[cust_addr, nxt] -
+                         time_matrix_array[prev, nxt])
                 candidate_route = route[:i] + [cust] + route[i:]
-                if not check_time_window_feasibility(candidate_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                if not check_time_window_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
                     continue
-                if not check_max_route_duration(candidate_route, customer_addr_idx, distance_matrix_array, depot_idx):
+                if not check_max_route_duration(candidate_route, customer_addr_idx, time_matrix_array, depot_idx):
                     continue
-                if not check_lunch_break_feasibility(candidate_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                if not check_lunch_break_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
                     continue
                 feasible_points.append((delta, r_idx, i))
 
@@ -222,13 +222,125 @@ def greedy_insertion(solution, distance_matrix_array, customer_addr_idx, custome
             _, selected_r, selected_p = feasible_points[idx]
             new_sol.routes[selected_r].insert(selected_p, cust)
             new_sol.lunch_breaks[selected_r] = find_lunch_break_position(
-                new_sol.routes[selected_r], distance_matrix_array, customer_addr_idx,
+                new_sol.routes[selected_r], time_matrix_array, customer_addr_idx,
                 customer_arrays, depot_idx)
         else:
             new_sol.routes[-1].append(cust)
     return new_sol
 
-def regret_insertion(solution, distance_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
+# ---------------------------------------------------------
+#  LOCAL SEARCH — 2-opt
+# ---------------------------------------------------------
+
+def two_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx=0, **kwargs):
+    """
+    Apply 2-opt local search to every route.
+    For each pair of edges, checks if reversing the segment between them
+    reduces travel time, then applies if feasible.
+    """
+    new_sol = solution.copy()
+
+    for r_idx in range(len(new_sol.routes) - 1):
+        route = new_sol.routes[r_idx]
+        n = len(route)
+        if n < 2:
+            continue
+
+        route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
+
+        improved = True
+        passes = 0
+        while improved and passes < 10:
+            improved = False
+            passes += 1
+            for i in range(1, n + 1):
+                for j in range(i + 1, n + 1):
+                    old_edges = (time_matrix_array[route_addrs[i - 1], route_addrs[i]] +
+                                 time_matrix_array[route_addrs[j], route_addrs[j + 1]])
+                    new_edges = (time_matrix_array[route_addrs[i - 1], route_addrs[j]] +
+                                 time_matrix_array[route_addrs[i], route_addrs[j + 1]])
+
+                    if new_edges < old_edges - 1e-6:
+                        candidate = route[:i - 1] + list(reversed(route[i - 1:j])) + route[j:]
+                        if (check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx) and
+                                check_max_route_duration(candidate, customer_addr_idx, time_matrix_array, depot_idx) and
+                                check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)):
+                            route = candidate
+                            route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
+                            improved = True
+                            break
+                if improved:
+                    break
+
+        new_sol.routes[r_idx] = route
+        new_sol.lunch_breaks[r_idx] = find_lunch_break_position(
+            route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)
+
+    return new_sol
+
+
+def or_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx=0, **kwargs):
+    """
+    Apply or-opt-1 (relocate) local search to every route.
+    For each customer, tries every other position in the same route.
+    Complements 2-opt: finds improvements that require moving a single
+    customer without reversing any segment.
+    """
+    new_sol = solution.copy()
+
+    for r_idx in range(len(new_sol.routes) - 1):
+        route = new_sol.routes[r_idx]
+        if len(route) < 2:
+            continue
+
+        improved = True
+        passes = 0
+        while improved and passes < 10:
+            improved = False
+            passes += 1
+            n = len(route)
+            route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
+
+            for k in range(1, n + 1):  # 1-based position of customer to relocate
+                prev_k = route_addrs[k - 1]
+                curr_k = route_addrs[k]
+                next_k = route_addrs[k + 1]
+                removal_gain = (time_matrix_array[prev_k, curr_k] +
+                                time_matrix_array[curr_k, next_k] -
+                                time_matrix_array[prev_k, next_k])
+
+                # Reduced address list after removing customer k
+                reduced_addrs = route_addrs[:k] + route_addrs[k + 1:]
+
+                for p in range(1, n + 1):  # 1-based insertion position in reduced route
+                    if p == k:  # same position — skip
+                        continue
+                    prev_p = reduced_addrs[p - 1]
+                    next_p = reduced_addrs[p]
+                    insertion_cost = (time_matrix_array[prev_p, curr_k] +
+                                      time_matrix_array[curr_k, next_p] -
+                                      time_matrix_array[prev_p, next_p])
+
+                    if removal_gain - insertion_cost > 1e-6:
+                        route_without_k = route[:k - 1] + route[k:]
+                        candidate = route_without_k[:p - 1] + [route[k - 1]] + route_without_k[p - 1:]
+                        if (check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx) and
+                                check_max_route_duration(candidate, customer_addr_idx, time_matrix_array, depot_idx) and
+                                check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)):
+                            route = candidate
+                            improved = True
+                            break
+                if improved:
+                    break
+
+        new_sol.routes[r_idx] = route
+        new_sol.lunch_breaks[r_idx] = find_lunch_break_position(
+            route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)
+
+    return new_sol
+
+
+def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
     """2-Regret insertion with Blended Softmax for position selection."""
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
@@ -254,15 +366,15 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
                 route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
                 for i in range(len(route) + 1):
                     prev, nxt = route_addrs[i], route_addrs[i+1]
-                    delta = (distance_matrix_array[prev, cust_addr] +
-                             distance_matrix_array[cust_addr, nxt] -
-                             distance_matrix_array[prev, nxt])
+                    delta = (time_matrix_array[prev, cust_addr] +
+                             time_matrix_array[cust_addr, nxt] -
+                             time_matrix_array[prev, nxt])
                     temp_route = route[:i] + [cust] + route[i:]
-                    if not check_time_window_feasibility(temp_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    if not check_time_window_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
                         continue
-                    if not check_max_route_duration(temp_route, customer_addr_idx, distance_matrix_array, depot_idx):
+                    if not check_max_route_duration(temp_route, customer_addr_idx, time_matrix_array, depot_idx):
                         continue
-                    if not check_lunch_break_feasibility(temp_route, distance_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                    if not check_lunch_break_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
                         continue
                     feasible_options.append((delta, r_idx, i))
 
@@ -297,7 +409,7 @@ def regret_insertion(solution, distance_matrix_array, customer_addr_idx, custome
 
         new_sol.routes[final_r].insert(final_p, target_cust)
         new_sol.lunch_breaks[final_r] = find_lunch_break_position(
-            new_sol.routes[final_r], distance_matrix_array, customer_addr_idx,
+            new_sol.routes[final_r], time_matrix_array, customer_addr_idx,
             customer_arrays, depot_idx)
         unassigned.remove(target_cust)
 

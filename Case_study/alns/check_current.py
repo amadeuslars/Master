@@ -28,3 +28,5 @@ routes = [
 current = Solution(routes, vehicles)
 evaluate_solution(current, addr_idx, time_matrix_array, depot_idx)
 print(f"Cost: {current.cost}")
+from visualize import plot_from_alns
+plot_from_alns(current, output_file='Case_study/route_map.html')
