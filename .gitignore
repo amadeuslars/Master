@@ -62,4 +62,6 @@ venv.bak/
 # System files
 .DS_Store
 
-
+# Logs
+logs/*
+!logs/compare_results.py

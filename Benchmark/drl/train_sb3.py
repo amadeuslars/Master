@@ -59,12 +59,16 @@ def train_sb3():
     # --- DATA LOADING ---
     data_dirs = [
         os.path.join(project_root, 'Benchmark', 'data', 'homberger_100'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200')
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_400'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600')
     ]
+    TYPE1_PREFIXES = ('C1', 'R1', 'RC1')
     instance_files = []
     for data_dir in data_dirs:
-        instance_files.extend(glob.glob(os.path.join(data_dir, "*.txt")))
-        instance_files.extend(glob.glob(os.path.join(data_dir, "*.TXT")))
+        for f in glob.glob(os.path.join(data_dir, "*.txt")) + glob.glob(os.path.join(data_dir, "*.TXT")):
+            if os.path.basename(f).upper().startswith(TYPE1_PREFIXES):
+                instance_files.append(f)
     
     if not instance_files:
         print(f"\nError: No .txt files found in {', '.join(data_dirs)}")
@@ -83,28 +87,30 @@ def train_sb3():
     print(f"--- Successfully loaded {len(all_instances_data)} instances ---")
     
     # --- ENVIRONMENT SETUP ---
+    MAX_EPISODE_ITERATIONS = 1000
+
     # Wrapper to rotate instances
     class MultiInstanceEnv(VRPTWEnv):
         def __init__(self, instance_list):
             self.instance_list = instance_list
             self.reset_count = 0
             # Initialize with first instance
-            super().__init__(*instance_list[0])
-        
+            super().__init__(*instance_list[0], MAX_EPISODE_ITERATIONS)
+
         def reset(self, **kwargs):
             # Pick new instance and re-initialize
             idx = random.randint(0, len(self.instance_list) - 1)
             instance_data = self.instance_list[idx]
-            
+
             # Log first 5 resets to verify rotation
             if self.reset_count < 5:
                 num_custs = len(instance_data[0]['customer_id']) if isinstance(instance_data[0], dict) else len(instance_data[0])
                 print(f"  [Reset {self.reset_count}] Instance {idx}, {num_custs} customers")
             self.reset_count += 1
-            
+
             # Call parent init with new instance
-            VRPTWEnv.__init__(self, *instance_data)
-            
+            VRPTWEnv.__init__(self, *instance_data, MAX_EPISODE_ITERATIONS)
+
             # Now call parent reset
             return VRPTWEnv.reset(self, **kwargs)
     
@@ -123,7 +129,7 @@ def train_sb3():
         gamma=0.99,
         gae_lambda=0.95,
         clip_range=0.2,
-        ent_coef=0.01,  
+        ent_coef=0.05,  # raised from 0.01 to maintain operator diversity (prevent regret collapse)
         verbose=1,
         tensorboard_log=log_dir,
         device="cpu"

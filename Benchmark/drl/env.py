@@ -26,8 +26,8 @@ class VRPTWEnv(gym.Env):
         self.actions = build_actions()
         self.action_space = spaces.Discrete(NUM_ACTIONS)
 
-        # --- Observation Space (17D: 10 core + 3 one-hot destroy + 1 bucket + 1 repair + 2 domain) ---
-        state_dim = 17
+        # --- Observation Space (21D: 17 core + 4 instance-structure features) ---
+        state_dim = 21
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(state_dim,), dtype=np.float32)
 
         # --- RRT Params ---
@@ -54,6 +54,12 @@ class VRPTWEnv(gym.Env):
         self.remaining_ratio = 1.0
         self.initial_cost = 0.0
         self.is_unseen = 0.0  # Track before adding to seen set
+
+        # --- Instance-Structure Features (computed once per reset, constant per episode) ---
+        self.mean_tw_width_norm = 0.0
+        self.tw_cv = 0.0
+        self.demand_utilization_ratio = 0.0
+        self.clustering_coeff = 0.0
         
         # --- Logging Stats (For TensorBoard) ---
         self.action_counts = np.zeros(NUM_ACTIONS)
@@ -87,7 +93,30 @@ class VRPTWEnv(gym.Env):
         
         self.best_sol = self.current_sol.copy()
         self.best_sol._cost = self.current_sol._cost
-        
+
+        # --- Compute instance-structure features (constant for this episode) ---
+        tw_start = self.cust_arrays['tw_start']
+        tw_end   = self.cust_arrays['tw_end']
+        tw_widths = tw_end - tw_start
+        max_due = max(float(tw_end.max()), 1e-6)
+        tw_mean = max(float(tw_widths.mean()), 1e-6)
+        self.mean_tw_width_norm = float(tw_widths.mean()) / max_due
+        self.tw_cv = float(tw_widths.std()) / tw_mean
+
+        demands = self.cust_arrays['demand']
+        capacity = self.vehicles_df['capacity'] if isinstance(self.vehicles_df, dict) else float(self.vehicles_df.loc['Standard', 'capacity'])
+        self.demand_utilization_ratio = float(demands.sum()) / max(capacity * self.num_vehicles, 1e-6)
+
+        x = self.customers_df['x_coord']
+        y = self.customers_df['y_coord']
+        coords = np.stack([x, y], axis=1)                          # (n, 2)
+        diffs = coords[:, None, :] - coords[None, :, :]            # (n, n, 2)
+        dists = np.sqrt((diffs ** 2).sum(axis=2))                  # (n, n)
+        np.fill_diagonal(dists, np.inf)
+        mean_nn_dist = float(dists.min(axis=1).mean())
+        bbox_diag = max(np.sqrt((x.max()-x.min())**2 + (y.max()-y.min())**2), 1e-6)
+        self.clustering_coeff = mean_nn_dist / float(bbox_diag)
+
         # Track initial solution as seen
         self.seen_solutions.add(tuple(sorted([tuple(r) for r in self.current_sol.routes])))
         
@@ -134,6 +163,9 @@ class VRPTWEnv(gym.Env):
         else:
             self.no_improvement_counter += 1
 
+        # Capture prev best before update (needed for potential-based shaping)
+        prev_best_cost = self.best_sol._cost
+
         if is_new_best:
             self.best_sol = repaired.copy()
             self.best_sol._cost = new_cost
@@ -142,17 +174,28 @@ class VRPTWEnv(gym.Env):
             self.current_sol = repaired
             self.last_distance = new_cost
 
-        if is_improvement:
-            reward = 5.0 if is_new_best else 3.0
-        elif accepted:
-            reward = 1.0
-        else:
-            reward = 0.0
+        # Potential-based shaping: proportional to improvement in best, scale-invariant
+        # Only non-zero when a new global best is found
+        potential_shaping = (prev_best_cost - self.best_sol._cost) / max(self.initial_cost, 1e-6)
 
-        # Track if this is a new/unseen solution (BEFORE adding to set)
-        sol_tuple = tuple(sorted([tuple(r) for r in self.current_sol.routes]))
-        self.is_unseen = 1.0 if sol_tuple not in self.seen_solutions else 0.0
-        self.seen_solutions.add(sol_tuple)
+        # Exploration bonus: small reward for visiting novel solutions
+        repaired_tuple = tuple(sorted([tuple(r) for r in repaired.routes]))
+        is_repaired_unseen = repaired_tuple not in self.seen_solutions
+        exploration_bonus = 0.1 if is_repaired_unseen else 0.0
+        self.seen_solutions.add(repaired_tuple)
+        self.is_unseen = 1.0 if is_repaired_unseen else 0.0
+
+        # Base reward + shaping + exploration (5/3/1/0 flat tiers)
+        if is_improvement:
+            base_reward = 5.0 if is_new_best else 3.0
+        elif accepted:
+            base_reward = 1.0
+        else:
+            base_reward = 0.0
+        reward = base_reward + potential_shaping + exploration_bonus
+
+        # # Proportional reward only: scale shaping so 1% improvement ≈ reward 1.0 (DISABLED for 5310 comparison)
+        # reward = potential_shaping * 100 + exploration_bonus
 
         # 4. Termination
         terminated = False
@@ -171,13 +214,13 @@ class VRPTWEnv(gym.Env):
     def _get_state(self):
         """
         Return 17D state vector representing the Hybrid State:
-        [0]: Reduced Distance (Improvement magnitude since last step)
+        [0]: Reduced Distance (improvement magnitude / initial_cost)
         [1]: Optimality Gap (Normalized % difference from Global Best)
         [2]: Current Cost (Scaled)
         [3]: Best Cost (Scaled)
-        [4]: Temperature/Threshold (Current RRT allowance)
-        [5]: Cost Trajectory (Raw differential)
-        [6]: Stagnation (No improvement counter)
+        [4]: Temperature/Threshold (RRT allowance / initial_cost)
+        [5]: Cost Trajectory (current - best / initial_cost)
+        [6]: Stagnation (no_improvement_counter / max_iterations → [0, 1])
         [7]: Solution Changed (Binary flag)
         [8]: Unseen Solution (Binary flag)
         [9]: Delta Sign (Direction of last move)
@@ -186,10 +229,13 @@ class VRPTWEnv(gym.Env):
         [14]: Repair Operator (Binary context)
         [15]: Remaining Budget (1.0 -> 0.0)
         [16]: Feasibility Pressure (Ratio of unassigned/dummy customers)
+        [17]: Mean TW Width Norm (mean TW width / max due time — C1 vs C2 discriminator)
+        [18]: TW CV (std / mean of TW widths — spread of time windows)
+        [19]: Demand Utilization Ratio (total demand / total fleet capacity)
+        [20]: Clustering Coeff (mean nearest-neighbour dist / bounding box diagonal — C vs R vs RC)
         """
 
         # --- 1. Core Metrics ---
-        reduced_dist = self.reduced_dist
         distance = self.current_sol._cost
         min_distance = max(self.best_sol._cost, 1e-6)
 
@@ -199,11 +245,11 @@ class VRPTWEnv(gym.Env):
         dist_scaled = distance / initial
         min_dist_scaled = min_distance / initial
 
-        threshold_value = self.rrt_start_deviation * self.remaining_ratio * min_distance
+        reduced_dist = self.reduced_dist / initial                              # [0] normalized
+        threshold_value = self.rrt_start_deviation * self.remaining_ratio * min_distance / initial  # [4] normalized
+        cost_delta = (distance - min_distance) / initial                        # [5] normalized
 
-        cost_delta = distance - min_distance
-
-        no_improvement = self.no_improvement_counter
+        no_improvement = self.no_improvement_counter / self.max_iterations  # [0, 1]
         was_changed = self.was_changed
         unseen = self.is_unseen
 
@@ -224,23 +270,27 @@ class VRPTWEnv(gym.Env):
         dummy_route_len = len(self.current_sol.routes[-1])
         feasibility_pressure = dummy_route_len / max(self.num_customers, 1)
 
-        # Combine into 17D vector
+        # Combine into 21D vector
         state = np.array([
-            reduced_dist,       # [0]
-            optimality_gap,     # [1]
-            dist_scaled,        # [2]
-            min_dist_scaled,    # [3]
-            threshold_value,    # [4]
-            cost_delta,         # [5]
-            no_improvement,     # [6]
-            was_changed,        # [7]
-            unseen,             # [8]
-            delta_sign,         # [9]
-            *destroy_op_onehot, # [10-12]
-            bucket_norm,        # [13]
-            repair_norm,        # [14]
-            remaining_ratio,    # [15]
-            feasibility_pressure # [16]
+            reduced_dist,                    # [0]
+            optimality_gap,                  # [1]
+            dist_scaled,                     # [2]
+            min_dist_scaled,                 # [3]
+            threshold_value,                 # [4]
+            cost_delta,                      # [5]
+            no_improvement,                  # [6]
+            was_changed,                     # [7]
+            unseen,                          # [8]
+            delta_sign,                      # [9]
+            *destroy_op_onehot,              # [10-12]
+            bucket_norm,                     # [13]
+            repair_norm,                     # [14]
+            remaining_ratio,                 # [15]
+            feasibility_pressure,            # [16]
+            self.mean_tw_width_norm,         # [17]
+            self.tw_cv,                      # [18]
+            self.demand_utilization_ratio,   # [19]
+            self.clustering_coeff,           # [20]
         ], dtype=np.float32)
 
         return state

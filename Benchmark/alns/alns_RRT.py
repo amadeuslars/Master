@@ -15,7 +15,7 @@ from utils.utils import (
 from utils.actions import build_actions, NUM_ACTIONS
 
 # --- Configuration ---
-MAX_ITERATIONS = 5000
+MAX_ITERATIONS = 10000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     # Find all .TXT and .txt files in the chosen directory
     INSTANCES = sorted(glob.glob(os.path.join(INSTANCE_DIR, '*.TXT')) +
                       glob.glob(os.path.join(INSTANCE_DIR, '*.txt')))
-
+    INSTANCES = [f for f in INSTANCES if os.path.basename(f).upper().startswith(('C1', 'R1', 'RC1'))]
 
     # Get the last part of the instance directory (e.g., 'homberger_600')
     instance_dir_name = os.path.basename(INSTANCE_DIR.rstrip('/'))

@@ -9,10 +9,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import load_vrp_data, generate_initial_solution, evaluate_solution
 from utils.operators import (
     random_removal, worst_removal, cluster_removal, shaw_removal,
-    least_used_vehicle_removal, greedy_insertion, regret_insertion
+    least_used_vehicle_removal, greedy_insertion, regret_insertion,
+    two_opt_local_search, or_opt_local_search
 )
 # --- Configuration ---
-MAX_ITERATIONS = 100
+MAX_ITERATIONS = 10000
 SEGMENT_SIZE = 50 
 
 # RRT Parameters
@@ -33,7 +34,7 @@ WEIGHT_DECAY = 0.8  # How much to decay old weights (0.8 = keep 80% of old weigh
 
 def run_alns():
     
-    customers_dict, vehicles_dict, vehicle_names, time_matrix_array, distance_matrix_array, depot_idx, addr_idx, customer_arrays = load_vrp_data()
+    customers_dict, vehicles_dict, vehicle_names, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data()
 
     real_vehicle_indices = [i for i, name in enumerate(vehicle_names) if name != 'dummy']
     # Sort by PPL total (descending)
@@ -79,7 +80,7 @@ def run_alns():
 
         n_remove = random.randint(int(len(customers_dict['customer_id']) * 0.02), int(len(customers_dict['customer_id']) * 0.4))     
 
-        destroyed = destroy_ops[d_idx](current_sol, n_remove, distance_matrix_array=distance_matrix_array, customer_addr_idx=addr_idx, customer_arrays=customer_arrays, depot_idx=depot_idx)
+        destroyed = destroy_ops[d_idx](current_sol, n_remove, time_matrix_array=time_matrix_array, customer_addr_idx=addr_idx, customer_arrays=customer_arrays, depot_idx=depot_idx)
         repaired = repair_ops[r_idx](
             destroyed,
             time_matrix_array,
@@ -91,31 +92,37 @@ def run_alns():
             temperature=1.0,
             compatible_ppls_set=compatible_ppls_set
         )
-
         new_cost = evaluate_solution(repaired, addr_idx, time_matrix_array, depot_idx)
         current_cost = current_sol.cost
-        
+
         accepted = False
         reward = SCORE_REJECTED
-        
+
         if new_cost < best_sol.cost:
             accepted = True
-            new_global_best = True
             reward = SCORE_NEW_GLOBAL_BEST
-            best_sol = repaired.copy()
-            best_sol.cost = new_cost
-            print(f"Iter {i} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
-            
         elif new_cost < current_cost:
             accepted = True
             reward = SCORE_BETTER_THAN_CURRENT
-            
         elif new_cost < acceptance_threshold:
             accepted = True
             reward = SCORE_ACCEPTED_WORSE
-            
+
         if accepted:
+            cost_pre_ls = new_cost
+            repaired = two_opt_local_search(repaired, time_matrix_array, addr_idx, customer_arrays, depot_idx=depot_idx)
+            cost_post_2opt = evaluate_solution(repaired, addr_idx, time_matrix_array, depot_idx)
+            if cost_post_2opt < cost_pre_ls - 1e-6:
+                print(f"  [2-opt]  Iter {i}: saved {(cost_pre_ls - cost_post_2opt)*60:.1f} min")
+            repaired = or_opt_local_search(repaired, time_matrix_array, addr_idx, customer_arrays, depot_idx=depot_idx)
+            new_cost = evaluate_solution(repaired, addr_idx, time_matrix_array, depot_idx)
+            if new_cost < cost_post_2opt - 1e-6:
+                print(f"  [or-opt] Iter {i}: saved {(cost_post_2opt - new_cost)*60:.1f} min")
             current_sol = repaired
+            if new_cost < best_sol.cost:
+                best_sol = repaired.copy()
+                best_sol.cost = new_cost
+                print(f"Iter {i} [New Best]: {new_cost:.2f} (Vehicles: {sum(1 for r in best_sol.routes[:-1] if r)})")
 
 
         # Update action weight based on performance (roulette wheel)
