@@ -5,10 +5,16 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.feasibility import check_time_window_feasibility, check_capacity_feasibility, check_vehicle_store_compatibility, check_max_route_duration, check_lunch_break_feasibility, find_lunch_break_position
+from utils.feasibility import (
+    check_time_window_feasibility, check_capacity_feasibility,
+    check_vehicle_store_compatibility, check_shift_feasibility,
+    check_lunch_break_feasibility, find_lunch_break_position,
+    get_earliest_departure, LOADING_TIME, LUNCH_DURATION,
+    validate_and_trim_routes,
+)
 
 # ---------------------------------------------------------
-#  OPERATORS (Destroy) — identical to benchmark
+#  OPERATORS (Destroy) — no changes for multi-trip
 # ---------------------------------------------------------
 
 def random_removal(solution, num_to_remove, **kwargs):
@@ -174,69 +180,146 @@ def least_used_vehicle_removal(solution, num_to_remove, **kwargs):
     return new_sol
 
 # ---------------------------------------------------------
-#  OPERATORS (Repair) — benchmark logic + case study feasibility
+#  Trip-2 validation (trip-1 changes can invalidate trip-2)
+# ---------------------------------------------------------
+
+def _validate_trip2_routes(solution, time_matrix_array, customer_addr_idx,
+                           customer_arrays, depot_idx):
+    """
+    After repair, trip-1 may have grown, pushing trip-2 departure later.
+    Check all trip-2 routes and move infeasible ones back to dummy.
+    """
+    for r_idx in range(len(solution.routes) - 1):
+        meta = solution.route_meta[r_idx]
+        if meta is None or meta['trip'] != 2 or not solution.routes[r_idx]:
+            continue
+
+        earliest_dep = get_earliest_departure(
+            solution, r_idx, time_matrix_array, customer_addr_idx,
+            customer_arrays, depot_idx
+        )
+
+        # Check if trip-2 still fits in shift
+        feasible = check_shift_feasibility(
+            solution.routes[r_idx], time_matrix_array, customer_addr_idx,
+            customer_arrays, depot_idx, earliest_dep, meta['shift_end']
+        )
+
+        # Also check time windows with updated departure
+        if feasible:
+            feasible = check_time_window_feasibility(
+                solution.routes[r_idx], time_matrix_array, customer_addr_idx,
+                customer_arrays, depot_idx, earliest_departure=earliest_dep
+            )
+
+        if not feasible:
+            solution.routes[-1].extend(solution.routes[r_idx])
+            solution.routes[r_idx] = []
+            solution.lunch_breaks[r_idx] = None
+
+
+# ---------------------------------------------------------
+#  OPERATORS (Repair) — shift-aware for multi-trip
 # ---------------------------------------------------------
 
 def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
-    """Greedy insertion with Blended Softmax selection."""
+    """Greedy insertion with two-phase approach: trip-1 first, then trip-2."""
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
     random.shuffle(unassigned)
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
-    for cust in unassigned:
-        cust_addr = customer_addr_idx[cust-1]
-        feasible_points = []
+    for phase_trip in (1, 2):
+        # Between phases: validate existing trip-2 routes against updated trip-1
+        if phase_trip == 2:
+            _validate_trip2_routes(new_sol, time_matrix_array, customer_addr_idx,
+                                   customer_arrays, depot_idx)
+            unassigned.extend(new_sol.routes[-1])
+            new_sol.routes[-1] = []
+            random.shuffle(unassigned)
 
-        for r_idx in range(len(new_sol.routes) - 1):
-            route = new_sol.routes[r_idx]
-            vehicle_name = new_sol.vehicles[r_idx]
+        still_unassigned = []
+        for cust in unassigned:
+            cust_addr = customer_addr_idx[cust-1]
+            feasible_points = []
 
-            if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays):
-                continue
-            if not check_vehicle_store_compatibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays, compatible_ppls_set):
-                continue
+            for r_idx in range(len(new_sol.routes) - 1):
+                route = new_sol.routes[r_idx]
+                vehicle_name = new_sol.vehicles[r_idx]
+                meta = new_sol.route_meta[r_idx]
 
-            route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
-            for i in range(len(route) + 1):
-                prev, nxt = route_addrs[i], route_addrs[i+1]
-                delta = (time_matrix_array[prev, cust_addr] +
-                         time_matrix_array[cust_addr, nxt] -
-                         time_matrix_array[prev, nxt])
-                candidate_route = route[:i] + [cust] + route[i:]
-                if not check_time_window_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
+                # Phase filter: only consider slots matching current phase
+                if meta is None or meta['trip'] != phase_trip:
                     continue
-                if not check_max_route_duration(candidate_route, customer_addr_idx, time_matrix_array, depot_idx):
+                # Skip trip-2 when trip-1 in same shift is empty
+                if phase_trip == 2 and not new_sol.routes[r_idx - 1]:
                     continue
-                if not check_lunch_break_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                    continue
-                feasible_points.append((delta, r_idx, i))
 
-        if feasible_points:
-            costs = np.array([p[0] for p in feasible_points], dtype=np.float64)
-            norm_costs = (costs - np.min(costs)) / (temperature + 1e-9)
-            exp_neg_costs = np.exp(-norm_costs)
-            probs = exp_neg_costs / np.sum(exp_neg_costs)
-            idx = np.random.choice(len(feasible_points), p=probs)
-            _, selected_r, selected_p = feasible_points[idx]
-            new_sol.routes[selected_r].insert(selected_p, cust)
-            new_sol.lunch_breaks[selected_r] = find_lunch_break_position(
-                new_sol.routes[selected_r], time_matrix_array, customer_addr_idx,
-                customer_arrays, depot_idx)
-        else:
-            new_sol.routes[-1].append(cust)
+                if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays):
+                    continue
+                if not check_vehicle_store_compatibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays, compatible_ppls_set):
+                    continue
+
+                earliest_dep = get_earliest_departure(
+                    new_sol, r_idx, time_matrix_array, customer_addr_idx,
+                    customer_arrays, depot_idx
+                )
+                shift_end = meta['shift_end']
+
+                route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
+                for i in range(len(route) + 1):
+                    prev, nxt = route_addrs[i], route_addrs[i+1]
+                    delta = (time_matrix_array[prev, cust_addr] +
+                             time_matrix_array[cust_addr, nxt] -
+                             time_matrix_array[prev, nxt])
+                    candidate_route = route[:i] + [cust] + route[i:]
+                    if not check_time_window_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
+                        continue
+                    lunch_buf = LUNCH_DURATION if phase_trip == 1 else 0.0
+                    if not check_shift_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                        continue
+                    if phase_trip == 1:
+                        if not check_lunch_break_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
+                                                             earliest_departure=earliest_dep, shift_start=meta['shift_start']):
+                            continue
+                    feasible_points.append((delta, r_idx, i))
+
+            if feasible_points:
+                costs = np.array([p[0] for p in feasible_points], dtype=np.float64)
+                norm_costs = (costs - np.min(costs)) / (temperature + 1e-9)
+                exp_neg_costs = np.exp(-norm_costs)
+                probs = exp_neg_costs / np.sum(exp_neg_costs)
+                idx = np.random.choice(len(feasible_points), p=probs)
+                _, selected_r, selected_p = feasible_points[idx]
+                new_sol.routes[selected_r].insert(selected_p, cust)
+                sel_meta = new_sol.route_meta[selected_r]
+                if phase_trip == 1:
+                    sel_dep = get_earliest_departure(new_sol, selected_r, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)
+                    new_sol.lunch_breaks[selected_r] = find_lunch_break_position(
+                        new_sol.routes[selected_r], time_matrix_array, customer_addr_idx,
+                        customer_arrays, depot_idx, earliest_departure=sel_dep,
+                        shift_start=sel_meta['shift_start'])
+                else:
+                    new_sol.lunch_breaks[selected_r] = None
+            else:
+                still_unassigned.append(cust)
+
+        unassigned = still_unassigned
+
+    new_sol.routes[-1] = unassigned
+    # Safety net: trim any routes that overflow the shift
+    validate_and_trim_routes(new_sol, time_matrix_array, customer_addr_idx,
+                             customer_arrays, depot_idx)
     return new_sol
 
 # ---------------------------------------------------------
-#  LOCAL SEARCH — 2-opt
+#  LOCAL SEARCH — 2-opt (shift-aware)
 # ---------------------------------------------------------
 
 def two_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx=0, **kwargs):
     """
-    Apply 2-opt local search to every route.
-    For each pair of edges, checks if reversing the segment between them
-    reduces travel time, then applies if feasible.
+    Apply 2-opt local search to every route (multi-trip aware).
     """
     new_sol = solution.copy()
 
@@ -245,6 +328,15 @@ def two_opt_local_search(solution, time_matrix_array, customer_addr_idx, custome
         n = len(route)
         if n < 2:
             continue
+
+        meta = new_sol.route_meta[r_idx]
+        earliest_dep = get_earliest_departure(
+            new_sol, r_idx, time_matrix_array, customer_addr_idx,
+            customer_arrays, depot_idx
+        )
+        shift_end = meta['shift_end'] if meta else 22.0
+        shift_start = meta['shift_start'] if meta else 6.0
+        is_trip1 = meta is not None and meta['trip'] == 1
 
         route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
 
@@ -262,29 +354,36 @@ def two_opt_local_search(solution, time_matrix_array, customer_addr_idx, custome
 
                     if new_edges < old_edges - 1e-6:
                         candidate = route[:i - 1] + list(reversed(route[i - 1:j])) + route[j:]
-                        if (check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx) and
-                                check_max_route_duration(candidate, customer_addr_idx, time_matrix_array, depot_idx) and
-                                check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)):
-                            route = candidate
-                            route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
-                            improved = True
-                            break
+                        if not check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
+                            continue
+                        lunch_buf = LUNCH_DURATION if is_trip1 else 0.0
+                        if not check_shift_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                            continue
+                        if is_trip1:
+                            if not check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
+                                                                  earliest_departure=earliest_dep, shift_start=shift_start):
+                                continue
+                        route = candidate
+                        route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
+                        improved = True
+                        break
                 if improved:
                     break
 
         new_sol.routes[r_idx] = route
-        new_sol.lunch_breaks[r_idx] = find_lunch_break_position(
-            route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)
+        if is_trip1:
+            new_sol.lunch_breaks[r_idx] = find_lunch_break_position(
+                route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
+                earliest_departure=earliest_dep, shift_start=shift_start)
+        else:
+            new_sol.lunch_breaks[r_idx] = None
 
     return new_sol
 
 
 def or_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx=0, **kwargs):
     """
-    Apply or-opt-1 (relocate) local search to every route.
-    For each customer, tries every other position in the same route.
-    Complements 2-opt: finds improvements that require moving a single
-    customer without reversing any segment.
+    Apply or-opt-1 (relocate) local search to every route (multi-trip aware).
     """
     new_sol = solution.copy()
 
@@ -292,6 +391,15 @@ def or_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer
         route = new_sol.routes[r_idx]
         if len(route) < 2:
             continue
+
+        meta = new_sol.route_meta[r_idx]
+        earliest_dep = get_earliest_departure(
+            new_sol, r_idx, time_matrix_array, customer_addr_idx,
+            customer_arrays, depot_idx
+        )
+        shift_end = meta['shift_end'] if meta else 22.0
+        shift_start = meta['shift_start'] if meta else 6.0
+        is_trip1 = meta is not None and meta['trip'] == 1
 
         improved = True
         passes = 0
@@ -324,93 +432,137 @@ def or_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer
                     if removal_gain - insertion_cost > 1e-6:
                         route_without_k = route[:k - 1] + route[k:]
                         candidate = route_without_k[:p - 1] + [route[k - 1]] + route_without_k[p - 1:]
-                        if (check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx) and
-                                check_max_route_duration(candidate, customer_addr_idx, time_matrix_array, depot_idx) and
-                                check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)):
-                            route = candidate
-                            improved = True
-                            break
+                        if not check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
+                            continue
+                        lunch_buf = LUNCH_DURATION if is_trip1 else 0.0
+                        if not check_shift_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                            continue
+                        if is_trip1:
+                            if not check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
+                                                                  earliest_departure=earliest_dep, shift_start=shift_start):
+                                continue
+                        route = candidate
+                        improved = True
+                        break
                 if improved:
                     break
 
         new_sol.routes[r_idx] = route
-        new_sol.lunch_breaks[r_idx] = find_lunch_break_position(
-            route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)
+        if is_trip1:
+            new_sol.lunch_breaks[r_idx] = find_lunch_break_position(
+                route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
+                earliest_departure=earliest_dep, shift_start=shift_start)
+        else:
+            new_sol.lunch_breaks[r_idx] = None
 
     return new_sol
 
 
 def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
-    """2-Regret insertion with Blended Softmax for position selection."""
+    """2-Regret insertion with two-phase approach: trip-1 first, then trip-2."""
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
-    while unassigned:
-        potential_insertions = []
+    for phase_trip in (1, 2):
+        # Between phases: validate existing trip-2 routes against updated trip-1
+        if phase_trip == 2:
+            _validate_trip2_routes(new_sol, time_matrix_array, customer_addr_idx,
+                                   customer_arrays, depot_idx)
+            unassigned.extend(new_sol.routes[-1])
+            new_sol.routes[-1] = []
 
-        for cust in unassigned:
-            cust_addr = customer_addr_idx[cust-1]
-            feasible_options = []
+        while unassigned:
+            potential_insertions = []
 
-            for r_idx in range(len(new_sol.routes) - 1):
-                route = new_sol.routes[r_idx]
-                vehicle_name = new_sol.vehicles[r_idx]
+            for cust in unassigned:
+                cust_addr = customer_addr_idx[cust-1]
+                feasible_options = []
 
-                if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays):
+                for r_idx in range(len(new_sol.routes) - 1):
+                    route = new_sol.routes[r_idx]
+                    vehicle_name = new_sol.vehicles[r_idx]
+                    meta = new_sol.route_meta[r_idx]
+
+                    # Phase filter: only consider slots matching current phase
+                    if meta is None or meta['trip'] != phase_trip:
+                        continue
+                    # Skip trip-2 when trip-1 in same shift is empty
+                    if phase_trip == 2 and not new_sol.routes[r_idx - 1]:
+                        continue
+
+                    if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays):
+                        continue
+                    if not check_vehicle_store_compatibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays, compatible_ppls_set):
+                        continue
+
+                    earliest_dep = get_earliest_departure(
+                        new_sol, r_idx, time_matrix_array, customer_addr_idx,
+                        customer_arrays, depot_idx
+                    )
+                    shift_end = meta['shift_end']
+
+                    route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
+                    for i in range(len(route) + 1):
+                        prev, nxt = route_addrs[i], route_addrs[i+1]
+                        delta = (time_matrix_array[prev, cust_addr] +
+                                 time_matrix_array[cust_addr, nxt] -
+                                 time_matrix_array[prev, nxt])
+                        temp_route = route[:i] + [cust] + route[i:]
+                        if not check_time_window_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
+                            continue
+                        lunch_buf = LUNCH_DURATION if phase_trip == 1 else 0.0
+                        if not check_shift_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                            continue
+                        if phase_trip == 1:
+                            if not check_lunch_break_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
+                                                                 earliest_departure=earliest_dep, shift_start=meta['shift_start']):
+                                continue
+                        feasible_options.append((delta, r_idx, i))
+
+                if not feasible_options:
                     continue
-                if not check_vehicle_store_compatibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays, compatible_ppls_set):
-                    continue
 
-                route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
-                for i in range(len(route) + 1):
-                    prev, nxt = route_addrs[i], route_addrs[i+1]
-                    delta = (time_matrix_array[prev, cust_addr] +
-                             time_matrix_array[cust_addr, nxt] -
-                             time_matrix_array[prev, nxt])
-                    temp_route = route[:i] + [cust] + route[i:]
-                    if not check_time_window_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                        continue
-                    if not check_max_route_duration(temp_route, customer_addr_idx, time_matrix_array, depot_idx):
-                        continue
-                    if not check_lunch_break_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx):
-                        continue
-                    feasible_options.append((delta, r_idx, i))
+                feasible_options.sort(key=lambda x: x[0])
 
-            if not feasible_options:
-                continue
+                if len(feasible_options) >= 2:
+                    regret_val = feasible_options[1][0] - feasible_options[0][0]
+                else:
+                    regret_val = 1e6
 
-            feasible_options.sort(key=lambda x: x[0])
+                potential_insertions.append((regret_val, cust, feasible_options))
 
-            if len(feasible_options) >= 2:
-                regret_val = feasible_options[1][0] - feasible_options[0][0]
+            if not potential_insertions:
+                break  # No more insertions possible for this phase
+
+            potential_insertions.sort(key=lambda x: x[0], reverse=True)
+            best_regret_match = potential_insertions[0]
+
+            target_cust = best_regret_match[1]
+            available_options = best_regret_match[2]
+
+            costs = np.array([opt[0] for opt in available_options])
+            norm_costs = (costs - np.min(costs)) / (temperature + 1e-9)
+            probs = np.exp(-norm_costs) / np.sum(np.exp(-norm_costs))
+
+            choice_idx = np.random.choice(len(available_options), p=probs)
+            _, final_r, final_p = available_options[choice_idx]
+
+            new_sol.routes[final_r].insert(final_p, target_cust)
+            sel_meta = new_sol.route_meta[final_r]
+            if phase_trip == 1:
+                sel_dep = get_earliest_departure(new_sol, final_r, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx)
+                new_sol.lunch_breaks[final_r] = find_lunch_break_position(
+                    new_sol.routes[final_r], time_matrix_array, customer_addr_idx,
+                    customer_arrays, depot_idx, earliest_departure=sel_dep,
+                    shift_start=sel_meta['shift_start'])
             else:
-                regret_val = 1e6
+                new_sol.lunch_breaks[final_r] = None
+            unassigned.remove(target_cust)
 
-            potential_insertions.append((regret_val, cust, feasible_options))
-
-        if not potential_insertions:
-            new_sol.routes[-1].extend(unassigned)
-            break
-
-        potential_insertions.sort(key=lambda x: x[0], reverse=True)
-        best_regret_match = potential_insertions[0]
-
-        target_cust = best_regret_match[1]
-        available_options = best_regret_match[2]
-
-        costs = np.array([opt[0] for opt in available_options])
-        norm_costs = (costs - np.min(costs)) / (temperature + 1e-9)
-        probs = np.exp(-norm_costs) / np.sum(np.exp(-norm_costs))
-
-        choice_idx = np.random.choice(len(available_options), p=probs)
-        _, final_r, final_p = available_options[choice_idx]
-
-        new_sol.routes[final_r].insert(final_p, target_cust)
-        new_sol.lunch_breaks[final_r] = find_lunch_break_position(
-            new_sol.routes[final_r], time_matrix_array, customer_addr_idx,
-            customer_arrays, depot_idx)
-        unassigned.remove(target_cust)
-
+    new_sol.routes[-1] = unassigned
+    # Safety net: trim any routes that overflow the shift
+    validate_and_trim_routes(new_sol, time_matrix_array, customer_addr_idx,
+                             customer_arrays, depot_idx)
     return new_sol

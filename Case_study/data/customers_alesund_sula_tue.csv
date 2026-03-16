@@ -1,0 +1,109 @@
+customer_id,customer_name,address,postal_code,latitude,longitude,geocode_status,delivery_day,tw_start,tw_end,ppl,ppl_freeze,volume_m3,weight_kg,vehicle_type,tour_id,service_time_min,notes
+9253,Løvenvold Theater As,Løvenvoldgata 8,6002.0,62.472813,6.1584737,found,tue,08:15,10:15,0.5,0.0,94.5,0.0,1,2041,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+7926,Skarbøvik Barnehage,Skarbøvik barnehage,,62.4648029,6.111152,found,tue,08:55,10:55,1.0,0.5,99.6,0.0,1,2041,6.8,
+7935,Fagerlia Barnehage,Fagerlia barnehage,,62.4749043,6.2216744,found,tue,07:40,09:40,1.5,0.5,215.1,0.0,1,2041,6.7,
+7937,Storhaugen Barnehage,Storhaugen barnehage,,62.4719208,6.1427615,found,tue,08:35,10:35,1.0,0.5,116.3,0.0,1,2041,6.2,
+7916,Lerstad Barnehage,Lerstad barnehage,,62.467773,6.3069108,found,tue,07:20,09:20,1.0,0.5,319.0,0.0,1,2041,5.8,
+9242,Kirkens Bymisjon Avd. 37900,Parkgata 9,6002.0,62.4726771,6.1614843,found,tue,08:05,10:05,2.0,0.5,302.15,0.0,1,2041,9.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+7591,Pharma Marine,Terøy Industriområde 3,6280.0,62.5581807,6.264718,found,tue,11:55,13:55,1.0,0.5,471.2,0.0,1,2042,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+6437,2752 Storfjord Hotel,Øvre glomset 110,6260.0,62.4695645,6.6247074,found,tue,08:00,16:00,2.0,0.0,1957.3,0.0,1,2042,11.5,APPROX: location estimated from business name — verify with HIG
+9272,Namaste Ålesund,Kongens gate 12,6002.0,62.473574,6.156868,found,tue,08:40,10:40,1.0,0.5,424.82,0.0,1,2051,9.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+9172,Cinque Minuti,Kongens gate 1,6002.0,62.4728964,6.1563672,found,tue,08:45,10:45,2.5,0.5,1304.86,0.0,1,2051,7.7,APPROX: location estimated from business name — verify with HIG
+8882,Quality Hotel Waterfront,Quality Hotel Waterfront,6004.0,62.4699296,6.1460985,found,tue,08:00,10:00,2.5,0.5,2561.58,0.0,1,2051,12.1,
+8473,Evergreens,Rasmus Rønnebergs gate 6,6002.0,62.4712466,6.1538577,found,tue,07:40,09:40,1.5,0.5,719.7,0.0,1,2051,4.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+8309,Bro,Notenesgata 1,,62.471226,6.15287,found,tue,08:20,10:20,1.0,0.5,103.1,0.0,1,2051,7.8,
+899,Iss 422542 Nordea Ålesund,Notenesgata 2,6002.0,62.4714696,6.1536135,found,tue,07:30,09:30,0.5,0.0,490.0,0.0,1,2051,6.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+8005,Vinni Bar Og Restaurant,Rasmus Rønnebergs gate 6,6002.0,62.4712466,6.1538577,found,tue,07:20,09:20,1.0,0.5,475.54,0.0,1,2051,6.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+8478,Vard Group Skansekaia 422571,Skansekaia 2,6002.0,62.4752591,6.1530952,found,tue,09:05,11:05,1.0,0.5,493.41,0.0,1,2051,8.0,APPROX: placed at Ålesund city center — needs exact address from HIG
+9142,Anno,Apotekergata 9b,6004.0,62.4714804,6.1512358,found,tue,07:50,09:50,1.0,0.5,452.8,0.0,1,2051,9.7,
+9312,Rasoi Ålesund,RÅDSTUGATA 3B,6002.0,62.4712404,6.1617014,found,tue,13:10,15:10,1.5,0.5,748.45,0.0,1,2052,8.5,
+8350,Happy Elefant,Kongens gate 19,6002.0,62.4744125,6.1566436,found,tue,12:45,14:45,1.0,0.5,354.8,0.0,1,2052,8.6,
+8942,Quality Hotel Ålesund,SORENSKRIVER BULLS GATE 7,6002.0,62.4756638,6.1552199,found,tue,11:55,13:55,3.0,0.5,1673.48,0.0,1,2052,9.8,
+9141,Nonna Lina,KORSEGATA 4,6002.0,62.4713488,6.1559244,found,tue,12:20,14:20,2.5,0.5,2314.08,0.0,1,2052,10.6,
+9294,Soi One Ålesund,RASMUS RØNNEBERGS GATE 4,6002.0,62.470954,6.153081,found,tue,11:40,13:40,3.04,0.5,2158.9,0.0,1,2052,14.3,
+8559,Hotel Noreg,KONGENS GATE 27,6002.0,62.4755287,6.1560491,found,tue,12:05,14:05,2.5,1.0,1177.72,0.0,1,2052,7.3,
+8785,Molo Brew,KEISER WILHELMS GATE 2,6003.0,62.4695051,6.1521612,found,tue,11:30,13:30,1.0,0.5,706.25,0.0,1,2052,7.0,
+8349,Milk Bar,SKATEFLUKAIA 1B,6002.0,62.4744062,6.155797,found,tue,12:40,14:40,0.5,0.0,162.01,0.0,1,2052,7.1,
+9178,Bybadet,PARKGATA 11B,6003.0,62.472774,6.165056,found,tue,14:00,17:00,1.5,0.5,640.21,0.0,1,2052,11.4,TW adjusted from 13:15-15:15 to 14:00-17:00 (original TW falls in shift gap)
+8343,Xl Diner,SKATEFLUKAIA 1B,6002.0,62.4744062,6.155797,found,tue,12:35,14:35,1.5,0.5,453.5,0.0,1,2052,9.5,
+8633,Wok & Grill,KEISER WILHELMS GATE 39,6003.0,62.4716873,6.1609571,found,tue,17:10,19:10,0.5,0.0,111.0,0.0,1,2053,4.2,
+9295,Fergekaia Pluto,FOGD GREVES VEG 3,6009.0,62.4727409,6.230942,found,tue,16:25,18:25,3.5,1.0,2707.17,0.0,1,2053,8.9,
+8929,Racoon Coffee,KONGENS GATE 6,6002.0,62.4731906,6.1567012,found,tue,16:50,18:50,1.5,0.5,883.8,0.0,1,2053,8.8,
+2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016.0,62.4604828,6.2686763,found,tue,16:05,18:05,7.73,0.0,8119.76,0.0,1,2053,20.9,
+4225,Spar Åse,Øvre Geilegrend 1,6017.0,62.4643885,6.3172074,found,tue,15:35,17:35,5.333,0.0,6386.86,0.0,1,2053,16.3,
+9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002.0,62.4723101,6.1583677,found,tue,16:25,18:25,8.0,0.0,9321.34,0.0,1,2054,24.8,
+3054,Bunnpris Skansen,SKAREGATA 1,6002.0,62.474674,6.156916,found,tue,15:50,17:50,13.0,2.5,13807.2,0.0,1,2054,12.8,
+9321,Koiwa Ramen,KONGENS GATE 30,6002.0,62.4752788,6.1565513,found,tue,16:10,18:10,0.5,0.0,497.1,0.0,1,2054,6.2,
+3087,Bunnpris Broa,BROGATA 1,6005.0,62.469771,6.125637,found,tue,16:50,18:50,8.183,1.0,7792.7,0.0,1,2054,13.3,
+1064,Kauto Bar Og Restaurant,KONGENS GATE 11,6002.0,62.4735516,6.1564804,found,tue,16:20,18:20,0.54,0.5,434.3,0.0,1,2054,5.2,
+2931,Kiwi 901 Nørve,NØRVEGATA 23,6008.0,62.4715115,6.2065205,found,tue,20:05,22:05,10.93,2.0,14518.72,0.0,1,2056,25.4,
+2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005.0,62.470082,6.140048,found,tue,19:05,21:05,7.85,0.0,8589.82,0.0,1,2057,20.2,
+2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002.0,62.4712466,6.1538577,found,tue,18:35,20:35,9.333,0.0,8595.47,0.0,1,2057,33.3,
+9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037.0,62.4273801,6.3156902,found,tue,20:05,22:05,7.166,2.0,6914.55,0.0,1,2057,17.2,
+9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009.0,62.472382,6.240615,found,tue,20:45,22:45,8.033,4.0,8391.75,0.0,1,2058,21.0,
+9045,Kiwi 832 Sundgata,SUNDGATA 8,6003.0,62.471056,6.166693,found,tue,19:30,21:30,7.27,0.0,8505.92,0.0,1,2058,22.9,
+8963,Ålesund Sjukehus Hf Avd 9034,Åsehaugen 5,6017.0,62.463631,6.312544,found,tue,06:00,08:00,1.5,0.5,343.8,0.0,1,2101,4.9,APPROX: location estimated from business name — verify with HIG
+8570,Hotel 1904 As,Løvenvoldgata,6002.0,62.4729228,6.1581093,found,tue,06:55,08:55,2.52,0.52,2543.77,0.0,1,2101,13.5,APPROX: location estimated from business name — verify with HIG
+9302,Hole Kjøtt As,Keiser Wilhelms gate 30,6002.0,62.4713742,6.159168,found,tue,07:45,09:45,0.5,0.0,300.0,0.0,1,2101,8.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+8551,Fisketorget Avd Sentrum,Keiser Wilhelms gate 26,6002.0,62.4712141,6.1588682,found,tue,08:05,10:05,2.5,0.5,1411.06,0.0,1,2101,10.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+13169,Egon Ålesund,Egon Ålesund,,62.4728188,6.1583341,found,tue,07:25,09:25,3.42,1.02,2209.84,0.0,1,2101,12.0,
+8947,Dråpe Ålesund Kaffehus As,Storgata 4,6002.0,62.4718628,6.1603005,found,tue,07:55,09:55,2.02,0.52,1733.18,0.0,1,2101,7.6,APPROX: location estimated from business name — verify with HIG
+9236,Dampsentralen,Keiser Wilhelms gate 22,6002.0,62.4712525,6.1578843,found,tue,08:15,10:15,1.0,0.5,330.32,0.0,1,2101,10.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+9315,Cafè Herman,Grimmergata 1,6002.0,62.4725947,6.1574179,found,tue,07:15,09:15,1.0,0.5,835.06,0.0,1,2101,10.2,
+9279,Tyrholm Og Farstad,Flatholmen 11,6002.0,62.481999,6.185307,found,tue,08:25,10:25,1.0,0.5,562.76,0.0,1,2101,9.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+13220,Valaker Avd. Ålesund Storsente,Ålesund Storsenter,6002.0,62.4725015,6.1581388,found,tue,07:05,09:05,0.0,0.0,30.0,0.0,1,2101,6.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+9079,Sit Kafe/kantine Ålesund,LARSGÅRDSVEGEN 2,6009.0,62.472004,6.235818,found,tue,06:15,08:15,2.5,0.5,1875.34,0.0,1,2101,9.8,APPROX: placed at Ålesund city center (Parkgata) — needs exact address from HIG
+9013,Meet & Eat,Langelandsvegen 51,6010.0,62.466048,6.356375,found,tue,06:40,08:40,1.5,0.5,851.3,0.0,1,2102,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+8900,Eurospar Moa,Eurospar Moa,6010.0,62.464817,6.3515225,found,tue,06:00,08:00,11.02,1.52,12734.19,0.0,1,2102,17.9,
+9299,Egon Moa Moanor,Langelandsvegen 25,6010.0,62.465082,6.35152,found,tue,07:00,09:00,4.27,1.02,3572.97,0.0,1,2102,13.2,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8308,"Burger King Moa, Avd 5043 Åles",Langelandsvegen 1,6010.0,62.4651818,6.3478662,found,tue,07:15,09:15,0.5,0.0,300.0,0.0,1,2102,4.5,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+3076,Bunnpris Spjelkavik,Bunnpris Spjelkavik,6010.0,62.462997,6.363048,found,tue,06:20,08:20,6.25,1.5,6518.5,0.0,1,2102,15.5,
+7906,Skarbøvik Sykehjem 2024,OLE THORESENS GATE 16,6006.0,62.46609,6.109488,found,tue,11:25,13:25,1.0,0.5,801.2,0.0,1,2103,4.6,
+7922,Aspøy Omsorgssenter 2024,JOHS. AARFLOTS GATE 4,6005.0,62.4708459,6.1312305,found,tue,11:35,13:35,1.5,0.5,1002.5,0.0,1,2103,4.4,
+8694,Lets Eat Deli,KEISER WILHELMS GATE 32,6003.0,62.4713955,6.1594019,found,tue,12:30,14:30,0.5,0.0,29.0,0.0,1,2103,7.6,
+8534,Burger King Ålesund Avd.5049,KIPERVIKGATA 5,6003.0,62.4719148,6.1593252,found,tue,12:40,14:40,0.5,0.0,300.0,0.0,1,2103,6.0,
+9293,Fergekaia Skarbøvik,SKARBØVIKGATA 26,6006.0,62.466733,6.113678,found,tue,11:15,13:15,2.0,1.0,1575.55,0.0,1,2103,11.7,
+9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006.0,62.4666932,6.114175,found,tue,10:45,12:45,9.95,0.0,12027.3,0.0,1,2103,26.9,
+8408,Hotel Brosundet Bryggen,APOTEKERGATA 1-3,6004.0,62.4722192,6.1522983,found,tue,12:00,14:00,1.0,0.0,0.0,0.0,1,2103,12.9,
+8649,Long Cheng Restaurant As,KONGENS GATE 25,6002.0,62.4749561,6.1563663,found,tue,14:00,17:00,0.5,0.0,300.0,0.0,1,2104,8.2,TW adjusted from 13:15-15:15 to 14:00-17:00 (original TW falls in shift gap)
+3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004.0,62.4703741,6.1502732,found,tue,12:40,14:40,11.932,1.5,11315.05,0.0,1,2104,14.7,
+13330,Toma Kant.1184701 Postvegen 2,Postvegen 2,6008.0,62.671923,6.674903,found,tue,11:50,13:50,0.5,0.0,300.0,0.0,1,2104,6.2,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+9159,Sportsparken Vegsund,BLINDHEIM INDUSTRIVEG 2D,6020.0,62.436635,6.370523,found,tue,11:20,13:20,1.5,1.0,1070.43,0.0,1,2104,5.6,
+8071,Nor F. Postvegen 11,POSTVEGEN 11,6018.0,62.471058,6.342171,found,tue,11:45,13:45,1.0,0.5,420.77,0.0,1,2104,6.2,
+8070,Nor F. Postvegen 17,POSTVEGEN 17,6018.0,62.4716084,6.3453172,found,tue,11:35,13:35,1.0,0.5,383.3,0.0,1,2104,4.9,
+8074,Nor F. Postvegen15,POSTVEGEN 15,6018.0,62.4714714,6.3447286,found,tue,11:40,13:40,0.5,0.0,58.4,0.0,1,2104,5.4,
+8697,Spar Spjelkavik,Spjelkavikvegen 61,6010.0,62.4622693,6.3640886,found,tue,18:20,20:20,6.5,0.0,5759.03,0.0,1,2105,19.0,
+9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012.0,62.442025,6.371977,found,tue,19:30,21:30,6.35,2.0,8258.52,0.0,1,2105,24.1,
+2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010.0,62.463529,6.364485,found,tue,18:50,20:50,7.499,0.0,7299.85,0.0,1,2105,32.2,
+2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018.0,62.471726,6.363353,found,tue,16:00,18:00,10.833,2.5,12903.54,0.0,1,2106,27.6,
+2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012.0,62.4319749,6.4127797,found,tue,15:20,17:20,10.333,3.0,11721.44,0.0,1,2106,29.4,
+8660,Moa Let's Eat,Moavegen 1,6018.0,62.466442,6.351237,found,tue,09:45,11:45,2.5,0.5,1166.0,0.0,1,2107,9.7,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8579,Jordbærpikene Moa,Langelandsvegen 25,6010.0,62.465082,6.35152,found,tue,10:55,12:55,0.5,0.0,300.0,0.0,1,2107,4.9,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7381,Valaker Avd. Moa Syd,Moavegen 3,6018.0,62.4669725,6.3502766,found,tue,10:15,12:15,2.0,0.5,828.2,0.0,1,2107,8.1,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8479,Spisestua Kafe Og Restaurant,Moavegen 1,6018.0,62.466442,6.351237,found,tue,09:05,11:05,1.5,0.5,779.59,0.0,1,2107,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+8953,Coop Obs Kafe Avd 5289,Langelandsvegen 25,6010.0,62.465082,6.35152,found,tue,09:25,11:25,1.5,0.5,1005.7,0.0,1,2107,8.9,APPROX: placed at Digernes area — needs exact address from HIG
+9308,Lucky Bowl-avd 26 Ålesund,Kanalvegen 1,6010.0,62.46243,6.3636223,found,tue,12:20,14:20,0.52,0.02,812.4,0.0,1,2107,7.8,APPROX: location estimated from business name — verify with HIG
+13046,Peppes Pizza Amfi Moa Avd.319,Moavegen 1,6018.0,62.466442,6.351237,found,tue,09:15,11:15,1.5,1.0,389.6,0.0,1,2107,6.7,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7394,Braud Moa,Langelandsvegen 25,6018.0,62.465082,6.35152,found,tue,10:25,12:25,1.5,0.5,461.38,0.0,1,2107,8.6,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7904,Kafè Rematun,Olav Sundes Veg 2,6018.0,62.4673802,6.3564385,found,tue,09:00,11:00,1.0,0.5,180.6,0.0,1,2107,5.7,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+8517,Vinterhagen,Langelandsvegen 25,6018.0,62.465082,6.35152,found,tue,10:45,12:45,2.0,0.5,1164.65,0.0,1,2107,10.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+9338,460389kant.veidekke Kongshaug.,Alvikvegen 241,6019.0,62.484208,6.389984,found,tue,08:40,10:40,1.0,0.5,0.0,0.0,1,2107,20.0,APPROX: location estimated from business name — verify with HIG | service_time: default (no delivery data)
+9332,Iss 460367 Ncc Moavegen Kant.,Moavegen 24,6018.0,62.46863,6.347776,found,tue,08:55,10:55,1.5,0.5,756.16,0.0,1,2107,7.6,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG | service_time: median estimate (n=3 < 5)"
+9245,Vest Restaurant,Langelandsvegen 1,6010.0,62.4651818,6.3478662,found,tue,11:50,13:50,2.5,0.5,1032.18,0.0,1,2107,9.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015.0,62.466608,6.246044,found,tue,17:50,19:50,8.5,2.0,9621.86,0.0,1,2108,24.9,
+8620,Meny Lerstad,LERSTADVEGEN 291,6015.0,62.468368,6.292074,found,tue,18:25,20:25,9.0,0.0,8694.7,0.0,1,2108,32.6,
+12206,Trsp.o. Jakob & Johan Dybvik,Tingstadvika 5,6035.0,62.4420055,6.2580881,found,tue,09:16,11:16,0.0,0.0,0.0,0.0,1,2401,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12233,Trsp.o Br. Remø,Fiskerstrandvegen 168,6035.0,62.4431074,6.2726405,found,tue,09:25,11:25,0.0,0.0,0.0,0.0,1,2401,7.6,APPROX: placed at Ulsteinvik town center — needs exact address from HIG | service_time: median estimate (n=1 < 5)
+8890,Ragnhild's Catering,Stadsnesvegen 1,6030.0,62.4444111,6.1943517,found,tue,08:30,10:30,2.0,0.5,1004.12,0.0,1,2401,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+8848,Sulatunet Avd.sloghaugveien,Stadsnesvegen 23,6030.0,62.4424369,6.1886657,found,tue,08:50,10:50,0.5,0.0,362.7,0.0,1,2401,7.3,APPROX: placed at Sula/Langevåg area — needs exact address from HIG
+8825,Sulatunet,Stadsnesvegen 23,6030.0,62.4424369,6.1886657,found,tue,08:20,10:20,2.52,0.52,2323.4,0.0,1,2401,5.2,
+8943,Fiskerstrand Verft Kantine Ren,Risevegen 23,6035.0,62.4415864,6.2751885,found,tue,07:35,09:35,1.52,0.52,1296.65,0.0,1,2401,3.9,APPROX: placed at Fiskerstrand — needs exact address from HIG
+1070,Fole Festlig Drift,Geilneset 16,6030.0,62.4390436,6.1854688,found,tue,07:55,09:55,1.5,0.5,345.8,0.0,1,2401,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+8443,Selecta Norway Avd Ålesund,Solavågsvegen 5,6037.0,62.4246541,6.3055775,found,tue,07:15,09:15,0.5,0.0,347.6,0.0,1,2401,3.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+8834,Sansesenteret Sulatunet,Stadsnesvegen 23,6030.0,62.4424369,6.1886657,found,tue,08:40,10:40,0.5,0.0,410.7,0.0,1,2401,3.8,APPROX: placed at Sula/Langevåg area — needs exact address from HIG
+1090,Spar Langevåg,Fyllingvegen 9,6030.0,62.4421478,6.1903413,found,tue,15:45,17:45,4.0,0.0,3309.8,0.0,1,2403,13.1,
+3079,Bunnpris Langevåg,Molværsvegen 41,6030.0,62.4376538,6.1879915,found,tue,16:05,18:05,4.85,1.0,4459.21,0.0,1,2403,10.6,
+2959,Kiwi 918 Langevåg,Djupdalen 53,6030.0,62.4407026,6.1998007,found,tue,16:20,18:20,9.943,2.0,10599.4,0.0,1,2403,23.5,
+3289,Soi One,Rasmus Rønnebergs gate 4,6002.0,62.470954,6.153081,found,tue,15:40,17:40,1.0,0.5,828.6,0.0,1,2403,5.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+3081,Bunnpris Vedde,Veddevegen 163,6030.0,62.437824,6.234944,found,tue,19:40,21:40,8.85,3.0,8217.05,0.0,1,2404,14.8,
+2946,Kiwi 911 Fiskarstrand,Risevegen 1,6035.0,62.4402429,6.2730816,found,tue,19:10,21:10,4.5,2.0,4548.8,0.0,1,2404,17.6,APPROX: placed at Fiskarstrand — needs exact address from HIG

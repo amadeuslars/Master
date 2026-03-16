@@ -1,74 +1,999 @@
-Kundenr,Kundenavn,Adresse,Postnr,Leveringsdag kunde fra,Leveringstid kunde fra,Leveringsdag kunde til,Leveringstid kunde til,PPL pr leveranse,PPL hvorav frys,Volum pr leveranse (m3),Vekt pr leveranse (tonn),Biltype,Unnamed: 13,Biltype .1,Kommentar
-2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012 ÅLESUND,Tirsdag,15:20,Tirsdag,17:20,17.0,3.0,14.04,6.739199999999999,1,,1.0,Kan leveres med alle biltyper 
-2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018 ÅLESUND,Tirsdag,16:00,Tirsdag,18:00,15.0,4.0,12.61,6.0527999999999995,1,,2.0,"Kan kun leveres med 17,5 / 20 / 22"
-8331,Brokiosken,LORKENESTORGET,6002 ÅLESUND,Tirsdag,16:55,Tirsdag,18:55,1.0,0.5,0.79,0.3792,2,,,
-2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016 ÅLESUND,Tirsdag,16:05,Tirsdag,18:05,13.0,4.0,10.82,5.1936,1,,,
-4225,Spar Åse,Øvre Geilegrend 1,6017 Ålesund,Tirsdag,15:35,Tirsdag,17:35,8.5,2.0,7.03,3.3744,2,,,
-9295,Fergekaia Pluto,FOGD GREVES VEG 3,6009 ÅLESUND,Tirsdag,16:25,Tirsdag,18:25,3.0,1.0,2.36,1.1328,2,,,
-8929,Racoon Coffee,KONGENS GATE 6,6002 ÅLESUND,Tirsdag,16:50,Tirsdag,18:50,1.5,0.5,1.37,0.6576000000000001,2,,,
-9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012 Ålesund,Tirsdag,19:30,Tirsdag,21:30,20.0,5.0,16.45,7.895999999999999,1,,,
-8697,Spar Spjelkavik,Spjelkavikvegen 61,6010 Ålesund,Tirsdag,18:20,Tirsdag,20:20,5.0,1.0,4.34,2.0831999999999997,1,,,
-2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010 ÅLESUND,Tirsdag,18:50,Tirsdag,20:50,9.5,2.5,7.81,3.7488,1,,,
-3054,Bunnpris Skansen,SKAREGATA 1,6002ÅLESUND,Tirsdag,15:50,Tirsdag,17:50,9.0,2.0,7.43,3.5663999999999993,2,,,
-9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002 Ålesund,Tirsdag,16:20,Tirsdag,18:20,9.5,1.0,7.96,3.8207999999999998,2,,,
-3087,Bunnpris Broa,BROGATA 1,6005 ÅLESUND,Tirsdag,16:50,Tirsdag,18:50,7.5,0.0,6.32,3.0336,1,,,
-9319,Indian Masala House,KONGENS GATE 28A,6002 ÅLESUND,Tirsdag,16:15,Tirsdag,18:15,0.5,0.0,0.3,0.144,2,,,
-8941,Facilitec Farstad Shipping,SKANSEKAIA 4A,6002 ÅLESUND,Tirsdag,12:15,Tirsdag,14:15,1.0,0.5,0.76,0.36479999999999996,2,,,
-8942,Quality Hotel Ålesund,SORENSKRIVER BULLS GATE 7,6002 ÅLESUND,Tirsdag,11:55,Tirsdag,13:55,4.0,1.0,3.37,1.6176,2,,,
-9178,Bybadet,PARKGATA 11B,6003 ÅLESUND,Tirsdag,13:15,Tirsdag,15:15,1.0,0.0,0.92,0.44160000000000005,2,,,
-8559,Hotel Noreg,KONGENS GATE 27,6002 ÅLESUND,Tirsdag,12:05,Tirsdag,14:05,0.5,0.5,0.21,0.1008,2,,,
-9294,Soi One Ålesund,RASMUS RØNNEBERGS GATE 4,6002 ÅLESUND,Tirsdag,11:40,Tirsdag,13:40,2.0,0.5,1.72,0.8256,2,,,
-9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009 ÅLESUND,Tirsdag,20:45,Tirsdag,22:45,15.0,3.5,12.71,6.1008000000000004,1,,,
-9045,Kiwi 832 Sundgata,SUNDGATA 8,6003 ÅLESUND,Tirsdag,19:30,Tirsdag,21:30,10.0,2.0,8.23,3.9503999999999997,1,,,
-2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002 ÅLESUND,Tirsdag,18:35,Tirsdag,20:35,7.5,2.0,6.18,2.9663999999999997,2,,,
-2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005 ÅLESUND,Tirsdag,19:05,Tirsdag,21:05,5.5,2.0,4.56,2.1887999999999996,2,,,
-2931,Kiwi 901 Nørve,NØRVEGATA 23,6008 ÅLESUND,Tirsdag,20:05,Tirsdag,22:05,15.5,6.0,12.88,6.1823999999999995,1,,,
-2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015 ÅLESUND,Tirsdag,17:50,Tirsdag,19:50,13.5,2.0,11.24,5.3952,1,,,
-8620,Meny Lerstad,LERSTADVEGEN 291,6015 ÅLESUND,Tirsdag,18:25,Tirsdag,20:25,10.0,1.0,8.35,4.008,1,,,
-8408,Hotel Brosundet Bryggen,APOTEKERGATA 1-3,6004 ÅLESUND,Tirsdag,12:00,Tirsdag,14:00,1.5,0.5,1.38,0.6624,2,,,
-8353,4341 Apotekergata 5,APOTEKERGATA 5,6004 ÅLESUND,Tirsdag,12:10,Tirsdag,14:10,0.5,0.0,0.24,0.1152,2,,,
-9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006 ÅLESUND,Tirsdag,10:45,Tirsdag,12:45,13.5,4.0,11.38,5.462400000000001,1,,,
-7906,Skarbøvik Sykehjem 2024,OLE THORESENS GATE 16,6006 ÅLESUND,Tirsdag,11:25,Tirsdag,13:25,1.0,0.5,1.16,0.5568,2,,,
-7922,Aspøy Omsorgssenter 2024,JOHS. AARFLOTS GATE 4,6005 ÅLESUND,Tirsdag,11:35,Tirsdag,13:35,1.0,0.5,0.99,0.47519999999999996,2,,,
-8534,Burger King Ålesund Avd.5049,KIPERVIKGATA 5,6003 ÅLESUND,Tirsdag,12:40,Tirsdag,14:40,0.5,0.5,0.3,0.144,2,,,
-9267,Dirty Nelly,KIRKEGATA 1 A,6001 ÅLESUND,Tirsdag,11:50,Tirsdag,13:50,0.5,0.0,0.25,0.12,2,,,
-9293,Fergekaia Skarbøvik,SKARBØVIKGATA 26,6006 ÅLESUND,Tirsdag,11:15,Tirsdag,13:15,2.0,1.0,1.56,0.7487999999999999,2,,,
-9327,Express Pizzaria Og Grill,APOTEKERGATA 8,6004 ÅLESUND,Tirsdag,12:15,Tirsdag,14:15,1.0,0.0,0.67,0.3216,2,,,
-8235,Hk Spisested,KONGENS GATE 28,6002 ÅLESUND,Tirsdag,12:55,Tirsdag,14:55,0.5,0.0,0.32,0.15360000000000001,2,,,
-8029,Color Line Kioskdrift,SJØMANNSVEGEN 14,6008 ÅLESUND,Tirsdag,12:05,Tirsdag,14:05,0.5,0.0,0.27,0.1296,2,,,
-3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004 ÅLESUND,Tirsdag,12:40,Tirsdag,14:40,15.5,2.0,13.0,6.24,1,,,
-9246,Hofseth Processing,FJORDGATA 52,6005 ÅLESUND,Tirsdag,12:25,Tirsdag,14:25,0.5,0.0,0.1,0.048,2,,,
-9238,Hofseth Aqua,FJORDGATA 52,6005 ÅLESUND,Tirsdag,12:30,Tirsdag,14:30,0.5,0.0,0.1,0.048,2,,,
-8633,Wok & Grill,KEISER WILHELMS GATE 39,6003 ÅLESUND,Tirsdag,17:10,Tirsdag,19:10,,,,,,,,
-9190,Steinovnen Bar Og Pizzeria,GJERDEGATA 4,6003 ÅLESUND,Tirsdag,17:25,Tirsdag,19:25,,,,,,,,
-9231,Ålesund Sushi,SORENSKRIVER BULLS GATE 7,6002 ÅLESUND,Tirsdag,16:30,Tirsdag,18:30,,,,,,,,
-9237,Master Mat Notnesgata,NOTENESGATA 3,6002 ÅLESUND,Tirsdag,17:00,Tirsdag,19:00,,,,,,,,
-9249,Thai Shan Restaurant,HATLASKARET 1,6016 ÅLESUND,Tirsdag,16:20,Tirsdag,18:20,,,,,,,,
-0272,Voldsdalen Camping,SJØMANNSVEGEN 1,6008 ÅLESUND,Tirsdag,17:30,Tirsdag,19:30,,,,,,,,
-7319,Ålesund Asia Shop,KIRKEGATA 2,6004 ÅLESUND,Tirsdag,17:05,Tirsdag,19:05,,,,,,,,
-1064,Kauto Bar Og Restaurant,KONGENS GATE 11,6002 ÅLESUND,Tirsdag,16:20,Tirsdag,18:20,,,,,,,,
-9321,Koiwa Ramen,KONGENS GATE 30,6002 ÅLESUND,Tirsdag,16:10,Tirsdag,18:10,,,,,,,,
-8075,Nor F. Skansekaia 4,SKANSEKAIA 4A,6002 ÅLESUND,Tirsdag,11:50,Tirsdag,13:50,,,,,,,,
-8343,XL Diner,SKATEFLUKAIA 1B,6002 ÅLESUND,Tirsdag,12:35,Tirsdag,14:35,,,,,,,,
-8349,Milk Bar,SKATEFLUKAIA 1B,6002 ÅLESUND,Tirsdag,12:40,Tirsdag,14:40,,,,,,,,
-8350,Happy Elefant,APOTEKERGATA 5,6004 ÅLESUND,Tirsdag,12:45,Tirsdag,14:45,,,,,,,,
-8785,Molo Brew,KEISER WILHELMS GATE 2,6003 ÅLESUND,Tirsdag,11:30,Tirsdag,13:30,,,,,,,,
-8801,2743 62 Nord,RINGGATA 15E,6005 ÅLESUND,Tirsdag,12:55,Tirsdag,14:55,,,,,,,,
-9141,Nonna Lina,KORSEGATA 4,6002 ÅLESUND,Tirsdag,12:20,Tirsdag,14:20,,,,,,,,
-9234,Fjellstua 418 As,RASMUS RØNNEBERGS GATE 21,6002 ÅLESUND,Tirsdag,13:25,Tirsdag,15:25,,,,,,,,
-9256,Sabry Sushi Ålesund,PARKGATA 22,6003 ÅLESUND,Tirsdag,13:05,Tirsdag,15:05,,,,,,,,
-9288,T2,TOLLBUGATA 2,6002 ÅLESUND,Tirsdag,12:25,Tirsdag,14:25,,,,,,,,
-9296,Harbour Giftshop Ålesund,LORKENESGATA 1,6002 ÅLESUND,Tirsdag,11:20,Tirsdag,13:20,,,,,,,,
-9312,Rasoi Ålesund,RÅDSTUGATA 3B,6002 ÅLESUND,Tirsdag,13:10,Tirsdag,15:10,,,,,,,,
-9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037 EIDSNES,Tirsdag,20:05,Tirsdag,22:05,,,,,,,,
-8378,Sverre Eidsvik,APOTEKERGATA 6,6004 ÅLESUND,Tirsdag,11:45,Tirsdag,13:45,,,,,,,,
-8694,Lets Eat Deli,KEISER WILHELMS GATE 32,6003 ÅLESUND,Tirsdag,12:30,Tirsdag,14:30,,,,,,,,
-8070,Nor F. Postvegen 17,POSTVEGEN 17,6018 ÅLESUND,Tirsdag,11:35,Tirsdag,13:35,,,,,,,,
-8071,Nor F. Postvegen 11,POSTVEGEN 11,6018 ÅLESUND,Tirsdag,11:45,Tirsdag,13:45,,,,,,,,
-8074,Nor F. Postvegen 15,POSTVEGEN 15,6018 ÅLESUND,Tirsdag,11:40,Tirsdag,13:40,,,,,,,,
-8280,Ålesund Fotball As,SJØMANNSVEGEN 14,6008 ÅLESUND,Tirsdag,11:55,Tirsdag,13:55,,,,,,,,
-8649,Long Cheng Restaurant As,KONGENS GATE 25,6002 ÅLESUND,Tirsdag,13:15,Tirsdag,15:15,,,,,,,,
-9077,Tajmahal,KONGENS GATE 32A,6002 ÅLESUND,Tirsdag,13:05,Tirsdag,15:05,,,,,,,,
-9159,Sportsparken Vegsund,BLINDHEIM INDUSTRIVEG 2D,6020 ÅLESUND,Tirsdag,11:20,Tirsdag,13:20,,,,,,,,
-9210,Ålesund Fotball,SJØMANNSVEGEN 14,6008 ÅLESUND,Tirsdag,11:55,Tirsdag,13:55,,,,,,,,
-
+customer_id,customer_name,address,postal_code,latitude,longitude,geocode_status,delivery_day,tw_start,tw_end,ppl,ppl_freeze,volume_m3,weight_kg,vehicle_type,tour_id,service_time_min,notes
+3756,Motorhuset,Motorhuset AS,,62.336197,5.8773128,found,fri,09:25,11:25,1.5,0.5,1486.48,0.0,1,5601,9.1,
+213,1996 Hotel Alexandra,Lobyvegen 2,6789,61.877,6.851,manual,fri,08:50,10:50,2.0,0.0,2600.0,0.0,1,5551,7.4,APPROX: location estimated from business name — verify with HIG
+2646,4274 Hoven Restaurant,Loenvegen 2,6789,61.8756,6.8636,manual,fri,08:45,10:45,1.0,0.0,922.0,0.0,1,5551,5.3,APPROX: location estimated from business name — verify with HIG
+9338,460389kant.veidekke Kongshaug.,Kongshaug,6350,62.58,6.8,manual,fri,11:10,13:10,1.0,0.5,204.7,0.0,1,5401,20.0,APPROX: location estimated from business name — verify with HIG | service_time: default (no delivery data)
+7004,Alf Tafjord Landhandel,Tafjord,6214,62.268,7.01,manual,fri,10:05,12:05,2.0,0.5,1215.7,0.0,1,5201,12.8,APPROX: location estimated from business name — verify with HIG
+3319,Alnes Fyr Og Opplevelsessenter,Alnes Fyr og opplevelsessenter,,62.4895605,5.9653247,found,fri,10:00,12:00,1.0,0.5,328.9,0.0,1,5751,6.5,
+9142,Anno,Anno,,62.471374,6.1512561,found,fri,08:20,10:20,0.5,0.0,300.0,0.0,1,5051,9.7,
+785,Brattvåg Bowling As,Brattvåg,6270,62.596,6.446,manual,fri,11:55,13:55,1.0,0.0,747.8,0.0,1,5151,9.4,APPROX: placed at Brattvåg town center — needs exact address from HIG
+793,Brattvåg Fjordhotell,Brattvåg Fjordhotell,,62.5964445,6.4463487,found,fri,11:25,13:25,1.5,0.5,693.07,0.0,1,5151,7.8,
+8309,Bro,AMFI MOA - BRO - NORD - SYD,,62.4657605,6.3499341,found,fri,08:10,10:10,1.0,0.5,0.0,0.0,1,5051,7.8,
+3070,Bunnpris Brattvåg,Bunnpris Brattvåg,,62.597163,6.446116,found,fri,11:40,13:40,5.85,0.0,5494.92,0.0,1,5151,12.3,
+6343,Bunnpris Bryggja,Bunnpris Bryggja,,61.94075,5.455532,found,fri,07:45,09:45,7.35,1.0,6805.95,0.0,1,5451,14.2,
+3096,Bunnpris Eid,Bunnpris Eid,,61.908742,5.985056,found,fri,08:15,10:15,5.0,1.0,5396.4,0.0,1,5452,17.4,
+3095,Bunnpris Hareid,Bunnpris Hareid,,62.368536,6.032297,found,fri,07:00,09:00,1.5,0.0,1830.3,0.0,1,5701,16.9,
+3083,Bunnpris Ikornes,Ikornes,6222,62.388,6.579,manual,fri,07:40,09:40,2.0,0.0,2194.0,0.0,1,5601,22.9,APPROX: placed at Sykkylven/Ikornnes area — needs exact address from HIG
+3079,Bunnpris Langevåg,Bunnpris Langevåg,,62.4376456,6.1879534,found,fri,15:45,17:45,3.85,0.0,2094.5,0.0,1,5402,10.6,
+13116,Bunnpris Oldeide,Bunnpris Oldeide,,61.927943,5.081472,found,fri,08:45,10:45,5.5,1.0,4654.95,0.0,1,5451,17.0,
+3086,Bunnpris Olden,Bunnpris Olden,,61.835325,6.8048951,found,fri,09:30,11:30,5.0,1.0,4950.46,0.0,1,5551,21.9,
+3071,Bunnpris Sjøholt,Bunnpris Sjøholt,,62.482209,6.81757,found,fri,07:10,09:10,12.0,3.0,14724.48,0.0,1,5651,22.5,
+3054,Bunnpris Skansen,SKAREGATA 1,6002,62.474674,6.156916,found,fri,15:50,17:50,3.0,0.5,1890.6,0.0,1,5054,12.8,
+3076,Bunnpris Spjelkavik,Bunnpris Spjelkavik,,62.462997,6.363048,found,fri,17:55,19:55,2.0,0.0,1963.58,0.0,1,5402,15.5,
+3092,Bunnpris Stad,Bunnpris Stad,,62.11918,5.318464,found,fri,09:20,11:20,7.5,1.0,9858.9,0.0,1,5351,26.9,
+6340,Bunnpris Straumgjerde,Bunnpris Straumgjerde,,62.3333,6.5943,found,fri,08:10,10:10,1.0,0.0,946.63,0.0,1,5601,16.2,
+3097,Bunnpris Stryn,Bunnpris Stryn,,61.90424,6.719494,found,fri,08:05,10:05,4.5,0.5,3899.53,0.0,1,5551,14.4,
+3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004,62.4703741,6.1502732,found,fri,16:45,18:45,2.0,0.0,1594.6,0.0,1,5054,14.7,
+3077,Bunnpris Ulsteinvik,Bunnpris Ulsteinvik,,62.3397174,5.8551176,found,fri,08:05,10:05,2.85,0.0,2410.6,0.0,1,5701,16.0,
+3080,Bunnpris Valderøy,Bunnpris Valderøy,,62.499107,6.130052,found,fri,07:10,09:10,7.35,2.0,8130.9,0.0,1,5751,17.4,
+3089,Bunnpris Valldal,Bunnpris Valldal,,62.297543,7.256927,found,fri,08:10,10:10,9.0,1.0,10561.57,0.0,1,5201,30.0,
+3075,Bunnpris Vatne,Bunnpris Vatne,,62.544919,6.593483,found,fri,08:45,10:45,4.0,0.0,5843.95,0.0,1,5151,16.1,
+3081,Bunnpris Vedde,Bunnpris Vedde,,62.437986,6.234964,found,fri,11:45,13:45,5.35,0.0,5047.71,0.0,1,5401,14.8,
+3066,Bunnpris Volda,Bunnpris Volda,,62.14507,6.066253,found,fri,08:40,10:40,4.0,0.5,4278.68,0.0,1,5501,17.0,
+3093,Bunnpris Ørsta,Bunnpris Ørsta,,62.199592,6.123608,found,fri,15:40,17:40,7.0,0.0,5744.42,0.0,1,5502,11.8,
+6672,Burger King Digernes Avd 5065,Digernessundet,6057,62.4922,6.605,manual,fri,07:15,09:15,0.5,0.0,300.0,0.0,1,5151,5.2,APPROX: placed at Digernes area — needs exact address from HIG
+8308,"Burger King Moa, Avd 5043 Åles",Langelandsvegen 47,6010,62.483,6.287,manual,fri,08:20,10:20,0.5,0.0,300.0,0.0,1,5101,4.5,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8534,Burger King Ålesund Avd.5049,KIPERVIKGATA 5,6003,62.4719148,6.1593252,found,fri,17:55,19:55,0.5,0.0,300.0,0.0,1,5054,6.0,
+9178,Bybadet,PARKGATA 11B,6003,62.472774,6.165056,found,fri,13:25,15:25,1.0,0.5,559.1,0.0,1,5052,11.4,
+1863,Bygg 1 Produkter Kantine,Ålesund,6008,62.47,6.2,manual,fri,08:30,10:30,1.0,0.5,380.8,0.0,1,5501,5.3,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+902,China Restaurant Eid,Eidsgata 12,6770,61.907,5.991,manual,fri,09:00,11:00,0.5,0.0,303.0,0.0,1,5452,7.0,APPROX: placed at Nordfjordeid town center — needs exact address from HIG
+9172,Cinque Minuti,Kongensgate 1,6002,62.4722,6.153,manual,fri,09:10,11:10,0.5,0.0,30.0,0.0,1,5051,7.7,APPROX: location estimated from business name — verify with HIG
+8953,Coop Obs Kafe Avd 5289,Digernes,6057,62.4922,6.605,manual,fri,09:00,11:00,1.5,0.5,1226.3,0.0,1,5101,8.9,APPROX: placed at Digernes area — needs exact address from HIG
+6460,Dreges Hotel,Dregesvegen 2,6200,62.3117,6.9475,manual,fri,09:40,11:40,0.5,0.0,45.2,0.0,1,5601,8.2,APPROX: location estimated from business name — verify with HIG
+8947,Dråpe Ålesund Kaffehus As,Kirkegata 4,6002,62.4724,6.1548,manual,fri,09:30,11:30,1.5,0.5,537.6,0.0,1,5051,7.6,APPROX: location estimated from business name — verify with HIG
+9299,Egon Moa Moanor,Langelandsvegen 47,6010,62.483,6.287,manual,fri,07:40,09:40,4.06,1.5,3108.79,0.0,1,5101,13.2,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+13169,Egon Ålesund,Egon Ålesund,,62.4728188,6.1583341,found,fri,08:00,10:00,2.8,0.5,2131.91,0.0,1,5051,12.0,
+13331,Eid Vg Skule,Skulevegen 1,6770,61.9025,5.9883,manual,fri,10:05,12:05,0.5,0.0,500.0,0.0,1,5452,15.3,APPROX: location estimated from business name — verify with HIG
+9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012,62.442025,6.371977,found,fri,16:40,18:40,7.7,0.0,7776.89,0.0,1,5402,24.1,
+6360,Eurospar Hareid,Eurospar Hareid,,62.3718107,6.0279234,found,fri,06:40,08:40,4.85,0.5,3666.05,0.0,1,5701,19.2,
+9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009,62.472382,6.240615,found,fri,15:40,17:40,4.5,0.0,5355.03,0.0,1,5104,21.0,
+8900,Eurospar Moa,Eurospar Moa,,62.464817,6.3515225,found,fri,07:00,09:00,17.442999999999998,2.0,20520.1,0.0,1,5101,17.9,
+7740,Eurospar Sykkylven,Eurospar Sykkylven,,62.39233,6.579998,found,fri,06:50,08:50,1.87,0.5,1249.96,0.0,1,5601,12.9,
+7390,Eurospar Valderøy,Eurospar Valderøy,,62.5086854,6.1285006,found,fri,06:45,08:45,15.416,0.0,18298.63,0.0,1,5751,22.6,
+4110,Eurospar Ørsta,Eurospar Ørsta,,62.196948,6.128328,found,fri,15:55,17:55,4.85,0.0,6105.63,0.0,1,5502,24.1,
+9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002,62.4723101,6.1583677,found,fri,16:05,18:05,5.85,1.0,6509.08,0.0,1,5054,24.8,
+8473,Evergreens,Ålesund,6002,62.472,6.15,manual,fri,07:30,09:30,0.5,0.0,138.4,0.0,1,5051,4.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+1063,Felleskjøpet Nordfjordeid 4560,Felleskjøpet Nordfjordeid,,61.902388,5.9879154,found,fri,07:40,09:40,0.5,0.0,18.8,0.0,1,5452,16.1,
+6782,Felleskjøpet Volda 7110,Felleskjøpet Volda,,62.170339,6.0358847,found,fri,10:25,12:25,0.5,0.0,0.0,0.0,1,5501,8.6,
+1069,Fergekaia Langevåg,Langevåg,6030,62.442,6.19,manual,fri,13:10,15:10,2.0,1.0,1184.8,0.0,1,5401,20.0,APPROX: location estimated from business name — verify with HIG | service_time: default (no delivery data)
+9293,Fergekaia Skarbøvik,SKARBØVIKGATA 26,6006,62.466733,6.113678,found,fri,16:25,18:25,0.5,0.0,66.63,0.0,1,5104,11.7,
+1574,Fjellstova Ørskog Kh As,Ørskog,6240,62.482,6.813,manual,fri,08:15,10:15,1.5,0.5,635.02,0.0,1,5651,7.7,APPROX: placed at Ørskog area — needs exact address from HIG
+1615,Fjordane Folkehøgskule,Nordfjordeid,6770,61.907,5.987,manual,fri,09:45,11:45,0.5,0.0,300.0,0.0,1,5452,10.0,APPROX: location estimated from business name — verify with HIG
+1041,Flammen 6770,Nordfjordeid,6770,61.906,5.989,manual,fri,09:35,11:35,0.5,0.0,50.6,0.0,1,5452,7.3,APPROX: placed at Nordfjordeid — needs exact address from HIG
+4044,Fole Festlig,Ålesund,6002,62.472,6.15,manual,fri,11:05,13:05,1.5,0.0,532.91,0.0,1,5401,5.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+1070,Fole Festlig Drift,Ålesund,6002,62.472,6.15,manual,fri,12:50,14:50,2.0,1.0,1228.1,0.0,1,5401,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+8045,Gyroshouse Ålesund,Løvenvoldgata 6,6002,62.4735,6.1495,manual,fri,17:25,19:25,1.5,1.0,361.3,0.0,1,5054,8.4,APPROX: location estimated from business name — verify with HIG
+8350,Happy Elefant,APOTEKERGATA 5,6004,62.4720649,6.1521511,found,fri,11:35,13:35,0.5,0.0,383.7,0.0,1,5052,8.6,
+1159,Havfruen Måløy,Gate 1,6718,61.9345,5.1135,manual,fri,10:20,12:20,1.0,0.5,289.21,0.0,1,5451,14.3,APPROX: location estimated from business name — verify with HIG
+7615,Havila Hotell Ivar Aasen,Kyaborga 4,6150,62.1977,6.1295,manual,fri,08:20,10:20,2.0,1.0,1245.2,0.0,1,5501,8.3,APPROX: location estimated from business name — verify with HIG
+1835,Hf Nordfjord Sjukehus,Sjukehusveien 14,6770,61.9056,5.989,manual,fri,10:00,12:00,0.5,0.0,300.0,0.0,1,5452,8.8,APPROX: location estimated from business name — verify with HIG
+9302,Hole Kjøtt As,Ålesund,6002,62.472,6.15,manual,fri,13:15,15:15,0.5,0.0,300.0,0.0,1,5052,8.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+2618,Hornindal Skisenter,Hornindal skisenter,,62.0103827,6.5409526,found,fri,06:51,08:51,1.0,0.5,415.2,0.0,1,5452,6.8,
+8570,Hotel 1904 As,Apotekergata 5,6004,62.4725,6.153,manual,fri,07:50,09:50,1.5,0.5,850.33,0.0,1,5051,13.5,APPROX: location estimated from business name — verify with HIG
+8408,Hotel Brosundet Bryggen,APOTEKERGATA 1-3,6004,62.4722192,6.1522983,found,fri,11:45,13:45,1.0,0.0,502.0,0.0,1,5052,12.9,
+9319,Indian Masala House,KONGENS GATE 28A,6002,62.4750822,6.1566431,found,fri,16:10,18:10,0.5,0.0,151.8,0.0,1,5054,7.1,
+2819,Isehaug Kafeteria,Isehaug kafeteria,,61.9041735,6.723095,found,fri,10:10,12:10,0.5,0.0,421.68,0.0,1,5551,10.7,
+9332,Iss 460367 Ncc Moavegen Kant.,Moavegen,6010,62.483,6.287,manual,fri,07:30,09:30,2.0,1.0,1170.55,0.0,1,5101,7.6,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG | service_time: median estimate (n=3 < 5)"
+3615,Joker Godøy,Godøya post i butikk,,62.4756673,6.0383892,found,fri,09:40,11:40,3.5,1.0,3262.8,0.0,1,5751,18.6,
+2218,Joker Gursken,Joker Gursken,,62.216106,5.649571,found,fri,09:35,11:35,1.0,0.0,890.6,0.0,1,5701,9.8,
+5280,Joker Hellesylt 708000993239,Hellesylt,6218,62.0934,6.8675,manual,fri,11:25,13:25,3.0,0.5,1807.9,0.0,1,5601,19.0,APPROX: placed at Hellesylt village — needs exact address from HIG
+643,Joker Hjelledalen,Joker Hjelledalen,,61.918644,7.169796,found,fri,12:05,14:05,3.0,1.0,2567.22,0.0,1,5551,16.4,
+4070,Joker Larsnes,Joker Larsnes,,62.2064458,5.5713076,found,fri,10:00,12:00,1.0,0.0,1227.37,0.0,1,5701,16.9,
+1126,Joker Loen,Joker Loen,,61.871862,6.848274,found,fri,09:00,11:00,3.0,1.0,2199.93,0.0,1,5551,14.3,
+7497,Joker Stadlandet,Joker Stadlandet,,62.160611,5.180561,found,fri,10:50,12:50,6.0,1.0,5920.22,0.0,1,5351,17.0,
+7755,Joker Stordal,Joker Stordal,,62.382214,6.993165,found,fri,07:35,09:35,4.5,1.0,4562.96,0.0,1,5201,19.9,
+7018,Joker Vatne,Joker Vatne,,62.559594,6.617185,found,fri,09:00,11:00,2.0,0.5,1386.02,0.0,1,5151,13.6,
+1715,Joker Vikane,Vigra post i butikk,,62.5582574,6.0696726,found,fri,08:00,10:00,3.5,0.5,2853.59,0.0,1,5751,14.6,
+4205,Joker Åheim,Joker Åheim,,62.036511,5.52966,found,fri,08:30,10:30,6.0,1.5,6206.91,0.0,1,5351,22.4,
+8579,Jordbærpikene Moa,Langelandsvegen 47,6010,62.483,6.287,manual,fri,08:10,10:10,0.5,0.0,300.0,0.0,1,5101,4.9,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+1064,Kauto Bar Og Restaurant,KONGENS GATE 11,6002,62.4735516,6.1564804,found,fri,11:10,13:10,0.5,0.0,38.2,0.0,1,5052,5.2,
+355,Kiwi 827 Ørsta,Kiwi Meieribygget Ørsta,,62.1991,6.127521,found,fri,07:30,09:30,6.006,0.5,6977.29,0.0,1,5501,26.6,
+7642,Kiwi 830 Skjellebreida Volda,Volda,6100,62.149,6.084,manual,fri,16:35,18:35,4.35,0.5,3919.14,0.0,1,5502,22.9,APPROX: placed at Volda town center — needs exact address from HIG
+9045,Kiwi 832 Sundgata,SUNDGATA 8,6003,62.471056,6.166693,found,fri,16:00,18:00,5.683,0.0,5563.23,0.0,1,5104,22.9,
+2958,Kiwi 841 Skodje,Kiwi Skodje,,62.5033919,6.6966718,found,fri,06:40,08:40,8.083,0.0,6913.88,0.0,1,5151,19.6,
+2936,Kiwi 843 Volda,Kiwi Volda,,62.1467135,6.0889177,found,fri,16:50,18:50,7.383,0.0,8598.5,0.0,1,5502,26.0,
+2935,Kiwi 844 Sykkylven,Kiwi Sykkylven,,62.3913141,6.5816796,found,fri,07:10,09:10,9.393,0.0,10510.62,0.0,1,5601,26.5,
+9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006,62.4666932,6.114175,found,fri,16:35,18:35,7.033,0.0,7165.27,0.0,1,5104,26.9,
+2931,Kiwi 901 Nørve,NØRVEGATA 23,6008,62.4715115,6.2065205,found,fri,16:45,18:45,11.58,0.0,12180.09,0.0,1,5752,25.4,
+2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010,62.463529,6.364485,found,fri,17:40,19:40,5.886,0.0,7956.22,0.0,1,5402,32.2,
+2914,Kiwi 903 Måløy,Kiwi Deknepollen,,61.9230879,5.1505134,found,fri,10:00,12:00,7.2,1.0,6476.25,0.0,1,5451,27.2,
+2920,Kiwi 905 Eggesbønes,Eggesbønes,6008,62.47,6.23,manual,fri,16:45,18:45,5.7,0.0,5214.79,0.0,1,5702,25.3,APPROX: location estimated from business name — verify with HIG
+2927,Kiwi 906 Deknepollen,Kiwi Deknepollen,,61.9230879,5.1505134,found,fri,08:20,10:20,35.2,0.0,49474.1,0.0,1,5451,30.2,
+2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015,62.466608,6.246044,found,fri,16:25,18:25,8.38,0.0,8098.64,0.0,1,5752,24.9,
+2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012,62.4319749,6.4127797,found,fri,17:00,19:00,7.566,0.0,8048.72,0.0,1,5402,29.4,
+2942,Kiwi 910 Kverve,Kverve,6008,62.467,6.2,manual,fri,10:40,12:40,6.35,0.0,6230.05,0.0,1,5751,18.3,APPROX: placed at Kverve — needs exact address from HIG
+2946,Kiwi 911 Fiskarstrand,Fiskarstrand,6037,62.438,6.238,manual,fri,11:15,13:15,2.7,0.0,2049.99,0.0,1,5401,17.6,APPROX: placed at Fiskarstrand — needs exact address from HIG
+2948,Kiwi 912 Stranda,Kiwi Stranda,,62.307148,6.945331,found,fri,09:50,11:50,8.1,0.0,8041.67,0.0,1,5601,20.9,
+2950,Kiwi 913 Stryn,Kiwi Stryn,,61.903006,6.719597,found,fri,07:30,09:30,9.833,0.0,10064.34,0.0,1,5551,32.7,
+2928,Kiwi 914 Ulsteinvik,Kiwi Ulsteinvik,,62.3402676,5.855327,found,fri,15:25,17:25,6.805999999999999,0.0,4987.530000000001,0.0,1,5702,44.0,
+2953,Kiwi 915 Valderøy,Valderøy,6050,62.478,6.103,manual,fri,10:20,12:20,8.42,0.0,7584.67,0.0,1,5751,24.0,APPROX: placed at Valderøy — needs exact address from HIG
+2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002,62.4712466,6.1538577,found,fri,16:15,18:15,5.85,0.5,5674.69,0.0,1,5104,33.3,
+2957,Kiwi 917 Myrvåg,Kiwi Myrvåg,,62.277132,5.802988,found,fri,09:15,11:15,9.216,0.0,8927.29,0.0,1,5701,31.3,
+2959,Kiwi 918 Langevåg,Kiwi Langevåg,,62.4407247,6.2001066,found,fri,15:35,17:35,4.2,0.0,3532.55,0.0,1,5402,23.5,
+2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005,62.470082,6.140048,found,fri,17:05,19:05,7.5,0.5,7314.24,0.0,1,5104,20.2,
+2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018,62.471726,6.363353,found,fri,15:30,17:30,6.43,0.0,7826.97,0.0,1,5752,27.6,
+2930,Kiwi 921 Vestnes,Kiwi Vestnes,,62.6235206,7.0904334,found,fri,09:25,11:25,6.64,0.0,8164.98,0.0,1,5651,30.3,
+2963,Kiwi 922 Nordfjordeid,Kiwi Nordfjordeid,,61.9099355,5.9954311,found,fri,07:45,09:45,10.333,0.0,10869.84,0.0,1,5452,23.4,
+2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016,62.4604828,6.2686763,found,fri,16:00,18:00,5.7,0.0,5818.21,0.0,1,5752,20.9,
+2961,Kiwi 924 Vallekrysset,Vallekrysset,6013,62.467,6.35,manual,fri,06:40,08:40,5.2,0.0,4953.63,0.0,1,5651,17.8,APPROX: location estimated from business name — verify with HIG
+2937,Kiwi 925 Meieribygget Ørsta,Ørsta,6150,62.2,6.13,manual,fri,07:10,09:10,5.333,0.0,5503.89,0.0,1,5501,20.0,APPROX: placed at Ørsta town center — needs exact address from HIG | service_time: default (no delivery data)
+6344,Kysten Rundt Bryggja,Bryggja,6720,61.845,5.487,manual,fri,07:46,09:46,2.5,2.0,1882.33,0.0,1,5451,11.8,APPROX: location estimated from business name — verify with HIG
+1056,Magnifikk,Ålesund,6002,62.472,6.15,manual,fri,08:50,10:50,0.5,0.5,62.8,0.0,1,5452,8.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+9013,Meet & Eat,Ålesund,6002,62.472,6.15,manual,fri,07:10,09:10,1.0,0.5,838.8,0.0,1,5101,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+3735,Meny Fosnavåg,Meny Fosnavåg,,62.342208,5.6336574,found,fri,17:20,19:20,1.5,0.0,1508.62,0.0,1,5702,23.6,
+8620,Meny Lerstad,LERSTADVEGEN 291,6015,62.468368,6.292074,found,fri,18:00,20:00,7.12,0.5,7194.79,0.0,1,5752,32.6,
+8349,Milk Bar,SKATEFLUKAIA 1B,6002,62.4744062,6.155797,found,fri,11:25,13:25,0.5,0.0,61.89,0.0,1,5052,7.1,
+2371,Millennium Kafe,Ålesund,6002,62.472,6.15,manual,fri,07:30,09:30,1.0,0.5,623.2,0.0,1,5701,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+3658,Mix Selje,Selje,6740,62.0506,5.3488,manual,fri,11:45,13:45,1.0,0.5,960.51,0.0,1,5351,12.0,APPROX: location estimated from business name — verify with HIG
+8785,Molo Brew,KEISER WILHELMS GATE 2,6003,62.4695051,6.1521612,found,fri,08:50,10:50,1.0,0.5,766.22,0.0,1,5051,7.0,
+3770,Muritunet As,Valldal,6210,62.298,7.264,manual,fri,08:35,10:35,1.0,0.0,1300.0,0.0,1,5201,9.1,APPROX: placed at Valldal area — needs exact address from HIG
+3623,Måløy Spiskammers,Måløy,6700,61.934,5.114,manual,fri,09:55,11:55,1.0,0.0,301.0,0.0,1,5451,10.9,APPROX: placed at Måløy town center — needs exact address from HIG
+13306,Napoli Pizzeria Stryn,Tonningsgata,6783,61.9047,6.723,manual,fri,10:35,12:35,2.0,0.5,1578.5,0.0,1,5551,13.0,APPROX: location estimated from business name — verify with HIG
+6644,Nilsgardstunet,Innviksvegen,6793,61.8143,6.564,manual,fri,07:25,09:25,0.5,0.0,300.0,0.0,1,5201,5.9,APPROX: location estimated from business name — verify with HIG
+9258,Nor F. Color Line,Skateflukaia,6002,62.4745,6.139,manual,fri,09:40,11:40,0.5,0.0,92.3,0.0,1,5051,9.9,APPROX: location estimated from business name — verify with HIG
+8075,Nor F. Skansekaia 4,SKANSEKAIA 4A,6002,62.4752085,6.1518624,found,fri,11:15,13:15,1.5,0.5,618.0,0.0,1,5052,6.9,
+2393,Nor F. Vard Brattvåg,Brattvåg,6270,62.596,6.446,manual,fri,11:30,13:30,1.0,0.5,874.62,0.0,1,5151,15.5,APPROX: placed at Brattvåg town center — needs exact address from HIG
+7489,Norbruk Vard Søvika,Søvika,6065,62.343,5.85,manual,fri,10:00,12:00,2.0,0.5,2007.65,0.0,1,5151,10.8,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+4002,Nordfjord Hotell,Nordfjord hotell,,61.9042074,5.995779,found,fri,09:25,11:25,1.0,0.5,382.16,0.0,1,5452,9.5,
+13046,Peppes Pizza Amfi Moa Avd.319,Langelandsvegen 47,6010,62.483,6.287,manual,fri,09:20,11:20,1.5,1.0,828.93,0.0,1,5101,6.7,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+13124,Quality Hotel Ulstein,Quality Hotel Ulstein,,62.3407365,5.8486583,found,fri,08:25,10:25,2.0,0.5,999.4,0.0,1,5701,9.2,
+8882,Quality Hotel Waterfront,Quality Hotel Waterfront,,62.4699296,6.1460985,found,fri,08:30,10:30,0.5,0.0,180.8,0.0,1,5051,12.1,
+8929,Racoon Coffee,KONGENS GATE 6,6002,62.4731906,6.1567012,found,fri,16:25,18:25,2.5,1.0,1161.7,0.0,1,5054,8.8,
+8890,Ragnhild's Catering,Ålesund,6002,62.472,6.15,manual,fri,12:30,14:30,1.5,0.5,958.9,0.0,1,5401,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+3338,Remmemsvik Kiosk & Gatekjøkken,Remmemsvik,6264,62.658,6.27,manual,fri,08:55,10:55,0.5,0.0,129.0,0.0,1,5651,5.9,APPROX: location estimated from business name — verify with HIG
+13067,Sabrura Moa,Langelandsvegen 47,6010,62.483,6.287,manual,fri,07:50,09:50,0.5,0.0,300.0,0.0,1,5101,3.9,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8850,Scandic Parken Hotell Mat,Storgata 16,6002,62.4745,6.161,manual,fri,12:10,14:10,1.5,0.0,1302.0,0.0,1,5052,7.8,APPROX: location estimated from business name — verify with HIG
+6788,Slice & Bite,Stranda,6200,62.3085,6.948,manual,fri,10:32,12:32,1.5,0.5,669.3,0.0,1,5551,7.6,APPROX: placed at Stranda town center — needs exact address from HIG | service_time: median estimate (n=1 < 5)
+6769,Smak Kafe & Catering,Stranda,6200,62.3085,6.948,manual,fri,08:20,10:20,1.0,0.5,655.3,0.0,1,5551,7.5,APPROX: placed at Stranda town center — needs exact address from HIG
+9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037,62.4273727,6.3156806,found,fri,16:20,18:20,10.7,0.0,11119.04,0.0,1,5402,17.2,
+4220,Spar Ellingsøy,Spar Ellingsøy,,62.504485,6.396043,found,fri,07:50,09:50,8.85,1.0,8630.66,0.0,1,5151,16.3,
+880,Spar Fiskåbygd,Spar Fiskåbygd,,62.1000153,5.5566242,found,fri,07:45,09:45,6.249,1.0,6969.4,0.0,1,5351,20.2,
+1845,Spar Fosnavåg,Spar Fosnavåg,,62.3288549,5.6344584,found,fri,17:00,19:00,1.5,0.0,1118.07,0.0,1,5702,20.0,
+2170,Spar Hornindal,Spar Hornindal,,61.9677067,6.5254155,found,fri,06:50,08:50,8.1,0.0,8827.42,0.0,1,5452,22.8,
+5550,Spar Hovdebygda,Spar Hovdebygda,,62.1826871,6.0843933,found,fri,16:15,18:15,3.0,0.5,2967.73,0.0,1,5502,15.4,
+1090,Spar Langevåg,Spar Langevåg,,62.44221,6.190282,found,fri,12:10,14:10,1.0,0.0,1336.61,0.0,1,5401,13.1,
+4235,Spar Raudeberg,Spar Raudeberg,,61.9817494,5.1359776,found,fri,11:00,13:00,7.1,1.0,6992.58,0.0,1,5451,24.2,
+8697,Spar Spjelkavik,Spjelkavikvegen 61,6010,62.4622693,6.3640886,found,fri,17:25,19:25,13.116,1.0,14269.03,0.0,1,5402,19.0,
+6600,Spar Straumane,Spar Straumane,,62.3159888,5.8438243,found,fri,15:45,17:45,5.5,1.0,5721.95,0.0,1,5702,18.7,
+6780,Spar Svingen,Spar Svingen,,62.3115806,6.9183612,found,fri,09:10,11:10,1.5,0.0,1553.82,0.0,1,5601,14.0,
+7010,Spar Søvik,Spar Søvik,,62.5500218,6.2783045,found,fri,09:45,11:45,9.5,1.0,9741.25,0.0,1,5151,16.3,
+6320,Spar Tresfjord,Spar Tresfjord,,62.5224293,7.1283142,found,fri,08:35,10:35,5.0,1.0,5436.43,0.0,1,5651,21.9,
+7765,Spar Ulsteinvik,Spar Ulsteinvik,,62.34227,5.868304,found,fri,15:05,17:05,2.0,0.0,1921.93,0.0,1,5702,17.4,
+4245,Spar Valldal,Spar Valldal,,62.29798,7.26419,found,fri,09:00,11:00,8.58,1.0,10599.24,0.0,1,5201,30.1,
+7450,Spar Vartdal,Spar Vartdal,,62.301075,6.083249,found,fri,15:15,17:15,1.0,0.0,929.08,0.0,1,5502,14.7,
+5540,Spar Volda,Spar Volda,,62.1494006,6.084363,found,fri,09:35,11:35,5.0,1.0,5221.63,0.0,1,5501,14.5,
+4225,Spar Åse,Øvre Geilegrend 1,6017,62.4643885,6.3172074,found,fri,15:10,17:10,8.2,2.0,9925.0,0.0,1,5054,16.3,
+7627,Sperre Industri Kantine,Ulsteinvik,6065,62.343,5.85,manual,fri,08:10,10:10,2.0,0.5,1262.67,0.0,1,5151,6.9,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+8479,Spisestua Kafe Og Restaurant,Ålesund,6002,62.472,6.15,manual,fri,08:40,10:40,0.5,0.0,300.0,0.0,1,5101,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+9159,Sportsparken Vegsund,BLINDHEIM INDUSTRIVEG 2D,6020,62.436635,6.370523,found,fri,16:35,18:35,0.5,0.0,121.4,0.0,1,5402,5.6,
+5892,Ssp Aksla Int A331 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,fri,08:30,10:30,0.5,0.0,300.0,0.0,1,5751,6.1,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5888,Ssp O'learys A327 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,fri,08:30,10:30,1.0,0.5,251.9,0.0,1,5751,5.8,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5894,Ssp Point Dom A328 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,fri,08:30,10:30,1.0,0.0,747.4,0.0,1,5751,7.2,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5895,Ssp Prod.kjøkken Y018 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,fri,08:30,10:30,0.5,0.0,473.8,0.0,1,5751,6.2,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5887,Ssp Upper Crust A326 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,fri,08:30,10:30,0.5,0.0,69.3,0.0,1,5751,5.5,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+1699,St1 Ulsteinvik 9109,St1 Ulsteinvik,,62.3448126,5.8394011,found,fri,08:45,10:45,1.0,0.0,611.3,0.0,1,5701,8.1,
+1696,St1 Ørskog 9415,St1 Ørskog,,62.4823517,6.8127824,found,fri,07:40,09:40,2.5,1.0,1984.1,0.0,1,5651,7.1,
+6538,Storfjord Gastropub,Storfjord Gastropub,,62.3083019,6.9482056,found,fri,10:05,12:05,1.5,0.5,498.58,0.0,1,5601,7.4,
+6457,Strandafjellet Rest.drift As,Strandafjellet,6200,62.325,6.96,manual,fri,08:45,10:45,4.5,1.0,3712.7,0.0,1,5601,13.1,APPROX: location estimated from business name — verify with HIG
+6764,Stryn Bensinstasjon Esso,Stryn,6783,61.905,6.722,manual,fri,07:55,09:55,2.5,0.5,1950.79,0.0,1,5551,9.7,APPROX: placed at Stryn town center — needs exact address from HIG
+2161,Stryn Kaffebar Og Vertshus,Stryn,6783,61.905,6.722,manual,fri,10:30,12:30,1.0,0.5,597.2,0.0,1,5551,11.7,APPROX: placed at Stryn town center — needs exact address from HIG
+8675,Stuen As,Ålesund,6002,62.472,6.15,manual,fri,12:40,14:40,1.0,1.0,22.8,0.0,1,5052,18.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7494,Subsea 7 Vigra Spoolbase,Vigra,6040,62.558,6.105,manual,fri,07:45,09:45,2.0,1.0,1544.46,0.0,1,5751,11.4,APPROX: location estimated from business name — verify with HIG
+6700,Sunnmøre Folkehøgskule,Sunnmøre Folkehøgskule,,62.341521,5.8902869,found,fri,07:50,09:50,1.5,0.5,630.7,0.0,1,5701,8.9,
+9077,Tajmahal,KONGENS GATE 32A,6002,62.4753224,6.1565266,found,fri,16:20,18:20,2.0,0.5,1116.23,0.0,1,5054,8.9,
+7053,Thai Mix,Ålesund,6002,62.472,6.15,manual,fri,08:40,10:40,1.5,0.5,956.9,0.0,1,5151,7.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+13314,Thon Hotel Måløy 635102,Gate 1 17,6718,61.9343,5.114,manual,fri,09:45,11:45,0.0,0.0,31.0,0.0,1,5451,5.6,APPROX: location estimated from business name — verify with HIG
+1824,Tik Cafe & Restaurant,Tik Café & Restaurant,,62.2001329,6.1267231,found,fri,07:50,09:50,1.0,0.5,740.89,0.0,1,5501,8.5,
+12208,Trsp.o Ørstaterminalen,Ørsta,6150,62.2,6.13,manual,fri,10:50,12:50,0.0,0.0,0.0,0.0,1,5501,20.0,APPROX: placed at Ørsta town center — needs exact address from HIG | service_time: default (no delivery data)
+12203,"Trsp.o. Berdal, Valldal",Valldal,6210,62.298,7.264,manual,fri,11:10,13:10,0.0,0.0,0.0,0.0,1,5201,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+12217,Trsp.o. Valldal Grønt,Valldal,6210,62.298,7.264,manual,fri,12:15,14:15,0.0,0.0,0.0,0.0,1,5201,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+12220,Trsp.o. Volda Fiskemat,Volda,6100,62.149,6.084,manual,fri,10:30,12:30,0.0,0.0,0.0,0.0,1,5501,20.0,APPROX: placed at Volda town center — needs exact address from HIG | service_time: default (no delivery data)
+8478,Vard Group Skansekaia 422571,Skansekaia,6002,62.472,6.15,manual,fri,11:15,13:15,1.5,0.5,634.2,0.0,1,5052,8.0,APPROX: placed at Ålesund city center — needs exact address from HIG
+13023,Vestnes Fjordhotel,Brugata 4,6390,62.6325,7.0758,manual,fri,09:15,11:15,0.5,0.0,0.0,0.0,1,5651,6.3,APPROX: location estimated from business name — verify with HIG
+13123,Vestnes Sentralkjøkken,Vestnes,6390,62.631,7.089,manual,fri,09:05,11:05,0.5,0.0,300.0,0.0,1,5651,6.9,APPROX: placed at Vestnes town center — needs exact address from HIG
+8005,Vinni Bar Og Restaurant,Ålesund,6002,62.472,6.15,manual,fri,07:20,09:20,1.0,0.5,567.2,0.0,1,5051,6.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+8517,Vinterhagen,Ålesund,6002,62.472,6.15,manual,fri,08:00,10:00,2.5,0.5,1945.57,0.0,1,5101,10.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+8027,Westres Kond. Avd Sunn Og God,Ålesund,6002,62.47,6.16,manual,fri,07:55,09:55,1.0,0.5,882.5,0.0,1,5501,7.1,APPROX: placed at Ålesund — needs exact address from HIG
+8633,Wok & Grill,KEISER WILHELMS GATE 39,6003,62.4716873,6.1609571,found,fri,17:35,19:35,0.5,0.0,10.0,0.0,1,5054,4.2,
+8343,Xl Diner,SKATEFLUKAIA 1B,6002,62.4744062,6.155797,found,fri,09:24,11:24,2.0,0.5,445.8,0.0,1,5051,9.5,
+8515,Xl Food Company,Ålesund,6002,62.472,6.15,manual,fri,08:50,10:50,1.0,0.0,494.07,0.0,1,5751,9.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+8555,Zuuma,Zuuma,,62.473896,6.156318,found,fri,09:15,11:15,1.04,0.5,499.1,0.0,1,5051,4.9,
+8348,Ålesund Folkehøgskole,Borgundvegen 340,6009,62.4718,6.134,manual,fri,09:30,11:30,0.5,0.0,300.0,0.0,1,5101,5.3,APPROX: placed at Borgundvegen 340 — needs exact address from HIG
+7921,Kantine Ålesund Rådhus 2024,Rådhusplassen 1,6002,62.4723,6.1536,manual,mon,07:55,09:55,0.5,0.0,300.0,0.0,1,1051,8.0,APPROX: placed at Ålesund Rådhus area — needs exact address from HIG
+3550,Joker Geiranger,Joker Geiranger,,62.101089,7.205247,found,mon,10:30,12:30,0.5,0.0,39.5,0.0,1,1302,43.6,
+7255,0431 H Union Geiranger Mat,Geiranger,6216,62.102,7.205,manual,mon,11:31,13:31,2.0,1.0,615.46,0.0,1,1302,20.0,APPROX: placed at Geiranger village — needs exact address from HIG | service_time: default (no delivery data)
+13026,Albatross Kantine Langsten,Langsten,6264,62.62,6.6,manual,mon,09:35,11:35,1.5,0.0,1600.0,0.0,1,1651,7.8,APPROX: placed at Langsten/Tennfjord area — needs exact address from HIG
+13018,Albatross Kantine Trohaugen,Trohaugen,6264,62.62,6.6,manual,mon,09:10,11:10,0.5,0.0,300.0,0.0,1,1651,5.3,APPROX: placed at Langsten/Tennfjord area — needs exact address from HIG
+9142,Anno,Anno,,62.471374,6.1512561,found,mon,13:25,15:25,1.0,0.0,303.0,0.0,1,1052,9.7,
+8165,Ask Safety 460205,Ålesund,6002,62.472,6.15,manual,mon,11:45,13:45,1.5,0.5,419.73,0.0,1,1052,4.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+8288,Atlanterhavsparken Ålesund,Atlanterhavsparken,,62.46558,6.0960324,found,mon,09:05,11:05,0.0,0.0,30.0,0.0,1,1051,9.0,
+8527,"Borgund Vgs, Rest.og Matfag",Borgundvegen 340,6015,62.4755,6.234,manual,mon,11:05,13:05,0.5,0.0,59.08,0.0,1,1052,5.4,APPROX: location estimated from business name — verify with HIG
+7911,Borgundheimen Dagsenter 240040,Borgundvegen 92,6008,62.471,6.208,manual,mon,12:20,14:20,1.0,0.5,131.5,0.0,1,1042,12.6,APPROX: location estimated from business name — verify with HIG
+9329,Brisk Avd Rådhuset,Rådhusplassen 1,6002,62.4723,6.1536,manual,mon,07:55,09:55,1.0,0.5,262.9,0.0,1,1051,7.6,APPROX: placed at Ålesund Rådhus area — needs exact address from HIG | service_time: median estimate (n=3 < 5)
+3070,Bunnpris Brattvåg,Bunnpris Brattvåg,,62.597163,6.446116,found,mon,09:20,11:20,8.5,1.0,8175.54,0.0,1,1151,12.3,
+3087,Bunnpris Broa,BROGATA 1,6005,62.469771,6.125637,found,mon,13:15,15:15,1.0,0.0,799.81,0.0,1,1052,13.3,
+6343,Bunnpris Bryggja,Bunnpris Bryggja,,61.94075,5.455532,found,mon,09:45,11:45,1.5,0.0,1898.7,0.0,1,1451,14.2,
+3096,Bunnpris Eid,Bunnpris Eid,,61.908742,5.985056,found,mon,08:45,10:45,5.0,0.0,5167.45,0.0,1,1451,17.4,
+3095,Bunnpris Hareid,Bunnpris Hareid,,62.368536,6.032297,found,mon,16:40,18:40,5.683,0.0,5481.37,0.0,1,1702,16.9,
+3083,Bunnpris Ikornes,Ikornes,6222,62.388,6.579,manual,mon,08:00,10:00,8.333,1.0,8318.45,0.0,1,1601,22.9,APPROX: placed at Sykkylven/Ikornnes area — needs exact address from HIG
+3079,Bunnpris Langevåg,Bunnpris Langevåg,,62.4376456,6.1879534,found,mon,17:15,19:15,5.166,0.0,5261.34,0.0,1,1401,10.6,
+2943,Bunnpris Nørve,Bunnpris Nørve,,62.4708204,6.201686,found,mon,08:15,10:15,6.333,1.0,5199.62,0.0,1,1101,12.8,
+13116,Bunnpris Oldeide,Bunnpris Oldeide,,61.927943,5.081472,found,mon,10:25,12:25,1.0,0.0,1144.5,0.0,1,1451,17.0,
+3086,Bunnpris Olden,Bunnpris Olden,,61.835325,6.8048951,found,mon,11:20,13:20,5.0,0.5,3000.61,0.0,1,1551,21.9,
+3071,Bunnpris Sjøholt,Bunnpris Sjøholt,,62.482209,6.81757,found,mon,06:55,08:55,5.35,0.5,5773.9,0.0,1,1651,22.5,
+3054,Bunnpris Skansen,SKAREGATA 1,6002,62.474674,6.156916,found,mon,12:45,14:45,1.0,0.0,746.2,0.0,1,1052,12.8,
+3076,Bunnpris Spjelkavik,Bunnpris Spjelkavik,,62.462997,6.363048,found,mon,18:45,20:45,6.333,1.0,4591.64,0.0,1,1054,15.5,
+3092,Bunnpris Stad,Bunnpris Stad,,62.11918,5.318464,found,mon,11:40,13:40,8.332,1.0,9573.6,0.0,1,1351,26.9,
+6340,Bunnpris Straumgjerde,Bunnpris Straumgjerde,,62.3333,6.5943,found,mon,08:50,10:50,1.0,0.0,1060.57,0.0,1,1601,16.2,
+3097,Bunnpris Stryn,Bunnpris Stryn,,61.90424,6.719494,found,mon,09:30,11:30,5.166,1.0,6135.1,0.0,1,1551,14.4,
+3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004,62.4703741,6.1502732,found,mon,13:05,15:05,1.0,0.0,868.0,0.0,1,1052,14.7,
+3077,Bunnpris Ulsteinvik,Bunnpris Ulsteinvik,,62.3397174,5.8551176,found,mon,08:40,10:40,6.166,1.0,5153.95,0.0,1,1701,16.0,
+3080,Bunnpris Valderøy,Bunnpris Valderøy,,62.499107,6.130052,found,mon,17:35,19:35,7.666,1.0,7652.19,0.0,1,1752,17.4,
+3089,Bunnpris Valldal,Bunnpris Valldal,,62.297543,7.256927,found,mon,08:55,10:55,5.683,0.5,5461.81,0.0,1,1201,30.0,
+3075,Bunnpris Vatne,Bunnpris Vatne,,62.544919,6.593483,found,mon,07:50,09:50,2.0,0.0,1380.2,0.0,1,1151,16.1,
+3081,Bunnpris Vedde,Bunnpris Vedde,,62.437986,6.234964,found,mon,16:10,18:10,7.666,0.5,7354.6,0.0,1,1401,14.8,
+3066,Bunnpris Volda,Bunnpris Volda,,62.14507,6.066253,found,mon,09:00,11:00,4.0,0.5,4151.56,0.0,1,1501,17.0,
+3093,Bunnpris Ørsta,Bunnpris Ørsta,,62.199592,6.123608,found,mon,17:05,19:05,8.016,0.5,7559.91,0.0,1,1503,11.8,
+6672,Burger King Digernes Avd 5065,Digernessundet,6057,62.4922,6.605,manual,mon,07:25,09:25,0.5,0.0,300.0,0.0,1,1151,5.2,APPROX: placed at Digernes area — needs exact address from HIG
+9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012,62.442025,6.371977,found,mon,15:55,17:55,9.35,0.0,9289.35,0.0,1,1107,24.1,
+6360,Eurospar Hareid,Eurospar Hareid,,62.3718107,6.0279234,found,mon,07:05,09:05,11.569,1.02,13225.23,0.0,1,1701,19.2,
+9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009,62.472382,6.240615,found,mon,18:55,20:55,6.72,0.0,7111.91,0.0,1,1108,21.0,
+8900,Eurospar Moa,Eurospar Moa,,62.464817,6.3515225,found,mon,12:30,14:30,14.7,0.5,13553.19,0.0,1,1103,17.9,
+7740,Eurospar Sykkylven,Eurospar Sykkylven,,62.39233,6.579998,found,mon,07:10,09:10,7.02,1.02,9024.95,0.0,1,1601,12.9,
+7390,Eurospar Valderøy,Eurospar Valderøy,,62.5086854,6.1285006,found,mon,18:00,20:00,8.906,2.0,9131.48,0.0,1,1752,22.6,
+4110,Eurospar Ørsta,Eurospar Ørsta,,62.196948,6.128328,found,mon,17:15,19:15,7.85,0.0,6743.88,0.0,1,1502,24.1,
+9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002,62.4723101,6.1583677,found,mon,10:30,12:30,12.166,1.5,12047.14,0.0,1,1102,24.8,
+8260,Facilitec Brattvåg,Brattvåg,6270,62.596,6.446,manual,mon,10:00,12:00,2.0,1.0,674.58,0.0,1,1151,7.5,APPROX: placed at Brattvåg town center — needs exact address from HIG
+1372,Factory Ikornnes,Ikornnes,6222,62.388,6.579,manual,mon,08:20,10:20,2.5,0.5,1034.7,0.0,1,1601,13.9,APPROX: placed at Sykkylven/Ikornnes area — needs exact address from HIG
+7585,Giske Omsorgssenter,Valderhaug,6050,62.505,6.02,manual,mon,07:35,09:35,1.0,0.5,860.3,0.0,1,1751,7.3,APPROX: placed at Giske/Valderøya area — needs exact address from HIG
+11074,Hatløy Catering,Ålesund,6002,62.472,6.15,manual,mon,08:15,10:15,2.0,0.5,1329.5,0.0,1,1701,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+11085,Hatløy Catering As Avd. Expo,Ålesund,6002,62.472,6.15,manual,mon,08:25,10:25,1.0,0.5,646.6,0.0,1,1701,5.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+8531,Iss 422547 Tussa Hovdebygda,Hovdebygda,6160,62.182,6.084,manual,mon,08:15,10:15,1.0,0.5,595.9,0.0,1,1501,6.4,APPROX: location estimated from business name — verify with HIG
+13181,Iss 422565 Haramsenteret,Haramsøya,6270,62.638,6.268,manual,mon,09:40,11:40,3.0,1.0,1829.6,0.0,1,1151,17.6,APPROX: location estimated from business name — verify with HIG
+13017,Jets Vacuum,Spjelkavik,6010,62.46,6.35,manual,mon,08:00,10:00,2.0,0.5,1480.25,0.0,1,1701,6.4,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG"
+554,Joker Bellingen,Joker Bellingen,,62.209326,6.475956,found,mon,10:30,12:30,3.0,0.5,2518.37,0.0,1,1501,14.5,
+796,Joker Fiksdal,Joker Fiksdal,,62.618987,6.852696,found,mon,09:55,11:55,4.5,1.0,3222.92,0.0,1,1651,18.2,
+13110,Joker Flatraket,Joker Flatraket,,61.974108,5.226046,found,mon,12:05,14:05,3.5,1.0,3436.9,0.0,1,1451,15.4,
+3580,Joker Geiranger,Joker Geiranger,,62.101089,7.205247,found,mon,10:30,12:30,5.5,1.0,2727.83,0.0,1,1302,20.0,service_time: default (no delivery data)
+3615,Joker Godøy,Godøya post i butikk,,62.4756673,6.0383892,found,mon,09:45,11:45,5.5,1.0,5822.06,0.0,1,1751,18.6,
+2218,Joker Gursken,Joker Gursken,,62.216106,5.649571,found,mon,07:25,09:25,6.833,1.0,6435.26,0.0,1,1351,9.8,
+5280,Joker Hellesylt 708000993239,Hellesylt,6218,62.0934,6.8675,manual,mon,11:10,13:10,3.5,0.5,2420.26,0.0,1,1601,19.0,APPROX: placed at Hellesylt village — needs exact address from HIG
+4070,Joker Larsnes,Joker Larsnes,,62.2064458,5.5713076,found,mon,07:55,09:55,7.0,1.0,7578.75,0.0,1,1351,16.9,
+1126,Joker Loen,Joker Loen,,61.871862,6.848274,found,mon,10:15,12:15,2.0,0.0,2289.25,0.0,1,1551,14.3,
+7755,Joker Stordal,Joker Stordal,,62.382214,6.993165,found,mon,07:55,09:55,5.25,1.0,4034.39,0.0,1,1201,19.9,
+6170,Joker Sæbø,Joker Sæbø,,62.2093322,6.4753281,found,mon,10:15,12:15,2.0,0.5,1198.52,0.0,1,1501,10.4,
+1890,Joker Tomrefjord,Joker Tomrefjord,,62.582343,6.931146,found,mon,09:20,11:20,6.0,1.0,5423.3,0.0,1,1651,16.6,
+6011,Joker Utvik,Joker,,61.8068792,6.5189964,found,mon,12:00,14:00,4.0,1.0,2577.99,0.0,1,1551,14.9,
+7018,Joker Vatne,Joker Vatne,,62.559594,6.617185,found,mon,08:00,10:00,3.0,0.5,2575.18,0.0,1,1151,13.6,
+1715,Joker Vikane,Vigra post i butikk,,62.5582574,6.0696726,found,mon,08:15,10:15,5.5,1.0,5035.96,0.0,1,1751,14.6,
+4205,Joker Åheim,Joker Åheim,,62.036511,5.52966,found,mon,10:55,12:55,3.0,0.5,1331.3,0.0,1,1351,22.4,
+3148,Joker Åram,Joker Åram,,62.1738267,5.4413348,found,mon,09:25,11:25,3.0,0.5,2333.34,0.0,1,1351,10.7,
+6731,Kantina Berte Kanutte Huset,Ålesund,6002,62.472,6.15,manual,mon,08:45,10:45,2.02,0.52,2285.7,0.0,1,1501,11.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+9305,Kantine Tafjord Kraft,Ålesund,6002,62.472,6.15,manual,mon,07:25,09:25,1.0,0.5,585.86,0.0,1,1051,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+355,Kiwi 827 Ørsta,Kiwi Meieribygget Ørsta,,62.1991,6.127521,found,mon,16:50,18:50,9.77,0.0,11690.56,0.0,1,1502,26.6,
+7642,Kiwi 830 Skjellebreida Volda,Volda,6100,62.149,6.084,manual,mon,17:40,19:40,9.766,0.5,10469.41,0.0,1,1503,22.9,APPROX: placed at Volda town center — needs exact address from HIG
+9045,Kiwi 832 Sundgata,SUNDGATA 8,6003,62.471056,6.166693,found,mon,19:30,21:30,10.2,0.5,8948.35,0.0,1,1108,22.9,
+2958,Kiwi 841 Skodje,Kiwi Skodje,,62.5033919,6.6966718,found,mon,06:50,08:50,9.85,2.0,10825.51,0.0,1,1151,19.6,
+2936,Kiwi 843 Volda,Kiwi Volda,,62.1467135,6.0889177,found,mon,18:30,20:30,14.803,0.0,18321.09,0.0,1,1503,26.0,
+2935,Kiwi 844 Sykkylven,Kiwi Sykkylven,,62.3913141,6.5816796,found,mon,07:25,09:25,14.41,1.0,18399.29,0.0,1,1601,26.5,
+9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006,62.4666932,6.114175,found,mon,20:00,22:00,10.616,1.0,12229.67,0.0,1,1108,26.9,
+2931,Kiwi 901 Nørve,NØRVEGATA 23,6008,62.4715115,6.2065205,found,mon,13:05,15:05,20.883,0.0,25719.36,0.0,1,1103,25.4,
+2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010,62.463529,6.364485,found,mon,19:05,21:05,18.06,2.0,24225.24,0.0,1,1054,32.2,
+2914,Kiwi 903 Måløy,Kiwi Deknepollen,,61.9230879,5.1505134,found,mon,10:45,12:45,5.0,0.0,5367.04,0.0,1,1451,27.2,
+2920,Kiwi 905 Eggesbønes,Eggesbønes,6008,62.47,6.23,manual,mon,17:35,19:35,11.45,0.5,12667.12,0.0,1,1252,25.3,APPROX: location estimated from business name — verify with HIG
+2927,Kiwi 906 Deknepollen,Kiwi Deknepollen,,61.9230879,5.1505134,found,mon,10:10,12:10,4.35,0.0,4586.78,0.0,1,1451,30.2,
+2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015,62.466608,6.246044,found,mon,16:15,18:15,12.283,0.0,12424.69,0.0,1,1053,24.9,
+2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012,62.4319749,6.4127797,found,mon,16:40,18:40,14.936,0.0,20001.96,0.0,1,1107,29.4,
+2942,Kiwi 910 Kverve,Kverve,6008,62.467,6.2,manual,mon,06:50,08:50,11.2,1.0,12455.25,0.0,1,1751,18.3,APPROX: placed at Kverve — needs exact address from HIG
+2946,Kiwi 911 Fiskarstrand,Fiskarstrand,6037,62.438,6.238,manual,mon,15:40,17:40,7.683,0.0,8015.33,0.0,1,1401,17.6,APPROX: placed at Fiskarstrand — needs exact address from HIG
+2948,Kiwi 912 Stranda,Kiwi Stranda,,62.307148,6.945331,found,mon,10:25,12:25,8.183,0.5,8888.47,0.0,1,1601,20.9,
+2950,Kiwi 913 Stryn,Kiwi Stryn,,61.903006,6.719597,found,mon,09:00,11:00,7.623,0.5,8619.6,0.0,1,1551,32.7,
+2928,Kiwi 914 Ulsteinvik,Kiwi Ulsteinvik,,62.3402676,5.855327,found,mon,18:30,20:30,17.363,0.0,24194.71,0.0,1,1702,44.0,
+2953,Kiwi 915 Valderøy,Valderøy,6050,62.478,6.103,manual,mon,17:00,19:00,11.549,0.0,12988.92,0.0,1,1752,24.0,APPROX: placed at Valderøy — needs exact address from HIG
+2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002,62.4712466,6.1538577,found,mon,07:15,09:15,12.2,1.0,11180.2,0.0,1,1101,33.3,
+2957,Kiwi 917 Myrvåg,Kiwi Myrvåg,,62.277132,5.802988,found,mon,07:15,09:15,11.9,0.0,13384.55,0.0,1,1251,31.3,
+2959,Kiwi 918 Langevåg,Kiwi Langevåg,,62.4407247,6.2001066,found,mon,16:40,18:40,11.829,0.0,13706.55,0.0,1,1401,23.5,
+2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005,62.470082,6.140048,found,mon,07:45,09:45,7.85,1.0,7378.16,0.0,1,1101,20.2,
+2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018,62.471726,6.363353,found,mon,15:30,17:30,13.676,0.0,15882.87,0.0,1,1053,27.6,
+2930,Kiwi 921 Vestnes,Kiwi Vestnes,,62.6235206,7.0904334,found,mon,08:05,10:05,12.476,1.5,15299.59,0.0,1,1651,30.3,
+2963,Kiwi 922 Nordfjordeid,Kiwi Nordfjordeid,,61.9099355,5.9954311,found,mon,08:10,10:10,4.17,0.0,6551.53,0.0,1,1451,23.4,
+2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016,62.4604828,6.2686763,found,mon,15:30,17:30,11.366,1.0,14226.94,0.0,1,1104,20.9,
+2961,Kiwi 924 Vallekrysset,Vallekrysset,6013,62.467,6.35,manual,mon,06:55,08:55,10.2,0.0,11247.16,0.0,1,1201,17.8,APPROX: location estimated from business name — verify with HIG
+2937,Kiwi 925 Meieribygget Ørsta,Ørsta,6150,62.2,6.13,manual,mon,17:40,19:40,12.133,1.0,13183.23,0.0,1,1502,20.0,APPROX: placed at Ørsta town center — needs exact address from HIG | service_time: default (no delivery data)
+3903,Linja Dragsund Kant.306834-1,Ålesund,6002,62.472,6.15,manual,mon,07:55,09:55,1.0,0.5,409.4,0.0,1,1251,6.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+3735,Meny Fosnavåg,Meny Fosnavåg,,62.342208,5.6336574,found,mon,18:30,20:30,7.893,1.0,8464.85,0.0,1,1252,23.6,
+8620,Meny Lerstad,LERSTADVEGEN 291,6015,62.468368,6.292074,found,mon,16:15,18:15,10.183,1.0,12414.49,0.0,1,1104,32.6,
+8595,Mf Skopphorn Catering 100004,Ålesund,6002,62.472,6.15,manual,mon,15:50,17:50,1.0,0.5,310.9,0.0,1,1602,5.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+8475,Mf Sunnylvsfjord 100004,Sunnylvsfjord,6216,62.102,7.205,manual,mon,10:40,12:40,0.5,0.0,211.8,0.0,1,1601,6.1,APPROX: placed at Geiranger village — needs exact address from HIG
+1189,Mmc First Process Kantine,Digernes,6057,62.4922,6.605,manual,mon,08:45,10:45,1.5,0.5,814.37,0.0,1,1251,9.3,APPROX: placed at Digernes area — needs exact address from HIG
+3981,Nogva Motorfabrikk,Ulsteinvik,6065,62.343,5.85,manual,mon,11:00,13:00,1.5,0.5,778.1,0.0,1,1151,14.5,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+8032,Nor F. Optimar,Ulsteinvik,6065,62.343,5.85,manual,mon,07:50,09:50,0.5,0.0,300.0,0.0,1,1751,8.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+8059,Nor F. Røysegata,Røysegata,6002,62.472,6.15,manual,mon,12:20,14:20,0.5,0.0,100.82,0.0,1,1052,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+8057,Nor F. Spareb. 1 Smn,Ålesund,6002,62.472,6.15,manual,mon,08:10,10:10,0.5,0.0,300.0,0.0,1,1051,6.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7620,Nor F. Stokke Kantine,Ålesund,6008,62.47,6.2,manual,mon,08:30,10:30,1.0,0.5,490.28,0.0,1,1051,8.6,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+8073,Nor F. Vard Electro,Brattvåg,6270,62.596,6.446,manual,mon,08:30,10:30,1.5,0.5,626.98,0.0,1,1151,6.9,APPROX: placed at Brattvåg town center — needs exact address from HIG
+7489,Norbruk Vard Søvika,Søvika,6065,62.343,5.85,manual,mon,11:20,13:20,1.5,0.5,916.0,0.0,1,1151,10.8,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+2373,Posten Restaurant Og Bar,Ålesund,6002,62.472,6.15,manual,mon,17:00,19:00,2.0,0.5,1531.35,0.0,1,1702,9.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+7939,Rabbevågen Barnehage,Rabbevågen barnehage,,62.4347863,6.3501074,found,mon,11:00,13:00,1.5,1.0,147.0,0.0,1,1042,6.8,
+5901,Rem-servering,Ulsteinvik,6065,62.343,5.85,manual,mon,09:00,11:00,2.0,0.5,1358.92,0.0,1,1701,5.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+9193,Renholdssenteret As,Ålesund,6008,62.47,6.2,manual,mon,11:15,13:15,0.5,0.0,275.1,0.0,1,1052,4.0,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+8850,Scandic Parken Hotell Mat,Storgata 16,6002,62.4745,6.161,manual,mon,12:35,14:35,1.0,0.0,303.0,0.0,1,1052,7.8,APPROX: location estimated from business name — verify with HIG
+7325,Snorrebuda,Ålesund,6002,62.472,6.15,manual,mon,17:55,19:55,4.5,0.5,4150.63,0.0,1,1702,7.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+13251,Solsikka Barnehage,Solsikka barnehage,,62.1021399,5.5612565,found,mon,10:30,12:30,0.0,0.0,0.0,0.0,1,1351,3.5,
+9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037,62.4273727,6.3156806,found,mon,17:15,19:15,5.85,0.0,4840.41,0.0,1,1107,17.2,
+4220,Spar Ellingsøy,Spar Ellingsøy,,62.504485,6.396043,found,mon,06:30,08:30,5.4,1.0,3939.54,0.0,1,1751,16.3,
+880,Spar Fiskåbygd,Spar Fiskåbygd,,62.1000153,5.5566242,found,mon,10:05,12:05,4.5,0.0,3815.16,0.0,1,1351,20.2,
+1845,Spar Fosnavåg,Spar Fosnavåg,,62.3288549,5.6344584,found,mon,18:00,20:00,8.62,1.0,8156.31,0.0,1,1252,20.0,
+2170,Spar Hornindal,Spar Hornindal,,61.9677067,6.5254155,found,mon,08:10,10:10,5.85,1.0,4998.2,0.0,1,1551,22.8,
+5550,Spar Hovdebygda,Spar Hovdebygda,,62.1826871,6.0843933,found,mon,07:45,09:45,5.85,1.0,4717.4,0.0,1,1501,15.4,
+1090,Spar Langevåg,Spar Langevåg,,62.44221,6.190282,found,mon,17:05,19:05,3.5,0.5,1904.0,0.0,1,1401,13.1,
+4235,Spar Raudeberg,Spar Raudeberg,,61.9817494,5.1359776,found,mon,11:10,13:10,4.35,0.0,3451.82,0.0,1,1451,24.2,
+8697,Spar Spjelkavik,Spjelkavikvegen 61,6010,62.4622693,6.3640886,found,mon,09:30,11:30,10.683,1.0,11720.8,0.0,1,1051,19.0,
+6600,Spar Straumane,Spar Straumane,,62.3159888,5.8438243,found,mon,09:05,11:05,3.85,0.0,3555.1,0.0,1,1701,18.7,
+6780,Spar Svingen,Spar Svingen,,62.3115806,6.9183612,found,mon,10:15,12:15,8.5,0.5,9780.1,0.0,1,1601,14.0,
+7010,Spar Søvik,Spar Søvik,,62.5500218,6.2783045,found,mon,11:40,13:40,1.5,0.0,1375.0,0.0,1,1151,16.3,
+6320,Spar Tresfjord,Spar Tresfjord,,62.5224293,7.1283142,found,mon,07:40,09:40,5.35,1.0,4859.82,0.0,1,1651,21.9,
+7765,Spar Ulsteinvik,Spar Ulsteinvik,,62.34227,5.868304,found,mon,17:30,19:30,5.56,0.0,4388.54,0.0,1,1702,17.4,
+4245,Spar Valldal,Spar Valldal,,62.29798,7.26419,found,mon,09:20,11:20,7.35,0.5,7738.05,0.0,1,1201,30.1,
+7450,Spar Vartdal,Spar Vartdal,,62.301075,6.083249,found,mon,07:10,09:10,7.0,0.5,6950.42,0.0,1,1501,14.7,
+5540,Spar Volda,Spar Volda,,62.1494006,6.084363,found,mon,08:30,10:30,7.35,1.0,5771.33,0.0,1,1501,14.5,
+4225,Spar Åse,Øvre Geilegrend 1,6017,62.4643885,6.3172074,found,mon,08:30,10:30,10.99,0.5,14318.02,0.0,1,1101,16.3,
+8967,Spjelkavik Veiservice,Esso Spjelkavik,,62.466974,6.361239,found,mon,16:50,18:50,1.5,0.5,722.7,0.0,1,1104,5.6,
+5892,Ssp Aksla Int A331 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,mon,09:15,11:15,1.0,0.5,319.7,0.0,1,1751,6.1,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5888,Ssp O'learys A327 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,mon,09:15,11:15,0.0,0.0,30.0,0.0,1,1751,5.8,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5894,Ssp Point Dom A328 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,mon,09:15,11:15,2.0,1.0,1294.3,0.0,1,1751,7.2,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5895,Ssp Prod.kjøkken Y018 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,mon,09:15,11:15,1.0,0.0,605.83,0.0,1,1751,6.2,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+1689,St1 Vegsund 9377,St1 Vegsund,,62.44362,6.3668508,found,mon,10:50,12:50,0.5,0.0,417.7,0.0,1,1052,5.9,
+1697,St1 Vestnes 9289,St1 Vestnes,,62.6231435,7.0896057,found,mon,08:55,10:55,0.5,0.0,18.5,0.0,1,1651,8.4,
+1698,St1 Ørsta 9163,St1 Ørsta,,62.1963482,6.1278627,found,mon,18:05,20:05,0.5,0.0,18.5,0.0,1,1502,7.2,
+7494,Subsea 7 Vigra Spoolbase,Vigra,6040,62.558,6.105,manual,mon,08:05,10:05,2.52,0.52,1786.3,0.0,1,1751,11.4,APPROX: location estimated from business name — verify with HIG
+9094,Sunde Barnehage,Sunde barnehage,,62.4215724,6.3282549,found,mon,07:00,16:00,1.0,0.5,181.9,0.0,1,1041,9.3,
+7808,Tennfjord Barnehage,Tennfjord barnehage,,62.543877,6.5875193,found,mon,08:40,10:40,1.0,0.5,134.9,0.0,1,1151,5.3,
+8436,Tingstad As Kantine,Ålesund,6002,62.472,6.15,manual,mon,11:35,13:35,1.0,0.5,577.4,0.0,1,1052,8.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+13332,"Toma Kant.torvmyrane,1188201",Torvmyrane,6010,62.483,6.287,manual,mon,08:05,10:05,0.5,0.0,300.0,0.0,1,1501,7.8,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+12203,"Trsp.o. Berdal, Valldal",Valldal,6210,62.298,7.264,manual,mon,10:40,12:40,0.0,0.0,0.0,0.0,1,1201,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+12213,Trsp.o. Stabburet Svemorka,Svemorka,6010,62.46,6.35,manual,mon,19:00,21:00,0.0,0.0,0.0,0.0,1,1602,20.0,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG | service_time: default (no delivery data)"
+12217,Trsp.o. Valldal Grønt,Valldal,6210,62.298,7.264,manual,mon,10:55,12:55,0.0,0.0,0.0,0.0,1,1201,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+9099,Ungdom I Oppdrag Ålesund,Ålesund,6002,62.472,6.15,manual,mon,08:00,16:00,1.0,0.5,576.1,0.0,1,1041,9.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+7272,Ungdomsklubben Bell Uk 250200,Ulsteinvik,6065,62.343,5.85,manual,mon,09:45,11:45,1.5,0.5,578.7,0.0,1,1701,5.7,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+7384,Valaker Avd. Fosnavåg,Fosnavåg,6090,62.329,5.634,manual,mon,09:55,11:55,1.0,0.5,220.9,0.0,1,1251,9.0,APPROX: placed at Fosnavåg town center — needs exact address from HIG
+8285,Ålesund Fengsel 3390karsandn,Parkvegen 35,6003,62.4676,6.187,manual,mon,12:30,14:30,1.5,0.5,224.4,0.0,1,1052,10.5,APPROX: location estimated from business name — verify with HIG
+361,Asko Mat,Spjelkavik,6010,62.46,6.35,manual,wed,08:20,10:20,0.0,0.0,0.0,0.0,1,3501,4.9,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG"
+8353,4341 Apotekergata 5,APOTEKERGATA 5,6004,62.4720649,6.1521511,found,wed,15:55,17:55,1.0,0.0,300.0,0.0,1,3055,6.6,
+9325,Akademiet Vgs Åles.elevkantine,Parkgata 2,6003,62.4735,6.153,manual,wed,08:05,10:05,1.0,0.5,252.6,0.0,1,3041,7.6,APPROX: placed at Ålesund city center (Parkgata) — needs exact address from HIG | service_time: median estimate (n=4 < 5)
+3319,Alnes Fyr Og Opplevelsessenter,Alnes Fyr og opplevelsessenter,,62.4895605,5.9653247,found,wed,10:35,12:35,1.0,0.5,313.2,0.0,1,3751,6.5,
+9142,Anno,Anno,,62.471374,6.1512561,found,wed,15:45,17:45,1.0,0.5,318.6,0.0,1,3055,9.7,
+8288,Atlanterhavsparken Ålesund,Atlanterhavsparken,,62.46558,6.0960324,found,wed,09:00,11:00,1.5,0.5,560.96,0.0,1,3051,9.0,
+7811,"Avd Vatne, Tennfjord Bhg",Tennfjord,6264,62.57,6.587,manual,wed,08:20,10:20,1.0,0.5,476.1,0.0,1,3151,9.9,APPROX: location estimated from business name — verify with HIG
+582,Bakeriet Kaffebar,Ålesund,6002,62.472,6.15,manual,wed,10:20,12:20,1.5,0.5,1136.0,0.0,1,3451,11.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7923,Blindheim Omsorgssenter 2024,Blindheim omsorgssenter,,62.4424391,6.3789123,found,wed,07:00,09:00,1.0,0.5,637.5,0.0,1,3051,5.6,
+7396,Braud Valderøy,Valderøy,6050,62.478,6.103,manual,wed,08:55,10:55,1.5,0.5,679.4,0.0,1,3751,6.1,APPROX: placed at Valderøy — needs exact address from HIG
+9336,Brooklyn 24/26,Brooklyn - 24 / 26,,62.4713242,6.1588092,found,wed,17:40,19:40,1.04,0.5,477.9,0.0,1,3055,20.0,service_time: default (no delivery data)
+3070,Bunnpris Brattvåg,Bunnpris Brattvåg,,62.597163,6.446116,found,wed,10:35,12:35,5.0,1.0,5266.28,0.0,1,3151,12.3,
+6343,Bunnpris Bryggja,Bunnpris Bryggja,,61.94075,5.455532,found,wed,08:25,10:25,9.166,1.0,9850.77,0.0,1,3451,14.2,
+3096,Bunnpris Eid,Bunnpris Eid,,61.908742,5.985056,found,wed,09:50,11:50,8.0,1.5,8603.26,0.0,1,3452,17.4,
+3095,Bunnpris Hareid,Bunnpris Hareid,,62.368536,6.032297,found,wed,07:00,09:00,6.85,1.0,6767.5,0.0,1,3701,16.9,
+2943,Bunnpris Nørve,Bunnpris Nørve,,62.4708204,6.201686,found,wed,06:55,08:55,0.5,0.0,389.27,0.0,1,3053,12.8,
+13116,Bunnpris Oldeide,Bunnpris Oldeide,,61.927943,5.081472,found,wed,10:50,12:50,8.666,1.0,8889.64,0.0,1,3451,17.0,
+3071,Bunnpris Sjøholt,Bunnpris Sjøholt,,62.482209,6.81757,found,wed,06:45,08:45,2.0,0.0,3172.98,0.0,1,3651,22.5,
+3097,Bunnpris Stryn,Bunnpris Stryn,,61.90424,6.719494,found,wed,07:50,09:50,5.666,1.0,5360.53,0.0,1,3551,14.4,
+3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004,62.4703741,6.1502732,found,wed,16:05,18:05,2.5,0.0,2424.3,0.0,1,3055,14.7,
+3077,Bunnpris Ulsteinvik,Bunnpris Ulsteinvik,,62.3397174,5.8551176,found,wed,17:40,19:40,5.333,1.0,5350.04,0.0,1,3702,16.0,
+3080,Bunnpris Valderøy,Bunnpris Valderøy,,62.499107,6.130052,found,wed,17:05,19:05,5.85,0.0,5096.44,0.0,1,3752,17.4,
+3089,Bunnpris Valldal,Bunnpris Valldal,,62.297543,7.256927,found,wed,08:30,10:30,6.0,1.0,5569.05,0.0,1,3201,30.0,
+3075,Bunnpris Vatne,Bunnpris Vatne,,62.544919,6.593483,found,wed,08:05,10:05,4.5,1.0,4510.17,0.0,1,3151,16.1,
+3081,Bunnpris Vedde,Bunnpris Vedde,,62.437986,6.234964,found,wed,15:55,17:55,5.0,0.0,6499.68,0.0,1,3401,14.8,
+3066,Bunnpris Volda,Bunnpris Volda,,62.14507,6.066253,found,wed,17:40,19:40,0.5,0.0,112.87,0.0,1,3502,17.0,
+3093,Bunnpris Ørsta,Bunnpris Ørsta,,62.199592,6.123608,found,wed,16:45,18:45,8.666,2.5,8743.38,0.0,1,3502,11.8,
+6672,Burger King Digernes Avd 5065,Digernessundet,6057,62.4922,6.605,manual,wed,07:40,09:40,0.5,0.0,300.0,0.0,1,3151,5.2,APPROX: placed at Digernes area — needs exact address from HIG
+902,China Restaurant Eid,Eidsgata 12,6770,61.907,5.991,manual,wed,11:05,13:05,1.0,0.5,313.5,0.0,1,3452,7.0,APPROX: placed at Nordfjordeid town center — needs exact address from HIG
+1048,Didriks Kafe & Gaver,Volda,6100,62.149,6.084,manual,wed,11:00,13:00,1.0,0.5,346.4,0.0,1,3452,7.2,APPROX: placed at Volda town center — needs exact address from HIG
+6460,Dreges Hotel,Dregesvegen 2,6200,62.3117,6.9475,manual,wed,08:50,10:50,0.5,0.5,209.9,0.0,1,3601,8.2,APPROX: location estimated from business name — verify with HIG
+8945,Daaskogen Renex,Ålesund,6008,62.47,6.2,manual,wed,09:20,11:20,1.0,0.5,473.1,0.0,1,3051,4.7,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+13246,Ebbegarden Barnehage Emblem,Ebbegarden barnehage,,62.436704,6.4531271,found,wed,11:15,13:15,0.5,0.0,300.0,0.0,1,3042,4.5,
+7806,Eidet Omsorgs. Kjøkken 2024,Eidet,6008,62.467,6.2,manual,wed,08:25,10:25,1.5,0.5,982.91,0.0,1,3151,7.2,APPROX: placed at Eidet — needs exact address from HIG
+8562,"Elektroimportøren Norge As,åle",Ålesund,6008,62.47,6.2,manual,wed,13:00,15:00,0.5,0.0,259.1,0.0,1,3102,3.7,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+7931,Ellingsøy Barnehage 2024,Ellingsøy barnehage,,62.4933445,6.1930598,found,wed,08:40,10:40,1.5,0.5,457.6,0.0,1,3041,11.1,
+9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012,62.442025,6.371977,found,wed,16:00,18:00,6.0,0.0,6661.05,0.0,1,3106,24.1,
+6360,Eurospar Hareid,Eurospar Hareid,,62.3718107,6.0279234,found,wed,06:40,08:40,6.0,1.5,5749.3,0.0,1,3701,19.2,
+9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009,62.472382,6.240615,found,wed,06:25,08:25,10.833,0.0,11458.42,0.0,1,3053,21.0,
+8900,Eurospar Moa,Eurospar Moa,,62.464817,6.3515225,found,wed,10:05,12:05,13.203,1.5,14215.91,0.0,1,3057,17.9,
+7740,Eurospar Sykkylven,Eurospar Sykkylven,,62.39233,6.579998,found,wed,06:50,08:50,7.35,0.0,7115.34,0.0,1,3601,12.9,
+7390,Eurospar Valderøy,Eurospar Valderøy,,62.5086854,6.1285006,found,wed,17:35,19:35,13.71,3.5,16429.0,0.0,1,3752,22.6,
+4110,Eurospar Ørsta,Eurospar Ørsta,,62.196948,6.128328,found,wed,17:10,19:10,4.5,0.0,4422.48,0.0,1,3502,24.1,
+9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002,62.4723101,6.1583677,found,wed,16:30,18:30,10.69,3.5,12174.26,0.0,1,3054,24.8,
+8260,Facilitec Brattvåg,Brattvåg,6270,62.596,6.446,manual,wed,09:45,11:45,1.0,0.5,802.08,0.0,1,3151,7.5,APPROX: placed at Brattvåg town center — needs exact address from HIG
+1377,Factory Grodås,Grodås,6698,62.064,6.343,manual,wed,08:35,10:35,1.0,0.5,470.3,0.0,1,3452,10.6,APPROX: location estimated from business name — verify with HIG
+6762,Felleskjøpet Stryn 4570,Felleskjøpet Stryn,,61.9022296,6.71943,found,wed,09:55,11:55,0.5,0.0,7.1,0.0,1,3551,3.8,
+9317,Felleskjøpet Ålesund 6110,Felleskjøpet Ålesund,,62.4715083,6.3418103,found,wed,08:05,10:05,0.5,0.0,23.5,0.0,1,3101,4.1,
+1615,Fjordane Folkehøgskule,Nordfjordeid,6770,61.907,5.987,manual,wed,11:50,13:50,0.5,0.0,300.0,0.0,1,3452,10.0,APPROX: location estimated from business name — verify with HIG
+1631,Fjordly Ungdomssenter,Ålesund,6002,62.472,6.15,manual,wed,12:05,14:05,1.0,0.5,380.0,0.0,1,3451,6.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+1041,Flammen 6770,Nordfjordeid,6770,61.906,5.989,manual,wed,11:40,13:40,1.0,0.5,462.2,0.0,1,3452,7.3,APPROX: placed at Nordfjordeid — needs exact address from HIG
+4044,Fole Festlig,Ålesund,6002,62.472,6.15,manual,wed,11:00,13:00,1.5,0.5,635.92,0.0,1,3102,5.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+7585,Giske Omsorgssenter,Valderhaug,6050,62.505,6.02,manual,wed,06:45,08:45,1.0,0.5,293.2,0.0,1,3751,7.3,APPROX: placed at Giske/Valderøya area — needs exact address from HIG
+8437,Grimmergata 5 As Kantine,Grimmergata 5,6002,62.472,6.15,manual,wed,07:40,09:40,1.0,0.5,484.4,0.0,1,3051,9.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7934,Hatlahaugen Dagsenter 2024,"Hatlahaugen, Ålesund",,62.466,6.21,manual,wed,11:50,13:50,1.0,0.5,214.0,0.0,1,3042,5.5,APPROX: placed at Hatlahaugen — needs exact address from HIG
+1159,Havfruen Måløy,Gate 1,6718,61.9345,5.1135,manual,wed,11:25,13:25,1.5,0.5,1221.59,0.0,1,3451,14.3,APPROX: location estimated from business name — verify with HIG
+2617,Hellesylt Boutique Og Bar,Hellesylt,6218,62.0934,6.8675,manual,wed,10:30,12:30,0.5,0.0,71.1,0.0,1,3601,16.8,APPROX: placed at Hellesylt village — needs exact address from HIG
+3339,Helsehuset Stella Maris,Helsehuset Stella Maris,,62.6218923,7.0911887,found,wed,09:05,11:05,1.5,0.5,547.3,0.0,1,3651,5.2,
+1835,Hf Nordfjord Sjukehus,Sjukehusveien 14,6770,61.9056,5.989,manual,wed,11:45,13:45,1.0,0.5,170.1,0.0,1,3452,8.8,APPROX: location estimated from business name — verify with HIG
+2819,Isehaug Kafeteria,Isehaug kafeteria,,61.9041735,6.723095,found,wed,09:10,11:10,2.5,1.0,1666.57,0.0,1,3551,10.7,
+13181,Iss 422565 Haramsenteret,Haramsøya,6270,62.638,6.268,manual,wed,10:00,12:00,3.0,0.5,2455.81,0.0,1,3151,17.6,APPROX: location estimated from business name — verify with HIG
+7646,Iss 460080 Statens Vegvesen,Ålesund,6002,62.472,6.15,manual,wed,08:10,10:10,1.0,0.5,529.95,0.0,1,3101,5.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+3615,Joker Godøy,Godøya post i butikk,,62.4756673,6.0383892,found,wed,10:05,12:05,3.0,0.5,2318.58,0.0,1,3751,18.6,
+5280,Joker Hellesylt 708000993239,Hellesylt,6218,62.0934,6.8675,manual,wed,10:00,12:00,3.5,0.5,2510.68,0.0,1,3601,19.0,APPROX: placed at Hellesylt village — needs exact address from HIG
+643,Joker Hjelledalen,Joker Hjelledalen,,61.918644,7.169796,found,wed,11:00,13:00,3.0,0.5,2335.03,0.0,1,3551,16.4,
+7755,Joker Stordal,Joker Stordal,,62.382214,6.993165,found,wed,07:30,09:30,5.0,0.5,4960.63,0.0,1,3201,19.9,
+1890,Joker Tomrefjord,Joker Tomrefjord,,62.582343,6.931146,found,wed,11:30,13:30,2.0,0.5,2359.82,0.0,1,3651,16.6,
+7018,Joker Vatne,Joker Vatne,,62.559594,6.617185,found,wed,08:15,10:15,3.0,0.5,2782.12,0.0,1,3151,13.6,
+1715,Joker Vikane,Vigra post i butikk,,62.5582574,6.0696726,found,wed,07:25,09:25,3.5,0.5,2976.63,0.0,1,3751,14.6,
+3328,Jr Ulsteinvik As,Ulsteinvik,6065,62.343,5.85,manual,wed,08:00,10:00,1.5,0.0,760.5,0.0,1,3701,8.1,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+7943,Kaos Kollektivet Ungdomshus,Ålesund,6002,62.472,6.15,manual,wed,11:35,13:35,1.0,0.5,306.4,0.0,1,3042,6.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+9176,Keiseren Frukt Og Grønt,Ålesund,6002,62.472,6.15,manual,wed,12:30,14:30,1.0,0.5,448.4,0.0,1,3102,14.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+355,Kiwi 827 Ørsta,Kiwi Meieribygget Ørsta,,62.1991,6.127521,found,wed,08:05,10:05,9.183,0.0,10191.01,0.0,1,3501,26.6,
+7642,Kiwi 830 Skjellebreida Volda,Volda,6100,62.149,6.084,manual,wed,18:10,20:10,6.35,0.5,5923.98,0.0,1,3502,22.9,APPROX: placed at Volda town center — needs exact address from HIG
+9045,Kiwi 832 Sundgata,SUNDGATA 8,6003,62.471056,6.166693,found,wed,19:50,21:50,9.53,1.0,8937.6,0.0,1,3056,22.9,
+2958,Kiwi 841 Skodje,Kiwi Skodje,,62.5033919,6.6966718,found,wed,10:40,12:40,7.35,0.5,6937.77,0.0,1,3057,19.6,
+2936,Kiwi 843 Volda,Kiwi Volda,,62.1467135,6.0889177,found,wed,18:25,20:25,14.8,0.0,16855.51,0.0,1,3502,26.0,
+2935,Kiwi 844 Sykkylven,Kiwi Sykkylven,,62.3913141,6.5816796,found,wed,07:20,09:20,7.333,2.0,8565.0,0.0,1,3601,26.5,
+9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006,62.4666932,6.114175,found,wed,20:35,22:35,10.85,3.0,11204.13,0.0,1,3056,26.9,
+2931,Kiwi 901 Nørve,NØRVEGATA 23,6008,62.4715115,6.2065205,found,wed,19:15,21:15,11.713,0.0,13786.19,0.0,1,3056,25.4,
+2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010,62.463529,6.364485,found,wed,19:20,21:20,9.7,2.0,8740.13,0.0,1,3105,32.2,
+2920,Kiwi 905 Eggesbønes,Eggesbønes,6008,62.47,6.23,manual,wed,18:10,20:10,10.2,1.0,10851.22,0.0,1,3251,25.3,APPROX: location estimated from business name — verify with HIG
+2927,Kiwi 906 Deknepollen,Kiwi Deknepollen,,61.9230879,5.1505134,found,wed,09:10,11:10,1.7,0.0,1323.44,0.0,1,3451,30.2,
+2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015,62.466608,6.246044,found,wed,20:20,22:20,10.406,0.0,10980.74,0.0,1,3103,24.9,
+2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012,62.4319749,6.4127797,found,wed,19:30,21:30,8.549,0.0,9742.96,0.0,1,3103,29.4,
+2942,Kiwi 910 Kverve,Kverve,6008,62.467,6.2,manual,wed,13:10,15:10,10.0,1.0,11055.08,0.0,1,3057,18.3,APPROX: placed at Kverve — needs exact address from HIG
+2946,Kiwi 911 Fiskarstrand,Fiskarstrand,6037,62.438,6.238,manual,wed,15:25,17:25,6.516,0.0,6945.39,0.0,1,3401,17.6,APPROX: placed at Fiskarstrand — needs exact address from HIG
+2948,Kiwi 912 Stranda,Kiwi Stranda,,62.307148,6.945331,found,wed,08:30,10:30,4.5,0.0,4617.15,0.0,1,3601,20.9,
+2950,Kiwi 913 Stryn,Kiwi Stryn,,61.903006,6.719597,found,wed,07:45,09:15,8.839,0.0,8992.55,0.0,1,3551,32.7,
+2928,Kiwi 914 Ulsteinvik,Kiwi Ulsteinvik,,62.3402676,5.855327,found,wed,18:00,20:00,12.38,0.0,15486.09,0.0,1,3702,44.0,
+2953,Kiwi 915 Valderøy,Valderøy,6050,62.478,6.103,manual,wed,16:40,18:40,7.85,0.0,7891.46,0.0,1,3752,24.0,APPROX: placed at Valderøy — needs exact address from HIG
+2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002,62.4712466,6.1538577,found,wed,17:05,19:05,9.35,2.0,8580.35,0.0,1,3055,33.3,
+2957,Kiwi 917 Myrvåg,Kiwi Myrvåg,,62.277132,5.802988,found,wed,08:50,10:50,10.35,0.0,14123.73,0.0,1,3701,31.3,
+2959,Kiwi 918 Langevåg,Kiwi Langevåg,,62.4407247,6.2001066,found,wed,16:25,18:25,12.5,0.0,16020.51,0.0,1,3401,23.5,
+2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005,62.470082,6.140048,found,wed,16:35,18:35,4.833,1.0,4175.65,0.0,1,3055,20.2,
+2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018,62.471726,6.363353,found,wed,15:15,17:15,8.033,0.0,9200.07,0.0,1,3104,27.6,
+2930,Kiwi 921 Vestnes,Kiwi Vestnes,,62.6235206,7.0904334,found,wed,07:50,09:50,7.08,2.0,8853.41,0.0,1,3651,30.3,
+2963,Kiwi 922 Nordfjordeid,Kiwi Nordfjordeid,,61.9099355,5.9954311,found,wed,09:20,11:20,5.0,0.0,4341.13,0.0,1,3452,23.4,
+2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016,62.4604828,6.2686763,found,wed,19:05,21:05,6.533,1.0,7333.3,0.0,1,3108,20.9,
+2961,Kiwi 924 Vallekrysset,Vallekrysset,6013,62.467,6.35,manual,wed,06:35,08:35,4.35,0.0,4618.49,0.0,1,3151,17.8,APPROX: location estimated from business name — verify with HIG
+2937,Kiwi 925 Meieribygget Ørsta,Ørsta,6150,62.2,6.13,manual,wed,07:45,09:45,6.85,0.0,6632.72,0.0,1,3501,20.0,APPROX: placed at Ørsta town center — needs exact address from HIG | service_time: default (no delivery data)
+7927,Klipra Kafe,Ålesund,6002,62.472,6.15,manual,wed,07:40,09:40,1.0,0.5,174.61,0.0,1,3041,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+6544,Lille Siena,Ålesund,6002,62.472,6.15,manual,wed,09:00,11:00,1.5,0.5,840.84,0.0,1,3601,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+3907,Linja Avd Høgvoll 10012-1000,Ålesund,6002,62.472,6.15,manual,wed,08:20,10:20,1.0,0.5,475.45,0.0,1,3101,5.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+8266,M Supply 5 Ålesund,Ålesund,6002,62.472,6.15,manual,wed,11:25,13:25,1.5,0.5,1177.1,0.0,1,3102,7.6,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: median estimate (n=4 < 5)
+1056,Magnifikk,Ålesund,6002,62.472,6.15,manual,wed,10:10,12:10,1.5,0.5,827.05,0.0,1,3452,8.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+3438,Mardini Spiseri,Ålesund,6002,62.472,6.15,manual,wed,10:15,12:15,1.5,0.5,800.6,0.0,1,3452,10.0,APPROX: placed at Ålesund city center — needs exact address from HIG
+5263,Matstova Oppstryn,Matstova,,61.9108111,7.0485729,found,wed,10:35,12:35,1.0,0.5,518.0,0.0,1,3551,12.6,
+3735,Meny Fosnavåg,Meny Fosnavåg,,62.342208,5.6336574,found,wed,17:35,19:35,7.75,0.5,6504.82,0.0,1,3251,23.6,
+8620,Meny Lerstad,LERSTADVEGEN 291,6015,62.468368,6.292074,found,wed,19:40,21:40,8.5,1.0,7244.3,0.0,1,3108,32.6,
+8588,Mf Suløy Catering 100004,Sula,6030,62.44,6.19,manual,wed,06:10,08:10,1.5,0.5,1340.76,0.0,1,3701,8.6,APPROX: location estimated from business name — verify with HIG
+12009,Miljøstasjonen Hig,HIG,6010,62.46,6.35,manual,wed,09:30,11:30,0.0,0.0,0.0,0.0,1,3051,20.0,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG | service_time: default (no delivery data)"
+1097,Minibakeriet,minibakeriet,,61.9084244,5.9881516,found,wed,10:25,12:25,0.33,0.0,30.0,0.0,1,3452,10.7,
+3643,Mix Måløy Ny,Måløy,6700,61.934,5.114,manual,wed,11:45,13:45,4.5,1.0,2514.98,0.0,1,3451,14.6,APPROX: placed at Måløy town center — needs exact address from HIG
+7587,Mmc First Process Digernes,Digernes,6057,62.4922,6.605,manual,wed,07:20,09:20,1.5,0.5,664.0,0.0,1,3151,5.7,APPROX: placed at Digernes area — needs exact address from HIG
+3770,Muritunet As,Valldal,6210,62.298,7.264,manual,wed,08:55,10:55,2.5,0.5,1428.25,0.0,1,3201,9.1,APPROX: placed at Valldal area — needs exact address from HIG
+8764,Møre Supply,Ålesund,6002,62.472,6.15,manual,wed,11:25,13:25,1.0,0.5,208.2,0.0,1,3102,4.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+3623,Måløy Spiskammers,Måløy,6700,61.934,5.114,manual,wed,11:15,13:15,1.5,0.5,824.56,0.0,1,3451,10.9,APPROX: placed at Måløy town center — needs exact address from HIG
+3865,Måløy Vg Skule,Måløy,6700,61.934,5.118,manual,wed,10:30,12:30,1.5,0.5,421.4,0.0,1,3451,6.8,APPROX: location estimated from business name — verify with HIG
+3984,Naustet Grill,Naustet Grill,,62.144746,6.067831,found,wed,10:00,12:00,2.5,1.0,2916.95,0.0,1,3501,11.2,
+6644,Nilsgardstunet,Innviksvegen,6793,61.8143,6.564,manual,wed,07:25,09:25,2.5,0.5,900.58,0.0,1,3201,5.9,APPROX: location estimated from business name — verify with HIG
+8038,Nor F. Bertel.o Steen,Ålesund,6002,62.472,6.15,manual,wed,07:10,09:10,1.0,0.5,675.06,0.0,1,3151,8.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+9258,Nor F. Color Line,Skateflukaia,6002,62.4745,6.139,manual,wed,12:00,14:00,1.5,0.5,612.4,0.0,1,3052,9.9,APPROX: location estimated from business name — verify with HIG
+8032,Nor F. Optimar,Ulsteinvik,6065,62.343,5.85,manual,wed,09:25,11:25,1.0,0.5,178.03,0.0,1,3751,8.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+2393,Nor F. Vard Brattvåg,Brattvåg,6270,62.596,6.446,manual,wed,10:50,12:50,1.0,0.5,438.4,0.0,1,3151,15.5,APPROX: placed at Brattvåg town center — needs exact address from HIG
+8073,Nor F. Vard Electro,Brattvåg,6270,62.596,6.446,manual,wed,11:55,13:55,1.02,0.02,815.9,0.0,1,3057,6.9,APPROX: placed at Brattvåg town center — needs exact address from HIG
+7489,Norbruk Vard Søvika,Søvika,6065,62.343,5.85,manual,wed,09:15,11:15,1.0,0.5,531.16,0.0,1,3151,10.8,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+4002,Nordfjord Hotell,Nordfjord hotell,,61.9042074,5.995779,found,wed,11:35,13:35,2.0,0.5,991.27,0.0,1,3452,9.5,
+10096,Norengros Ødegaard Engros,Ålesund,6008,62.47,6.2,manual,wed,09:20,11:20,0.5,0.0,370.2,0.0,1,3101,3.6,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+7925,Nørve Barnehage 2024,Nørve barnehage,,62.4741224,6.2247572,found,wed,07:30,09:30,1.0,0.5,128.4,0.0,1,3041,5.5,
+774,O.l. Brekke Kafe Catering,Nordfjordeid,6770,61.907,5.991,manual,wed,08:55,10:55,1.0,0.5,530.83,0.0,1,3551,7.0,APPROX: placed at Nordfjordeid town center — needs exact address from HIG
+4047,Obs Bygg Digernes,Obs Bygg Digernes,,62.493019,6.605869,found,wed,07:30,09:30,0.5,0.0,257.6,0.0,1,3151,5.7,
+13115,Oldeide Matsenter Storhush.,Oldeide,6718,61.981,5.136,manual,wed,10:50,12:50,1.5,0.5,860.8,0.0,1,3451,10.6,APPROX: location estimated from business name — verify with HIG
+2373,Posten Restaurant Og Bar,Ålesund,6002,62.472,6.15,manual,wed,16:45,18:45,2.95,0.5,1701.6,0.0,1,3702,9.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+13124,Quality Hotel Ulstein,Quality Hotel Ulstein,,62.3407365,5.8486583,found,wed,07:50,09:50,4.0,1.0,4040.3,0.0,1,3701,9.2,
+8929,Racoon Coffee,KONGENS GATE 6,6002,62.4731906,6.1567012,found,wed,16:20,18:20,0.5,0.0,160.1,0.0,1,3054,8.8,
+3338,Remmemsvik Kiosk & Gatekjøkken,Remmemsvik,6264,62.658,6.27,manual,wed,09:15,11:15,1.5,1.0,1087.5,0.0,1,3651,5.9,APPROX: location estimated from business name — verify with HIG
+5901,Rem-servering,Ulsteinvik,6065,62.343,5.85,manual,wed,08:25,10:25,2.0,0.5,1009.4,0.0,1,3701,5.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+13067,Sabrura Moa,Langelandsvegen 47,6010,62.483,6.287,manual,wed,08:50,10:50,0.5,0.0,300.0,0.0,1,3101,3.9,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7905,Sanitetshjemmet Bokollektiv,Ålesund,6002,62.472,6.15,manual,wed,11:26,13:26,1.0,0.5,907.0,0.0,1,3052,7.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+8850,Scandic Parken Hotell Mat,Storgata 16,6002,62.4745,6.161,manual,wed,12:35,14:35,1.0,0.0,302.0,0.0,1,3052,7.8,APPROX: location estimated from business name — verify with HIG
+8564,Seafood Farmers Of Norway,Ålesund,6002,62.472,6.15,manual,wed,09:15,11:15,2.5,0.5,1145.8,0.0,1,3751,6.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+9330,Sjøbua Restaurant,Sjøbua,,62.4730868,6.1539773,found,wed,13:10,15:10,1.0,0.5,228.6,0.0,1,3052,20.0,service_time: default (no delivery data)
+6017,Sjøholt Catering As,Sjøholt,6240,62.493,6.75,manual,wed,07:10,09:10,1.0,0.5,186.6,0.0,1,3651,8.1,APPROX: placed at Sjøholt area — needs exact address from HIG
+5904,Sjøkanten Cafe,Sjøkanten Café,,61.9084128,5.9839613,found,wed,09:45,11:45,2.5,1.0,2173.7,0.0,1,3452,16.3,
+7915,Skodje Barnehage 2024,Skodje barnehage,,62.5035592,6.6768493,found,wed,11:25,13:25,1.0,0.5,292.3,0.0,1,3057,6.6,
+6769,Smak Kafe & Catering,Stranda,6200,62.3085,6.948,manual,wed,08:05,10:05,0.5,0.0,300.0,0.0,1,3551,7.5,APPROX: placed at Stranda town center — needs exact address from HIG
+7325,Snorrebuda,Ålesund,6002,62.472,6.15,manual,wed,17:35,19:35,3.5,1.0,2489.14,0.0,1,3702,7.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037,62.4273727,6.3156806,found,wed,15:25,17:25,3.07,0.0,3198.99,0.0,1,3106,17.2,
+4220,Spar Ellingsøy,Spar Ellingsøy,,62.504485,6.396043,found,wed,12:25,14:25,3.5,1.0,4089.84,0.0,1,3057,16.3,
+1845,Spar Fosnavåg,Spar Fosnavåg,,62.3288549,5.6344584,found,wed,17:00,19:00,8.0,1.0,8472.29,0.0,1,3251,20.0,
+2170,Spar Hornindal,Spar Hornindal,,61.9677067,6.5254155,found,wed,07:50,09:50,7.563,2.0,8094.69,0.0,1,3452,22.8,
+5550,Spar Hovdebygda,Spar Hovdebygda,,62.1826871,6.0843933,found,wed,09:20,11:20,9.27,1.0,10855.45,0.0,1,3501,15.4,
+1090,Spar Langevåg,Spar Langevåg,,62.44221,6.190282,found,wed,16:55,18:55,2.5,1.0,2981.37,0.0,1,3401,13.1,
+8697,Spar Spjelkavik,Spjelkavikvegen 61,6010,62.4622693,6.3640886,found,wed,18:50,20:50,6.74,1.0,6087.65,0.0,1,3105,19.0,
+6780,Spar Svingen,Spar Svingen,,62.3115806,6.9183612,found,wed,09:20,11:20,4.25,1.5,4182.76,0.0,1,3601,14.0,
+7010,Spar Søvik,Spar Søvik,,62.5500218,6.2783045,found,wed,09:00,11:00,4.5,0.0,4788.6,0.0,1,3151,16.3,
+6320,Spar Tresfjord,Spar Tresfjord,,62.5224293,7.1283142,found,wed,10:05,12:05,6.833,1.0,5914.59,0.0,1,3651,21.9,
+7765,Spar Ulsteinvik,Spar Ulsteinvik,,62.34227,5.868304,found,wed,17:10,19:10,3.5,0.0,3104.02,0.0,1,3702,17.4,
+4245,Spar Valldal,Spar Valldal,,62.29798,7.26419,found,wed,08:45,10:45,7.89,1.0,9421.49,0.0,1,3201,30.1,
+7450,Spar Vartdal,Spar Vartdal,,62.301075,6.083249,found,wed,16:10,18:10,8.0,1.0,7091.11,0.0,1,3502,14.7,
+5540,Spar Volda,Spar Volda,,62.1494006,6.084363,found,wed,17:55,19:55,4.18,0.0,3559.53,0.0,1,3502,14.5,
+4225,Spar Åse,Øvre Geilegrend 1,6017,62.4643885,6.3172074,found,wed,15:35,17:35,4.0,1.0,4371.22,0.0,1,3054,16.3,
+8997,Sparebanken Møre Kantine,Keiser Wilhelms gate 29,6003,62.4723,6.151,manual,wed,08:40,10:40,1.5,0.5,446.1,0.0,1,3051,11.3,APPROX: location estimated from business name — verify with HIG
+7910,Spjelkavik Omsorgssenter 2024,Spjelkavik omsorgssenter,,62.4672219,6.3565372,found,wed,08:40,10:40,1.5,0.5,1107.3,0.0,1,3101,5.8,
+5888,Ssp O'learys A327 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,wed,08:15,10:15,1.5,0.5,860.6,0.0,1,3751,5.8,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5894,Ssp Point Dom A328 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,wed,08:15,10:15,0.5,0.0,295.2,0.0,1,3751,7.2,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5895,Ssp Prod.kjøkken Y018 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,wed,08:15,10:15,0.5,0.0,319.2,0.0,1,3751,6.2,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+5887,Ssp Upper Crust A326 Aes,Ålesund lufthavn,6040,62.5625,6.1197,manual,wed,08:15,10:15,1.0,0.5,987.8,0.0,1,3751,5.5,APPROX: placed at Ålesund Airport Vigra (correct location) — needs exact address from HIG
+1699,St1 Ulsteinvik 9109,St1 Ulsteinvik,,62.3448126,5.8394011,found,wed,08:10,10:10,2.0,1.5,1573.04,0.0,1,3701,8.1,
+1697,St1 Vestnes 9289,St1 Vestnes,,62.6231435,7.0896057,found,wed,08:25,10:25,3.0,1.0,2208.21,0.0,1,3651,8.4,
+1696,St1 Ørskog 9415,St1 Ørskog,,62.4823517,6.8127824,found,wed,07:00,09:00,0.5,0.0,18.5,0.0,1,3651,7.1,
+7913,Stette Barnehage,Stette barnehage,,62.5239965,6.6052247,found,wed,12:10,14:10,1.0,0.5,139.2,0.0,1,3057,6.4,
+6457,Strandafjellet Rest.drift As,Strandafjellet,6200,62.325,6.96,manual,wed,08:10,10:10,4.0,1.5,3346.3,0.0,1,3601,13.1,APPROX: location estimated from business name — verify with HIG
+6764,Stryn Bensinstasjon Esso,Stryn,6783,61.905,6.722,manual,wed,08:10,10:10,2.0,1.0,1425.6,0.0,1,3551,9.7,APPROX: placed at Stryn town center — needs exact address from HIG
+6645,Stryn Hotel As,Stryn,6783,61.905,6.722,manual,wed,08:30,10:30,1.0,0.5,617.14,0.0,1,3551,10.3,APPROX: placed at Stryn town center — needs exact address from HIG
+2161,Stryn Kaffebar Og Vertshus,Stryn,6783,61.905,6.722,manual,wed,09:30,11:30,2.5,1.0,2440.9,0.0,1,3551,11.7,APPROX: placed at Stryn town center — needs exact address from HIG
+5264,"Stryn Torg,matstova",Stryn,6783,61.905,6.722,manual,wed,08:45,10:45,1.0,0.5,403.4,0.0,1,3551,5.4,APPROX: placed at Stryn town center — needs exact address from HIG
+8675,Stuen As,Ålesund,6002,62.472,6.15,manual,wed,08:10,10:10,4.0,1.5,4083.18,0.0,1,3051,18.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7494,Subsea 7 Vigra Spoolbase,Vigra,6040,62.558,6.105,manual,wed,07:10,09:10,3.0,1.0,2199.81,0.0,1,3751,11.4,APPROX: location estimated from business name — verify with HIG
+6878,Sylteormen Bakeri,Sylteormen bakeri og kafe,,62.2981672,7.2632343,found,wed,09:30,11:30,0.5,0.0,251.9,0.0,1,3201,13.8,
+8174,Thai Thai Ålesund,Mai Thai Massage,,62.4732551,6.1509106,found,wed,11:35,13:35,1.0,0.0,322.8,0.0,1,3102,6.6,
+9248,The Greedy Box,Ålesund,6002,62.472,6.15,manual,wed,13:00,15:00,1.5,0.5,812.3,0.0,1,3052,9.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+9090,"Tine Sa, Kantine",Spjelkavik,6010,62.46,6.35,manual,wed,07:05,09:05,1.0,0.5,623.5,0.0,1,3053,6.1,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG"
+13312,"Toma Kant.sor.sk.b.gt,1116201",Sorenskrivargata,6003,62.47,6.2,manual,wed,07:55,09:55,0.5,0.0,0.0,0.0,1,3051,5.3,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+7088,Torget Mat,Ålesund,6002,62.472,6.15,manual,wed,11:20,13:20,2.0,0.5,680.14,0.0,1,3451,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+7070,Totlands Bokhandel,Ålesund,6002,62.472,6.15,manual,wed,10:20,12:20,1.0,0.0,652.25,0.0,1,3452,10.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+9131,Trankokeriet Antikk,Trankokeriet Antikk,,62.4735717,6.1475989,found,wed,12:55,14:55,0.5,0.5,43.1,0.0,1,3042,3.0,
+13095,Tredet,Ålesund,6002,62.472,6.15,manual,wed,10:05,12:05,1.5,0.5,615.3,0.0,1,3501,7.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+12224,Trsp.o Trollbryggeriet As,Ålesund,6002,62.472,6.15,manual,wed,12:20,14:20,0.0,0.0,0.0,0.0,1,3201,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12203,"Trsp.o. Berdal, Valldal",Valldal,6210,62.298,7.264,manual,wed,11:20,13:20,0.0,0.0,0.0,0.0,1,3201,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+12227,Trsp.o. Gjendemsjø Fisk,Ålesund,6002,62.472,6.15,manual,wed,11:25,13:25,0.0,0.0,0.0,0.0,1,3151,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12205,Trsp.o. Longvafisk,Longva,6264,62.662,6.273,manual,wed,08:05,10:05,0.0,0.0,0.0,0.0,1,3053,20.0,APPROX: placed at Longva area — needs exact address from HIG | service_time: default (no delivery data)
+12209,Trsp.o. Prestebrygga Farin,Ålesund,6002,62.472,6.15,manual,wed,11:40,13:40,0.0,0.0,0.0,0.0,1,3751,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12215,Trsp.o. Stranda Spekemat,Stranda,6200,62.3085,6.948,manual,wed,11:50,13:50,0.0,0.0,0.0,0.0,1,3601,20.0,APPROX: placed at Stranda town center — needs exact address from HIG | service_time: default (no delivery data)
+12217,Trsp.o. Valldal Grønt,Valldal,6210,62.298,7.264,manual,wed,11:25,13:25,0.0,0.0,0.0,0.0,1,3201,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+7382,Valaker Avd. Moa Nord,Moa,6010,62.483,6.287,manual,wed,11:40,13:40,1.0,0.5,203.3,0.0,1,3102,4.1,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7387,Valaker Avd. Vestnes,Vestnes,6390,62.631,7.089,manual,wed,08:55,10:55,1.0,0.5,625.34,0.0,1,3651,7.0,APPROX: placed at Vestnes town center — needs exact address from HIG
+7388,Valaker Hovedkontor/konditori,Ålesund,6002,62.47,6.16,manual,wed,09:25,11:25,1.0,0.0,756.9,0.0,1,3151,6.4,APPROX: placed at Ålesund — needs exact address from HIG
+7380,Valldal Bilsenter,St1 Valldal,,62.298491,7.264414,found,wed,09:10,11:10,1.0,0.5,403.78,0.0,1,3201,8.1,
+7355,Valldal Sjukeheim,Valldal sjukeheim,,62.3002373,7.260443,found,wed,09:45,11:45,1.5,0.5,1144.3,0.0,1,3201,11.0,
+7933,Valle Barnehage 2024,Valle barnehage,,62.4779043,6.661768,found,wed,11:35,13:35,1.0,0.5,250.9,0.0,1,3057,4.4,
+7445,Vartdal Helsetun 31096,Vartdal helsetun,,62.3218909,6.1343923,found,wed,07:15,09:15,1.0,0.5,569.4,0.0,1,3501,5.8,
+13123,Vestnes Sentralkjøkken,Vestnes,6390,62.631,7.089,manual,wed,09:00,11:00,1.5,1.0,1185.4,0.0,1,3651,6.9,APPROX: placed at Vestnes town center — needs exact address from HIG
+7579,Vigra Barnehage,Vigra barnehage,,62.58244,6.1204339,found,wed,07:50,09:50,1.0,0.5,75.8,0.0,1,3751,7.9,
+7578,Vigra Servicenter,Vigra,6040,62.582,6.12,manual,wed,08:45,10:45,2.5,1.0,2100.1,0.0,1,3751,11.2,APPROX: location estimated from business name — verify with HIG
+6714,Volda Campus Arena,Volda Campus SpareBank 1 Arena,,62.146854,6.0821856,found,wed,10:45,12:45,1.0,0.0,431.8,0.0,1,3501,3.7,
+1641,Voldabadet,Volda,6100,62.149,6.084,manual,wed,10:45,12:45,0.5,0.0,193.4,0.0,1,3501,5.6,APPROX: placed at Volda town center — needs exact address from HIG
+8017,Westres Bakeri Rystelandet,Ålesund,6002,62.47,6.16,manual,wed,09:10,11:10,1.5,1.0,580.7,0.0,1,3501,5.1,APPROX: placed at Ålesund — needs exact address from HIG
+10097,Ødegaard Engros Spiserom,Ålesund,6008,62.47,6.2,manual,wed,09:21,11:21,0.5,0.0,134.2,0.0,1,3101,6.5,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+7941,Øhd-åles.lokalmed.senter,Ålesund,6003,62.47,6.18,manual,wed,06:06,08:06,0.5,0.0,338.0,0.0,1,3053,3.1,APPROX: placed at Ålesund (Hessa/Aspøy area) — needs exact address from HIG
+9125,Ålesund Beh.senter Avd 6711,Ålesund,6003,62.47,6.18,manual,wed,07:00,09:00,1.0,0.5,165.6,0.0,1,3041,5.5,APPROX: placed at Ålesund (Hessa/Aspøy area) — needs exact address from HIG
+8989,Aarflot Havnevik As,Ålesund,6002,62.472,6.15,manual,wed,07:40,09:40,1.5,0.0,1571.22,0.0,1,3053,8.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+7919,Åse Helsehus 2024,Åse helsehus,,62.4643809,6.308677,found,wed,06:05,08:05,1.5,0.5,879.1,0.0,1,3053,7.0,
+7922,Aspøy Omsorgssenter 2024,JOHS. AARFLOTS GATE 4,6005,62.4708459,6.1312305,found,tue,11:35,13:35,1.5,0.5,1002.5,0.0,1,2103,4.4,
+3756,Motorhuset,Motorhuset AS,,62.336197,5.8773128,found,tue,18:00,20:00,2.0,1.0,1597.3,0.0,1,2602,9.1,
+7255,0431 H Union Geiranger Mat,Geiranger,6216,62.102,7.205,manual,tue,11:31,13:31,1.5,1.0,690.4,0.0,1,2302,20.0,APPROX: placed at Geiranger village — needs exact address from HIG | service_time: default (no delivery data)
+7261,0431 H.union Geiranger Bar 2,Geiranger,6216,62.102,7.205,manual,tue,11:33,13:33,0.62,0.0,52.78,0.0,1,2302,20.0,APPROX: placed at Geiranger village — needs exact address from HIG | service_time: default (no delivery data)
+213,1996 Hotel Alexandra,Lobyvegen 2,6789,61.877,6.851,manual,tue,08:55,10:55,1.5,0.0,1600.0,0.0,1,2551,7.4,APPROX: location estimated from business name — verify with HIG
+6437,2752 Storfjord Hotel,Storfjordvegen 550,6260,62.4297,6.7568,manual,tue,08:00,16:00,2.0,0.0,1957.3,0.0,1,2042,11.5,APPROX: location estimated from business name — verify with HIG
+2646,4274 Hoven Restaurant,Loenvegen 2,6789,61.8756,6.8636,manual,tue,08:45,10:45,0.5,0.0,0.0,0.0,1,2551,5.3,APPROX: location estimated from business name — verify with HIG
+9338,460389kant.veidekke Kongshaug.,Kongshaug,6350,62.58,6.8,manual,tue,08:40,10:40,1.0,0.5,0.0,0.0,1,2107,20.0,APPROX: location estimated from business name — verify with HIG | service_time: default (no delivery data)
+7635,A. M. Vik As,Ålesund,6002,62.472,6.15,manual,tue,10:10,12:10,1.0,0.5,226.4,0.0,1,2352,4.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+9142,Anno,Anno,,62.471374,6.1512561,found,tue,07:50,09:50,1.0,0.5,452.8,0.0,1,2051,9.7,
+575,Bjørgs Mat As,Ålesund,6002,62.472,6.15,manual,tue,11:30,13:30,2.5,0.5,2138.56,0.0,1,2451,19.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+13097,Brasserie Posten Geiranger,Brasserie Posten,,62.1022505,7.2054172,found,tue,10:45,12:45,1.0,0.5,307.75,0.0,1,2302,7.6,service_time: median estimate (n=3 < 5)
+785,Brattvåg Bowling As,Brattvåg,6270,62.596,6.446,manual,tue,08:35,10:35,1.0,0.5,834.22,0.0,1,2151,9.4,APPROX: placed at Brattvåg town center — needs exact address from HIG
+793,Brattvåg Fjordhotell,Brattvåg Fjordhotell,,62.5964445,6.4463487,found,tue,08:15,10:15,1.52,0.52,1107.94,0.0,1,2151,7.8,
+7394,Braud Moa,Moa,6010,62.483,6.287,manual,tue,10:25,12:25,1.5,0.5,461.38,0.0,1,2107,8.6,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7392,Braud Ulsteinvik,Braud og Bollur,,62.3404135,5.8551914,found,tue,08:10,10:10,1.5,0.5,809.79,0.0,1,2701,7.6,
+8309,Bro,AMFI MOA - BRO - NORD - SYD,,62.4657605,6.3499341,found,tue,08:20,10:20,1.0,0.5,103.1,0.0,1,2051,7.8,
+7857,Brør Mat Og Bryggeri,Ålesund,6002,62.472,6.15,manual,tue,10:30,12:30,0.5,0.0,386.0,0.0,1,2501,5.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+3070,Bunnpris Brattvåg,Bunnpris Brattvåg,,62.597163,6.446116,found,tue,08:00,10:00,1.0,0.0,785.72,0.0,1,2151,12.3,
+3087,Bunnpris Broa,BROGATA 1,6005,62.469771,6.125637,found,tue,16:50,18:50,8.183,1.0,7792.7,0.0,1,2054,13.3,
+6343,Bunnpris Bryggja,Bunnpris Bryggja,,61.94075,5.455532,found,tue,08:25,10:25,3.499,0.0,3695.95,0.0,1,2451,14.2,
+3083,Bunnpris Ikornes,Ikornes,6222,62.388,6.579,manual,tue,09:15,11:15,5.85,1.0,6229.9,0.0,1,2601,22.9,APPROX: placed at Sykkylven/Ikornnes area — needs exact address from HIG
+3079,Bunnpris Langevåg,Bunnpris Langevåg,,62.4376456,6.1879534,found,tue,16:05,18:05,4.85,1.0,4459.21,0.0,1,2403,10.6,
+3086,Bunnpris Olden,Bunnpris Olden,,61.835325,6.8048951,found,tue,09:25,13:00,5.5,0.5,4943.03,0.0,1,2551,21.9,
+3071,Bunnpris Sjøholt,Bunnpris Sjøholt,,62.482209,6.81757,found,tue,07:20,09:20,8.786,1.02,10036.26,0.0,1,2651,22.5,
+3054,Bunnpris Skansen,SKAREGATA 1,6002,62.474674,6.156916,found,tue,15:50,17:50,13.0,2.5,13807.2,0.0,1,2054,12.8,
+3076,Bunnpris Spjelkavik,Bunnpris Spjelkavik,,62.462997,6.363048,found,tue,06:20,08:20,6.25,1.5,6518.5,0.0,1,2102,15.5,
+3092,Bunnpris Stad,Bunnpris Stad,,62.11918,5.318464,found,tue,09:10,11:10,7.0,1.0,8291.01,0.0,1,2351,26.9,
+6340,Bunnpris Straumgjerde,Bunnpris Straumgjerde,,62.3333,6.5943,found,tue,07:30,09:30,6.52,1.02,7641.74,0.0,1,2601,16.2,
+3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004,62.4703741,6.1502732,found,tue,12:40,14:40,11.932,1.5,11315.05,0.0,1,2104,14.7,
+3077,Bunnpris Ulsteinvik,Bunnpris Ulsteinvik,,62.3397174,5.8551176,found,tue,07:55,09:55,1.0,0.0,719.6,0.0,1,2701,16.0,
+3075,Bunnpris Vatne,Bunnpris Vatne,,62.544919,6.593483,found,tue,07:20,09:20,8.583,1.5,9740.24,0.0,1,2151,16.1,
+3081,Bunnpris Vedde,Bunnpris Vedde,,62.437986,6.234964,found,tue,19:40,21:40,8.85,3.0,8217.05,0.0,1,2404,14.8,
+3093,Bunnpris Ørsta,Bunnpris Ørsta,,62.199592,6.123608,found,tue,17:05,19:05,0.5,0.0,426.5,0.0,1,2503,11.8,
+8308,"Burger King Moa, Avd 5043 Åles",Langelandsvegen 47,6010,62.483,6.287,manual,tue,07:15,09:15,0.5,0.0,300.0,0.0,1,2102,4.5,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7872,Burger King Volda Avd.5087,Volda,6100,62.149,6.084,manual,tue,11:10,13:10,0.0,0.0,30.0,0.0,1,2501,6.0,APPROX: placed at Volda town center — needs exact address from HIG
+8534,Burger King Ålesund Avd.5049,KIPERVIKGATA 5,6003,62.4719148,6.1593252,found,tue,12:40,14:40,0.5,0.0,300.0,0.0,1,2103,6.0,
+9178,Bybadet,PARKGATA 11B,6003,62.472774,6.165056,found,tue,13:15,15:15,1.5,0.5,640.21,0.0,1,2052,11.4,
+2695,Bølgen Bar & Restaurant Ny,Ålesund,6002,62.472,6.15,manual,tue,09:35,11:35,1.0,0.5,361.9,0.0,1,2601,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+9315,Cafè Herman,Cafe Herman,,61.182566,6.85274,found,tue,07:15,09:15,1.0,0.5,835.06,0.0,1,2101,10.2,
+2960,Cafe Nova,Café Nova,,62.3439,5.846097,found,tue,09:50,11:50,1.5,0.5,1470.6,0.0,1,2701,10.4,
+9172,Cinque Minuti,Kongensgate 1,6002,62.4722,6.153,manual,tue,08:45,10:45,2.5,0.5,1304.86,0.0,1,2051,7.7,APPROX: location estimated from business name — verify with HIG
+8953,Coop Obs Kafe Avd 5289,Digernes,6057,62.4922,6.605,manual,tue,09:25,11:25,1.5,0.5,1005.7,0.0,1,2107,8.9,APPROX: placed at Digernes area — needs exact address from HIG
+9236,Dampsentralen,Ålesund,6002,62.472,6.15,manual,tue,08:15,10:15,1.0,0.5,330.32,0.0,1,2101,10.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+1847,Det Lille Napoli Ørsta,Det Lille Napoli,,62.201742,6.121598,found,tue,17:50,19:50,1.5,0.5,314.4,0.0,1,2503,6.3,
+8947,Dråpe Ålesund Kaffehus As,Kirkegata 4,6002,62.4724,6.1548,manual,tue,07:55,09:55,2.02,0.52,1733.18,0.0,1,2101,7.6,APPROX: location estimated from business name — verify with HIG
+9299,Egon Moa Moanor,Langelandsvegen 47,6010,62.483,6.287,manual,tue,07:00,09:00,4.27,1.02,3572.97,0.0,1,2102,13.2,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+13169,Egon Ålesund,Egon Ålesund,,62.4728188,6.1583341,found,tue,07:25,09:25,3.42,1.02,2209.84,0.0,1,2101,12.0,
+9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012,62.442025,6.371977,found,tue,19:30,21:30,6.35,2.0,8258.52,0.0,1,2105,24.1,
+6360,Eurospar Hareid,Eurospar Hareid,,62.3718107,6.0279234,found,tue,07:00,09:00,3.5,0.0,4244.5,0.0,1,2701,19.2,
+9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009,62.472382,6.240615,found,tue,20:45,22:45,8.033,4.0,8391.75,0.0,1,2058,21.0,
+8900,Eurospar Moa,Eurospar Moa,,62.464817,6.3515225,found,tue,06:00,08:00,11.02,1.52,12734.19,0.0,1,2102,17.9,
+7740,Eurospar Sykkylven,Eurospar Sykkylven,,62.39233,6.579998,found,tue,07:00,09:00,4.23,0.0,5043.88,0.0,1,2601,12.9,
+7390,Eurospar Valderøy,Eurospar Valderøy,,62.5086854,6.1285006,found,tue,17:30,19:30,5.85,0.0,6719.99,0.0,1,2751,22.6,
+4110,Eurospar Ørsta,Eurospar Ørsta,,62.196948,6.128328,found,tue,17:15,19:15,6.856,1.5,7971.93,0.0,1,2503,24.1,
+9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002,62.4723101,6.1583677,found,tue,16:25,18:25,8.0,0.0,9321.34,0.0,1,2054,24.8,
+8473,Evergreens,Ålesund,6002,62.472,6.15,manual,tue,07:40,09:40,1.5,0.5,719.7,0.0,1,2051,4.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+6593,Facilitec Renhold Ulsteinvik,Ulsteinvik,6065,62.343,5.85,manual,tue,08:25,10:25,1.0,0.0,665.0,0.0,1,2701,4.5,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+8265,Facilitec Ulsteinvik,Ulsteinvik,6065,62.343,5.85,manual,tue,08:25,10:25,1.0,0.5,428.3,0.0,1,2701,6.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+7935,Fagerlia Barnehage,Fagerlia barnehage,,62.4749043,6.2216744,found,tue,07:40,09:40,1.5,0.5,215.1,0.0,1,2041,6.7,
+9295,Fergekaia Pluto,FOGD GREVES VEG 3,6009,62.4727409,6.230942,found,tue,16:25,18:25,3.5,1.0,2707.17,0.0,1,2053,8.9,
+6028,Fergekaia Sjøholt,Sjøholt,6240,62.493,6.75,manual,tue,07:45,09:45,2.0,1.0,1768.8,0.0,1,2651,20.0,APPROX: placed at Sjøholt area — needs exact address from HIG | service_time: default (no delivery data)
+9293,Fergekaia Skarbøvik,SKARBØVIKGATA 26,6006,62.466733,6.113678,found,tue,11:15,13:15,2.0,1.0,1575.55,0.0,1,2103,11.7,
+8943,Fiskerstrand Verft Kantine Ren,Fiskerstrand,6037,62.438,6.238,manual,tue,07:35,09:35,1.52,0.52,1296.65,0.0,1,2401,3.9,APPROX: placed at Fiskerstrand — needs exact address from HIG
+8551,Fisketorget Avd Sentrum,Ålesund,6002,62.472,6.15,manual,tue,08:05,10:05,2.5,0.5,1411.06,0.0,1,2101,10.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+1574,Fjellstova Ørskog Kh As,Ørskog,6240,62.482,6.813,manual,tue,08:45,10:45,1.0,0.5,310.2,0.0,1,2651,7.7,APPROX: placed at Ørskog area — needs exact address from HIG
+1070,Fole Festlig Drift,Ålesund,6002,62.472,6.15,manual,tue,07:55,09:55,1.5,0.5,345.8,0.0,1,2401,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+1842,Fru Svendsen Kafe,Ålesund,6002,62.472,6.15,manual,tue,08:30,10:30,1.0,0.5,218.6,0.0,1,2501,16.0,APPROX: placed at Ålesund city center — needs exact address from HIG
+1821,Føniks Kaffihus,Volda,6100,62.149,6.084,manual,tue,08:35,10:35,1.0,0.5,282.6,0.0,1,2501,7.7,APPROX: placed at Volda town center — needs exact address from HIG
+1911,Geiranger Omsorgssenter,Geiranger,6216,62.102,7.205,manual,tue,11:05,13:05,1.5,1.0,117.5,0.0,1,2302,20.0,APPROX: placed at Geiranger village — needs exact address from HIG | service_time: default (no delivery data)
+8350,Happy Elefant,APOTEKERGATA 5,6004,62.4720649,6.1521511,found,tue,12:45,14:45,1.0,0.5,354.8,0.0,1,2052,8.6,
+7810,Haramsøy Barnehage 2024,Haramsøy barnehage,,62.6380988,6.2680305,found,tue,10:00,12:00,1.0,0.5,113.3,0.0,1,2151,5.5,
+7917,Harøy Nye Barnehage 2024,Harøy,6060,62.63,5.85,manual,tue,10:55,12:55,1.0,0.5,669.28,0.0,1,2151,8.8,APPROX: location estimated from business name — verify with HIG
+7615,Havila Hotell Ivar Aasen,Kyaborga 4,6150,62.1977,6.1295,manual,tue,08:40,10:40,1.5,0.5,585.72,0.0,1,2501,8.3,APPROX: location estimated from business name — verify with HIG
+9302,Hole Kjøtt As,Ålesund,6002,62.472,6.15,manual,tue,07:45,09:45,0.5,0.0,300.0,0.0,1,2101,8.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+6712,Holmen Mat Og Drikke,Ålesund,6002,62.472,6.15,manual,tue,10:00,12:00,0.5,0.0,300.0,0.0,1,2501,10.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+8570,Hotel 1904 As,Apotekergata 5,6004,62.4725,6.153,manual,tue,06:55,08:55,2.52,0.52,2543.77,0.0,1,2101,13.5,APPROX: location estimated from business name — verify with HIG
+8408,Hotel Brosundet Bryggen,APOTEKERGATA 1-3,6004,62.4722192,6.1522983,found,tue,12:00,14:00,1.0,0.0,0.0,0.0,1,2103,12.9,
+8559,Hotel Noreg,KONGENS GATE 27,6002,62.4755287,6.1560491,found,tue,12:05,14:05,2.5,1.0,1177.72,0.0,1,2052,7.3,
+899,Iss 422542 Nordea Ålesund,Ålesund,6002,62.472,6.15,manual,tue,07:30,09:30,0.5,0.0,490.0,0.0,1,2051,6.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+9332,Iss 460367 Ncc Moavegen Kant.,Moavegen,6010,62.483,6.287,manual,tue,08:55,10:55,1.5,0.5,756.16,0.0,1,2107,7.6,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG | service_time: median estimate (n=3 < 5)"
+3580,Joker Geiranger,Joker Geiranger,,62.101089,7.205247,found,tue,10:25,12:25,3.5,1.0,2079.75,0.0,1,2302,20.0,service_time: default (no delivery data)
+2218,Joker Gursken,Joker Gursken,,62.216106,5.649571,found,tue,07:10,09:10,1.0,0.0,959.4,0.0,1,2352,9.8,
+4070,Joker Larsnes,Joker Larsnes,,62.2064458,5.5713076,found,tue,07:55,09:55,3.5,1.0,3694.28,0.0,1,2352,16.9,
+3210,Joker Lepsøy,Joker Lepsøy,,62.61032,6.205103,found,tue,09:40,11:40,3.0,0.5,2545.77,0.0,1,2151,16.7,
+1126,Joker Loen,Joker Loen,,61.871862,6.848274,found,tue,09:00,13:00,3.0,0.5,2838.99,0.0,1,2551,14.3,
+7497,Joker Stadlandet,Joker Stadlandet,,62.160611,5.180561,found,tue,10:00,12:00,10.0,2.0,8421.44,0.0,1,2351,17.0,
+4205,Joker Åheim,Joker Åheim,,62.036511,5.52966,found,tue,08:00,10:00,4.5,0.5,4573.56,0.0,1,2351,22.4,
+8579,Jordbærpikene Moa,Langelandsvegen 47,6010,62.483,6.287,manual,tue,10:55,12:55,0.5,0.0,300.0,0.0,1,2107,4.9,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7904,Kafè Rematun,Ålesund,6008,62.47,6.2,manual,tue,09:00,11:00,1.0,0.5,180.6,0.0,1,2107,5.7,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+1064,Kauto Bar Og Restaurant,KONGENS GATE 11,6002,62.4735516,6.1564804,found,tue,16:20,18:20,0.54,0.5,434.3,0.0,1,2054,5.2,
+9242,Kirkens Bymisjon Avd. 37900,Ålesund,6002,62.472,6.15,manual,tue,08:05,10:05,2.0,0.5,302.15,0.0,1,2041,9.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+355,Kiwi 827 Ørsta,Kiwi Meieribygget Ørsta,,62.1991,6.127521,found,tue,07:30,09:30,9.0,2.0,9366.99,0.0,1,2501,26.6,
+7642,Kiwi 830 Skjellebreida Volda,Volda,6100,62.149,6.084,manual,tue,19:35,21:35,6.5,1.0,6138.0,0.0,1,2503,22.9,APPROX: placed at Volda town center — needs exact address from HIG
+9045,Kiwi 832 Sundgata,SUNDGATA 8,6003,62.471056,6.166693,found,tue,19:30,21:30,7.27,0.0,8505.92,0.0,1,2058,22.9,
+2958,Kiwi 841 Skodje,Kiwi Skodje,,62.5033919,6.6966718,found,tue,06:40,08:40,7.0,0.0,7480.98,0.0,1,2151,19.6,
+2936,Kiwi 843 Volda,Kiwi Volda,,62.1467135,6.0889177,found,tue,19:10,21:10,11.81,4.0,17101.98,0.0,1,2503,26.0,
+2935,Kiwi 844 Sykkylven,Kiwi Sykkylven,,62.3913141,6.5816796,found,tue,16:10,18:10,5.62,1.0,6354.82,0.0,1,2602,26.5,
+9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006,62.4666932,6.114175,found,tue,10:45,12:45,9.95,0.0,12027.3,0.0,1,2103,26.9,
+2931,Kiwi 901 Nørve,NØRVEGATA 23,6008,62.4715115,6.2065205,found,tue,20:05,22:05,10.93,2.0,14518.72,0.0,1,2056,25.4,
+2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010,62.463529,6.364485,found,tue,18:50,20:50,7.499,0.0,7299.85,0.0,1,2105,32.2,
+2914,Kiwi 903 Måløy,Kiwi Deknepollen,,61.9230879,5.1505134,found,tue,11:50,13:50,7.74,1.0,7569.88,0.0,1,2451,27.2,
+2927,Kiwi 906 Deknepollen,Kiwi Deknepollen,,61.9230879,5.1505134,found,tue,09:25,11:25,3.833,0.5,3098.39,0.0,1,2451,30.2,
+2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015,62.466608,6.246044,found,tue,17:50,19:50,8.5,2.0,9621.86,0.0,1,2108,24.9,
+2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012,62.4319749,6.4127797,found,tue,15:20,17:20,10.333,3.0,11721.44,0.0,1,2106,29.4,
+2942,Kiwi 910 Kverve,Kverve,6008,62.467,6.2,manual,tue,16:25,18:25,7.99,0.0,9224.66,0.0,1,2751,18.3,APPROX: placed at Kverve — needs exact address from HIG
+2946,Kiwi 911 Fiskarstrand,Fiskarstrand,6037,62.438,6.238,manual,tue,19:10,21:10,4.5,2.0,4548.8,0.0,1,2404,17.6,APPROX: placed at Fiskarstrand — needs exact address from HIG
+2948,Kiwi 912 Stranda,Kiwi Stranda,,62.307148,6.945331,found,tue,17:35,19:35,7.66,2.0,9494.55,0.0,1,2602,20.9,
+2950,Kiwi 913 Stryn,Kiwi Stryn,,61.903006,6.719597,found,tue,07:55,09:55,9.233,1.5,11059.6,0.0,1,2551,32.7,
+2928,Kiwi 914 Ulsteinvik,Kiwi Ulsteinvik,,62.3402676,5.855327,found,tue,16:40,18:40,15.67,2.5,18183.71,0.0,1,2702,44.0,
+2953,Kiwi 915 Valderøy,Valderøy,6050,62.478,6.103,manual,tue,16:50,18:50,6.5,1.0,7708.46,0.0,1,2751,24.0,APPROX: placed at Valderøy — needs exact address from HIG
+2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002,62.4712466,6.1538577,found,tue,18:35,20:35,9.333,0.0,8595.47,0.0,1,2057,33.3,
+2957,Kiwi 917 Myrvåg,Kiwi Myrvåg,,62.277132,5.802988,found,tue,06:30,08:30,8.0,1.0,9752.68,0.0,1,2352,31.3,
+2959,Kiwi 918 Langevåg,Kiwi Langevåg,,62.4407247,6.2001066,found,tue,16:20,18:20,9.943,2.0,10599.4,0.0,1,2403,23.5,
+2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005,62.470082,6.140048,found,tue,19:05,21:05,7.85,0.0,8589.82,0.0,1,2057,20.2,
+2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018,62.471726,6.363353,found,tue,16:00,18:00,10.833,2.5,12903.54,0.0,1,2106,27.6,
+2930,Kiwi 921 Vestnes,Kiwi Vestnes,,62.6235206,7.0904334,found,tue,09:45,11:45,7.89,0.0,13027.97,0.0,1,2651,30.3,
+2963,Kiwi 922 Nordfjordeid,Kiwi Nordfjordeid,,61.9099355,5.9954311,found,tue,07:55,09:55,11.126,2.0,12518.05,0.0,1,2451,23.4,
+2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016,62.4604828,6.2686763,found,tue,16:05,18:05,7.73,0.0,8119.76,0.0,1,2053,20.9,
+2961,Kiwi 924 Vallekrysset,Vallekrysset,6013,62.467,6.35,manual,tue,06:50,08:50,9.666,1.0,9773.04,0.0,1,2651,17.8,APPROX: location estimated from business name — verify with HIG
+2937,Kiwi 925 Meieribygget Ørsta,Ørsta,6150,62.2,6.13,manual,tue,07:50,09:50,11.833,1.0,14644.25,0.0,1,2501,20.0,APPROX: placed at Ørsta town center — needs exact address from HIG | service_time: default (no delivery data)
+9321,Koiwa Ramen,KONGENS GATE 30,6002,62.4752788,6.1565513,found,tue,16:10,18:10,0.5,0.0,497.1,0.0,1,2054,6.2,
+13258,Larsnes Mek Verksted As,Larsnes,6098,62.223,5.53,manual,tue,08:10,10:10,1.0,0.5,591.66,0.0,1,2352,7.0,APPROX: location estimated from business name — verify with HIG
+7916,Lerstad Barnehage,Lerstad barnehage,,62.467773,6.3069108,found,tue,07:20,09:20,1.0,0.5,319.0,0.0,1,2041,5.8,
+8694,Lets Eat Deli,KEISER WILHELMS GATE 32,6003,62.4713955,6.1594019,found,tue,12:30,14:30,0.5,0.0,29.0,0.0,1,2103,7.6,
+8649,Long Cheng Restaurant As,KONGENS GATE 25,6002,62.4749561,6.1563663,found,tue,13:15,15:15,0.5,0.0,300.0,0.0,1,2104,8.2,
+7812,Longva Barnehage,Longva barnehage,,62.66192,6.287881,found,tue,10:50,12:50,0.5,0.5,56.4,0.0,1,2151,7.6,service_time: median estimate (n=4 < 5)
+3440,Longva Servicesenter,Longva Servicesenter,,62.6640988,6.2720359,found,tue,10:40,12:40,1.0,0.5,520.0,0.0,1,2151,7.3,
+9308,Lucky Bowl-avd 26 Ålesund,Langelandsvegen 45,6010,62.4835,6.285,manual,tue,12:20,14:20,0.52,0.02,812.4,0.0,1,2107,7.8,APPROX: location estimated from business name — verify with HIG
+3425,Løseths O.a.j. Eftf. As,Ålesund,6002,62.472,6.15,manual,tue,11:25,13:25,1.0,0.5,401.33,0.0,1,2601,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+9253,Løvenvold Theater As,Ålesund,6002,62.472,6.15,manual,tue,08:15,10:15,0.5,0.0,94.5,0.0,1,2041,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+9013,Meet & Eat,Ålesund,6002,62.472,6.15,manual,tue,06:40,08:40,1.5,0.5,851.3,0.0,1,2102,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+8620,Meny Lerstad,LERSTADVEGEN 291,6015,62.468368,6.292074,found,tue,18:25,20:25,9.0,0.0,8694.7,0.0,1,2108,32.6,
+8018,Mf Foldøy,Foldøy,6090,62.472,6.15,manual,tue,08:00,10:00,1.0,0.5,163.9,0.0,1,2352,2.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+9510,Mf Norddalsfjord,Norddal,6214,62.254,7.234,manual,tue,07:00,09:00,0.5,0.0,331.6,0.0,1,2302,20.0,APPROX: location estimated from business name — verify with HIG | service_time: default (no delivery data)
+8065,Mf Ørland,Ålesund,6002,62.472,6.15,manual,tue,18:45,20:45,0.5,0.0,336.9,0.0,1,2503,7.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+8349,Milk Bar,SKATEFLUKAIA 1B,6002,62.4744062,6.155797,found,tue,12:40,14:40,0.5,0.0,162.01,0.0,1,2052,7.1,
+2371,Millennium Kafe,Ålesund,6002,62.472,6.15,manual,tue,07:25,09:25,1.0,0.5,526.4,0.0,1,2701,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+8660,Moa Let's Eat,Langelandsvegen 47,6010,62.483,6.287,manual,tue,09:45,11:45,2.5,0.5,1166.0,0.0,1,2107,9.7,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8785,Molo Brew,KEISER WILHELMS GATE 2,6003,62.4695051,6.1521612,found,tue,11:30,13:30,1.0,0.5,706.25,0.0,1,2052,7.0,
+3891,Møre Trafo Kantine,Ålesund,6002,62.472,6.15,manual,tue,08:25,10:25,1.0,0.5,517.1,0.0,1,2601,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+9272,Namaste Ålesund,Ålesund,6002,62.472,6.15,manual,tue,08:40,10:40,1.0,0.5,424.82,0.0,1,2051,9.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+1151,Napoli-pizzeria Ulst.vik,Ulsteinvik,6065,62.343,5.85,manual,tue,10:00,12:00,1.5,0.5,1073.0,0.0,1,2701,11.9,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+9141,Nonna Lina,KORSEGATA 4,6002,62.4713488,6.1559244,found,tue,12:20,14:20,2.5,0.5,2314.08,0.0,1,2052,10.6,
+8034,Nor F. Nit Longva,Longva,6264,62.662,6.273,manual,tue,10:30,12:30,1.0,0.5,523.92,0.0,1,2151,8.0,APPROX: placed at Longva area — needs exact address from HIG
+8071,Nor F. Postvegen 11,POSTVEGEN 11,6018,62.471058,6.342171,found,tue,11:45,13:45,1.0,0.5,420.77,0.0,1,2104,6.2,
+8070,Nor F. Postvegen 17,POSTVEGEN 17,6018,62.4716084,6.3453172,found,tue,11:35,13:35,1.0,0.5,383.3,0.0,1,2104,4.9,
+8074,Nor F. Postvegen15,POSTVEGEN 15,6018,62.4714714,6.3447286,found,tue,11:40,13:40,0.5,0.0,58.4,0.0,1,2104,5.4,
+6442,Nærbutikken Norddal,Nærbutikken Norddal,,62.254809,7.234539,found,tue,07:40,09:40,2.5,1.0,2032.01,0.0,1,2302,7.6,service_time: median estimate (n=2 < 5)
+7672,Nærbutikken Rovde,Nærbutikken Rovde,,62.1788163,5.7550061,found,tue,10:50,12:50,2.0,0.5,2356.87,0.0,1,2352,18.3,
+5129,Osdals Catering,Ålesund,6002,62.472,6.15,manual,tue,10:50,12:50,1.5,0.5,802.55,0.0,1,2501,10.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+13046,Peppes Pizza Amfi Moa Avd.319,Langelandsvegen 47,6010,62.483,6.287,manual,tue,09:15,11:15,1.5,1.0,389.6,0.0,1,2107,6.7,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+7591,Pharma Marine,Ålesund,6002,62.472,6.15,manual,tue,11:55,13:55,1.0,0.5,471.2,0.0,1,2042,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+13124,Quality Hotel Ulstein,Quality Hotel Ulstein,,62.3407365,5.8486583,found,tue,08:15,10:15,0.5,0.0,107.9,0.0,1,2701,9.2,
+8882,Quality Hotel Waterfront,Quality Hotel Waterfront,,62.4699296,6.1460985,found,tue,08:00,10:00,2.5,0.5,2561.58,0.0,1,2051,12.1,
+8942,Quality Hotel Ålesund,SORENSKRIVER BULLS GATE 7,6002,62.4756638,6.1552199,found,tue,11:55,13:55,3.0,0.5,1673.48,0.0,1,2052,9.8,
+8929,Racoon Coffee,KONGENS GATE 6,6002,62.4731906,6.1567012,found,tue,16:50,18:50,1.5,0.5,883.8,0.0,1,2053,8.8,
+8890,Ragnhild's Catering,Ålesund,6002,62.472,6.15,manual,tue,08:30,10:30,2.0,0.5,1004.12,0.0,1,2401,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+9312,Rasoi Ålesund,RÅDSTUGATA 3B,6002,62.4712404,6.1617014,found,tue,13:10,15:10,1.5,0.5,748.45,0.0,1,2052,8.5,
+2221,Renex Avd Myklebust,Ålesund,6008,62.47,6.2,manual,tue,07:25,09:25,1.52,0.52,1296.8,0.0,1,2352,4.3,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+5841,Sandetun - Kantine,Sandetun,6008,62.47,6.2,manual,tue,07:45,09:45,0.5,0.0,35.9,0.0,1,2352,2.3,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+5851,Sandetun - Kjøkken,Sandetun,6008,62.47,6.2,manual,tue,07:45,09:45,1.5,0.5,848.8,0.0,1,2352,7.4,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+7936,Sandøytunet Hovudkjøkken 2024,Sandøy,6487,62.483,5.9,manual,tue,11:05,13:05,1.0,0.5,454.3,0.0,1,2151,5.9,APPROX: location estimated from business name — verify with HIG
+8834,Sansesenteret Sulatunet,Sula,6030,62.442,6.188,manual,tue,08:40,10:40,0.5,0.0,410.7,0.0,1,2401,3.8,APPROX: placed at Sula/Langevåg area — needs exact address from HIG
+8443,Selecta Norway Avd Ålesund,Ålesund,6002,62.472,6.15,manual,tue,07:15,09:15,0.5,0.0,347.6,0.0,1,2401,3.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+9079,Sit Kafe/kantine Ålesund,Ålesund,6003,62.4735,6.153,manual,tue,06:15,08:15,2.5,0.5,1875.34,0.0,1,2101,9.8,APPROX: placed at Ålesund city center (Parkgata) — needs exact address from HIG
+7926,Skarbøvik Barnehage,Skarbøvik barnehage,,62.4648029,6.111152,found,tue,08:55,10:55,1.0,0.5,99.6,0.0,1,2041,6.8,
+7906,Skarbøvik Sykehjem 2024,OLE THORESENS GATE 16,6006,62.46609,6.109488,found,tue,11:25,13:25,1.0,0.5,801.2,0.0,1,2103,4.6,
+7571,Skrøppatausene,Ålesund,6002,62.472,6.15,manual,tue,07:10,09:10,2.0,0.5,2070.7,0.0,1,2651,5.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+3289,Soi One,Ålesund,6002,62.472,6.15,manual,tue,15:40,17:40,1.0,0.5,828.6,0.0,1,2403,5.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+6717,Soi One Volda,Volda,6100,62.149,6.084,manual,tue,19:05,21:05,1.0,0.0,337.2,0.0,1,2503,10.0,APPROX: placed at Volda town center — needs exact address from HIG
+9294,Soi One Ålesund,RASMUS RØNNEBERGS GATE 4,6002,62.470954,6.153081,found,tue,11:40,13:40,3.04,0.5,2158.9,0.0,1,2052,14.3,
+6084,Sol Cafè,Ålesund,6002,62.472,6.15,manual,tue,10:30,12:30,1.0,0.5,374.26,0.0,1,2601,8.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037,62.4273727,6.3156806,found,tue,20:05,22:05,7.166,2.0,6914.55,0.0,1,2057,17.2,
+4220,Spar Ellingsøy,Spar Ellingsøy,,62.504485,6.396043,found,tue,15:50,17:50,2.0,0.0,1725.1,0.0,1,2751,16.3,
+880,Spar Fiskåbygd,Spar Fiskåbygd,,62.1000153,5.5566242,found,tue,09:20,11:20,7.85,1.0,8735.27,0.0,1,2352,20.2,
+1090,Spar Langevåg,Spar Langevåg,,62.44221,6.190282,found,tue,15:45,17:45,4.0,0.0,3309.8,0.0,1,2403,13.1,
+4235,Spar Raudeberg,Spar Raudeberg,,61.9817494,5.1359776,found,tue,11:15,13:15,3.5,1.0,3993.6,0.0,1,2451,24.2,
+8697,Spar Spjelkavik,Spjelkavikvegen 61,6010,62.4622693,6.3640886,found,tue,18:20,20:20,6.5,0.0,5759.03,0.0,1,2105,19.0,
+6600,Spar Straumane,Spar Straumane,,62.3159888,5.8438243,found,tue,17:40,19:40,5.85,1.0,5295.73,0.0,1,2702,18.7,
+6780,Spar Svingen,Spar Svingen,,62.3115806,6.9183612,found,tue,17:10,19:10,11.85,0.5,11558.88,0.0,1,2602,14.0,
+7010,Spar Søvik,Spar Søvik,,62.5500218,6.2783045,found,tue,09:15,11:15,4.5,1.0,3789.66,0.0,1,2151,16.3,
+7765,Spar Ulsteinvik,Spar Ulsteinvik,,62.34227,5.868304,found,tue,16:10,18:10,5.333,1.0,5571.75,0.0,1,2702,17.4,
+5540,Spar Volda,Spar Volda,,62.1494006,6.084363,found,tue,18:55,20:55,2.5,0.5,2333.48,0.0,1,2503,14.5,
+4225,Spar Åse,Øvre Geilegrend 1,6017,62.4643885,6.3172074,found,tue,15:35,17:35,5.333,0.0,6386.86,0.0,1,2053,16.3,
+8479,Spisestua Kafe Og Restaurant,Ålesund,6002,62.472,6.15,manual,tue,09:05,11:05,1.5,0.5,779.59,0.0,1,2107,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+9159,Sportsparken Vegsund,BLINDHEIM INDUSTRIVEG 2D,6020,62.436635,6.370523,found,tue,11:20,13:20,1.5,1.0,1070.43,0.0,1,2104,5.6,
+7937,Storhaugen Barnehage,Storhaugen barnehage,,62.4719208,6.1427615,found,tue,08:35,10:35,1.0,0.5,116.3,0.0,1,2041,6.2,
+8825,Sulatunet,Sulatunet,,62.4425254,6.1886359,found,tue,08:20,10:20,2.52,0.52,2323.4,0.0,1,2401,5.2,
+8848,Sulatunet Avd.sloghaugveien,Sula,6030,62.442,6.188,manual,tue,08:50,10:50,0.5,0.0,362.7,0.0,1,2401,7.3,APPROX: placed at Sula/Langevåg area — needs exact address from HIG
+6853,Sykkylven Bu Og Aktivitetss.,Sykkylven,6230,62.389,6.582,manual,tue,08:05,10:05,2.5,1.0,2740.6,0.0,1,2601,7.7,APPROX: location estimated from business name — verify with HIG
+7809,Søvik Barnehage 2024,Søvik barnehage,,62.5453546,6.2776062,found,tue,09:30,11:30,1.0,0.5,228.2,0.0,1,2151,5.4,
+7048,Tandoori Mix,Tandoori Mix Ørsta,,62.1969328,6.1286363,found,tue,08:50,10:50,2.0,0.5,789.51,0.0,1,2501,10.5,
+1824,Tik Cafe & Restaurant,Tik Café & Restaurant,,62.2001329,6.1267231,found,tue,08:10,10:10,1.0,0.0,46.85,0.0,1,2501,8.5,
+13330,Toma Kant.1184701 Postvegen 2,Postvegen,6008,62.47,6.2,manual,tue,11:50,13:50,0.5,0.0,300.0,0.0,1,2104,6.2,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+13333,"Toma Kant.nørestranda,1188202",Nørestranda,6008,62.47,6.2,manual,tue,12:15,14:15,0.5,0.0,300.0,0.0,1,2501,11.1,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+12233,Trsp.o Br. Remø,Remøy,6090,62.343,5.85,manual,tue,09:25,11:25,0.0,0.0,0.0,0.0,1,2401,7.6,APPROX: placed at Ulsteinvik town center — needs exact address from HIG | service_time: median estimate (n=1 < 5)
+12202,Trsp.o. Brudevoll Kjøtt,Ålesund,6002,62.472,6.15,manual,tue,11:35,13:35,0.0,0.0,0.0,0.0,1,2701,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12206,Trsp.o. Jakob & Johan Dybvik,Ålesund,6002,62.472,6.15,manual,tue,09:16,11:16,0.0,0.0,0.0,0.0,1,2401,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12212,Trsp.o. Snorre Seafood,Ålesund,6002,62.472,6.15,manual,tue,11:40,13:40,0.0,0.0,0.0,0.0,1,2451,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+12217,Trsp.o. Valldal Grønt,Valldal,6210,62.298,7.264,manual,tue,12:00,14:00,0.0,0.0,0.0,0.0,1,2302,20.0,APPROX: placed at Valldal area — needs exact address from HIG | service_time: default (no delivery data)
+9279,Tyrholm Og Farstad,Ålesund,6002,62.472,6.15,manual,tue,08:25,10:25,1.0,0.5,562.76,0.0,1,2101,9.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+13283,Ulshav Avd. Mjøl Og Meir,Ulsteinvik,6065,62.343,5.85,manual,tue,11:15,13:15,0.5,0.0,0.0,0.0,1,2701,6.0,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+7312,Ulstein Arena 252201,Ulstein Arena,,62.3437755,5.8490876,found,tue,10:25,12:25,1.5,0.5,568.2,0.0,1,2701,7.0,
+7313,Ulstein Kommune Omsorgstenesta,Ulsteinvik,6065,62.343,5.85,manual,tue,08:45,10:45,1.0,0.5,383.7,0.0,1,2701,7.9,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+7311,Ulstein Sjukeheim 304101,Ulstein sjukeheim,,62.3378087,5.8591707,found,tue,08:30,10:30,0.5,0.0,300.0,0.0,1,2701,7.7,
+7276,Ulstein Vidaregåande Skule,Ulstein vidaregåande skule,,62.340289,5.88249,found,tue,09:20,11:20,0.5,0.0,300.0,0.0,1,2701,7.1,
+7381,Valaker Avd. Moa Syd,Moa,6010,62.483,6.287,manual,tue,10:15,12:15,2.0,0.5,828.2,0.0,1,2107,8.1,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+13220,Valaker Avd. Ålesund Storsente,Ålesund Storsenter,6002,62.472,6.15,manual,tue,07:05,09:05,0.0,0.0,30.0,0.0,1,2101,6.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7383,Valaker Blåhuset Ulsteinvik,Ulsteinvik,6065,62.343,5.85,manual,tue,10:10,12:10,1.0,0.5,621.7,0.0,1,2701,10.3,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+8478,Vard Group Skansekaia 422571,Skansekaia,6002,62.472,6.15,manual,tue,09:05,11:05,1.0,0.5,493.41,0.0,1,2051,8.0,APPROX: placed at Ålesund city center — needs exact address from HIG
+7417,Verona Pizza,Ålesund,6002,62.472,6.15,manual,tue,10:35,12:35,2.02,0.52,2067.4,0.0,1,2701,9.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+9245,Vest Restaurant,Ålesund,6002,62.472,6.15,manual,tue,11:50,13:50,2.5,0.5,1032.18,0.0,1,2107,9.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+6859,Vikedalen Barnehage,Vikedalen barnehage,,62.3782444,6.5899533,found,tue,10:45,12:45,1.0,0.5,529.1,0.0,1,2601,10.0,
+8005,Vinni Bar Og Restaurant,Ålesund,6002,62.472,6.15,manual,tue,07:20,09:20,1.0,0.5,475.54,0.0,1,2051,6.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+8517,Vinterhagen,Ålesund,6002,62.472,6.15,manual,tue,10:45,12:45,2.0,0.5,1164.65,0.0,1,2107,10.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+1640,Volda Omsorgssenter 410401,Volda omsorgssenter sjukeheim,,62.1503135,6.0630322,found,tue,10:10,12:10,2.0,0.5,1200.0,0.0,1,2501,10.2,
+1838,Volda Sjukehus Hf Avd 9033,Volda,6100,62.149,6.084,manual,tue,10:15,12:15,0.5,0.0,145.4,0.0,1,2501,7.6,APPROX: placed at Volda town center — needs exact address from HIG
+8026,Westres Kond. Avd Volda,Volda,6100,62.149,6.084,manual,tue,10:40,12:40,0.5,0.0,461.3,0.0,1,2501,5.7,APPROX: placed at Volda town center — needs exact address from HIG
+8028,Westres Kond. Avd Ørsta Amfi,Ørsta Amfi,6150,62.2,6.13,manual,tue,08:55,10:55,0.5,0.0,300.0,0.0,1,2501,4.1,APPROX: placed at Ørsta town center — needs exact address from HIG
+8633,Wok & Grill,KEISER WILHELMS GATE 39,6003,62.4716873,6.1609571,found,tue,17:10,19:10,0.5,0.0,111.0,0.0,1,2053,4.2,
+8343,Xl Diner,SKATEFLUKAIA 1B,6002,62.4744062,6.155797,found,tue,12:35,14:35,1.5,0.5,453.5,0.0,1,2052,9.5,
+7909,Ørskog Sjukeheim 2024,Ørskog,6240,62.482,6.813,manual,tue,08:10,10:10,1.5,0.5,1173.4,0.0,1,2651,6.6,APPROX: placed at Ørskog area — needs exact address from HIG
+8054,Ørsta Camping As,Ørsta,6150,62.2,6.12,manual,tue,09:15,11:15,4.5,2.0,3865.35,0.0,1,2501,14.6,APPROX: location estimated from business name — verify with HIG
+8130,Ørstaheimen Felleskj 31266,Ørsta,6150,62.197,6.128,manual,tue,08:20,10:20,3.5,0.5,2844.5,0.0,1,2501,8.7,APPROX: location estimated from business name — verify with HIG
+8963,Ålesund Sjukehus Hf Avd 9034,Åsehaugen 5,6017,62.467,6.186,manual,tue,06:00,08:00,1.5,0.5,343.8,0.0,1,2101,4.9,APPROX: location estimated from business name — verify with HIG
+7928,Årøyhaugen Barnehage 2024,Årøyhaugen barnehage,,62.4809847,6.8174837,found,tue,08:05,10:05,1.0,0.5,135.1,0.0,1,2651,5.5,
+7255,0431 H Union Geiranger Mat,Geiranger,6216,62.102,7.205,manual,thu,11:00,13:00,2.0,1.0,905.1,0.0,1,4302,20.0,APPROX: placed at Geiranger village — needs exact address from HIG | service_time: default (no delivery data)
+6437,2752 Storfjord Hotel,Storfjordvegen 550,6260,62.4297,6.7568,manual,thu,11:10,13:10,1.5,0.5,512.7,0.0,1,4042,11.5,APPROX: location estimated from business name — verify with HIG
+615,5311 Sagafjord Hotel,Sæbøvegen 26,6165,62.196,6.184,manual,thu,08:20,10:20,1.0,0.5,356.62,0.0,1,4501,8.2,APPROX: location estimated from business name — verify with HIG
+9333,Akademiet Vgs Åles. Personal,Parkgata 2,6003,62.4735,6.153,manual,thu,07:50,09:50,1.52,0.02,1168.5,0.0,1,4041,20.0,APPROX: placed at Ålesund city center (Parkgata) — needs exact address from HIG | service_time: default (no delivery data)
+9335,Akademiet Vgs Åles.molo Elevk.,Parkgata 2,6003,62.4735,6.153,manual,thu,07:50,09:50,2.0,1.0,956.3,0.0,1,4041,20.0,APPROX: placed at Ålesund city center (Parkgata) — needs exact address from HIG | service_time: default (no delivery data)
+13026,Albatross Kantine Langsten,Langsten,6264,62.62,6.6,manual,thu,09:50,11:50,1.0,0.0,1306.0,0.0,1,4651,7.8,APPROX: placed at Langsten/Tennfjord area — needs exact address from HIG
+13018,Albatross Kantine Trohaugen,Trohaugen,6264,62.62,6.6,manual,thu,09:25,11:25,0.5,0.0,300.0,0.0,1,4651,5.3,APPROX: placed at Langsten/Tennfjord area — needs exact address from HIG
+8165,Ask Safety 460205,Ålesund,6002,62.472,6.15,manual,thu,11:35,13:35,1.0,0.5,112.15,0.0,1,4052,4.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+8284,Assist Ålesund,Ålesund,6002,62.472,6.15,manual,thu,07:00,16:00,1.0,0.0,587.8,0.0,1,4041,4.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+435,Aursnes Kiosk,Aursnes Kiosk & Bistro,,62.409824,6.548004,found,thu,07:35,09:35,2.5,1.0,3081.0,0.0,1,4602,9.9,
+13275,Blakstad Barnehage,Blakstad,6008,62.47,6.2,manual,thu,10:45,12:45,0.5,0.0,300.0,0.0,1,4602,5.4,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+13097,Brasserie Posten Geiranger,Brasserie Posten,,62.1022505,7.2054172,found,thu,10:00,12:00,1.5,1.0,207.45,0.0,1,4302,7.6,service_time: median estimate (n=3 < 5)
+7395,Braud Digernes,Digernes,6057,62.4922,6.605,manual,thu,07:30,09:30,1.5,0.5,645.33,0.0,1,4651,9.0,APPROX: placed at Digernes area — needs exact address from HIG
+7394,Braud Moa,Moa,6010,62.483,6.287,manual,thu,09:10,11:10,0.5,0.0,286.6,0.0,1,4101,8.6,"APPROX: placed at Moa shopping area, Ålesund — needs exact address from HIG"
+8331,Brokiosken,LORKENESTORGET,6002,62.4709816,6.1522101,found,thu,09:05,11:05,1.5,1.0,1276.43,0.0,1,4051,10.1,
+1646,Brygga Sportsbar,Brygga Sportsbar,,62.3415407,5.8476226,found,thu,10:55,12:55,0.5,0.0,101.59,0.0,1,4701,11.8,
+3087,Bunnpris Broa,BROGATA 1,6005,62.469771,6.125637,found,thu,19:50,21:50,5.5,1.0,5393.36,0.0,1,4055,13.3,
+3095,Bunnpris Hareid,Bunnpris Hareid,,62.368536,6.032297,found,thu,07:20,09:20,7.85,2.0,7956.31,0.0,1,4701,16.9,
+3083,Bunnpris Ikornes,Ikornes,6222,62.388,6.579,manual,thu,09:10,11:10,7.02,1.02,7504.75,0.0,1,4602,22.9,APPROX: placed at Sykkylven/Ikornnes area — needs exact address from HIG
+3079,Bunnpris Langevåg,Bunnpris Langevåg,,62.4376456,6.1879534,found,thu,16:40,18:40,5.85,0.5,3276.85,0.0,1,4402,10.6,
+2943,Bunnpris Nørve,Bunnpris Nørve,,62.4708204,6.201686,found,thu,09:55,11:55,6.5,2.0,6036.0,0.0,1,4051,12.8,
+3086,Bunnpris Olden,Bunnpris Olden,,61.835325,6.8048951,found,thu,09:15,11:15,3.35,0.5,2975.54,0.0,1,4551,21.9,
+3071,Bunnpris Sjøholt,Bunnpris Sjøholt,,62.482209,6.81757,found,thu,08:15,10:15,7.683,0.0,7750.41,0.0,1,4651,22.5,
+3054,Bunnpris Skansen,SKAREGATA 1,6002,62.474674,6.156916,found,thu,15:45,17:45,1.0,0.0,678.6,0.0,1,4054,12.8,
+3076,Bunnpris Spjelkavik,Bunnpris Spjelkavik,,62.462997,6.363048,found,thu,15:55,17:55,8.35,2.0,10550.23,0.0,1,4103,15.5,
+6340,Bunnpris Straumgjerde,Bunnpris Straumgjerde,,62.3333,6.5943,found,thu,07:20,09:20,7.35,2.0,7451.46,0.0,1,4601,16.2,
+3078,Bunnpris Torghallen,NEDRE STRANDGATE 9,6004,62.4703741,6.1502732,found,thu,16:40,18:40,4.85,1.0,5649.27,0.0,1,4054,14.7,
+3093,Bunnpris Ørsta,Bunnpris Ørsta,,62.199592,6.123608,found,thu,17:50,19:50,1.0,0.0,737.1,0.0,1,4503,11.8,
+7872,Burger King Volda Avd.5087,Volda,6100,62.149,6.084,manual,thu,09:50,11:50,0.5,0.0,300.0,0.0,1,4502,6.0,APPROX: placed at Volda town center — needs exact address from HIG
+2960,Cafe Nova,Café Nova,,62.3439,5.846097,found,thu,10:45,12:45,0.0,0.0,30.0,0.0,1,4701,10.4,
+890,Centrumskiosken,Ålesund,6002,62.472,6.15,manual,thu,10:10,12:10,3.0,1.0,2675.36,0.0,1,4701,12.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+1047,Christian Gaard Bygdetun As,Ålesund,6002,62.472,6.15,manual,thu,07:50,09:50,1.5,1.0,328.9,0.0,1,4501,8.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+9236,Dampsentralen,Ålesund,6002,62.472,6.15,manual,thu,09:40,11:40,1.0,0.0,653.3,0.0,1,4051,10.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+1847,Det Lille Napoli Ørsta,Det Lille Napoli,,62.201742,6.121598,found,thu,18:50,20:50,0.5,0.0,6.6,0.0,1,4503,6.3,
+9267,Dirty Nelly,KIRKEGATA 1 A,6001,62.4707113,6.1493897,found,thu,09:15,11:15,0.5,0.0,418.79,0.0,1,4051,5.7,
+333,Elmir Pizzeria,Ålesund,6002,62.472,6.15,manual,thu,10:40,12:40,1.0,0.0,917.1,0.0,1,4251,8.3,APPROX: placed at Ålesund city center — needs exact address from HIG
+9018,Eurospar Blindheim,Gamle Blindheimsveg 25,6012,62.442025,6.371977,found,thu,19:25,21:25,13.75,2.0,15603.1,0.0,1,4104,24.1,
+6360,Eurospar Hareid,Eurospar Hareid,,62.3718107,6.0279234,found,thu,07:40,09:40,10.35,0.0,13877.34,0.0,1,4701,19.2,
+9200,Eurospar Larsgården,LARSGÅRDSVEGEN 19,6009,62.472382,6.240615,found,thu,18:40,20:40,13.02,2.5,15361.58,0.0,1,4109,21.0,
+8900,Eurospar Moa,Eurospar Moa,,62.464817,6.3515225,found,thu,09:30,11:30,17.363,1.0,22136.6,0.0,1,4101,17.9,
+7740,Eurospar Sykkylven,Eurospar Sykkylven,,62.39233,6.579998,found,thu,06:50,08:50,20.14,1.5,23253.2,0.0,1,4601,12.9,
+4110,Eurospar Ørsta,Eurospar Ørsta,,62.196948,6.128328,found,thu,17:20,19:20,9.56,1.0,11664.78,0.0,1,4503,24.1,
+9037,Eurospar Ålesund Storsenter,Rasmus Rønnebergs gate 21,6002,62.4723101,6.1583677,found,thu,16:00,18:00,15.0,0.5,16170.92,0.0,1,4054,24.8,
+9310,Fabrikken Kulturscene,Ålesund,6002,62.472,6.15,manual,thu,08:00,10:00,0.5,0.0,115.2,0.0,1,4041,6.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+8939,Facilitec Catering Nmk Avd 120,Ålesund,6002,62.472,6.15,manual,thu,07:15,09:15,3.5,1.0,3294.5,0.0,1,4101,9.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+8265,Facilitec Ulsteinvik,Ulsteinvik,6065,62.343,5.85,manual,thu,09:20,11:20,1.5,0.5,1246.23,0.0,1,4701,6.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+1372,Factory Ikornnes,Ikornnes,6222,62.388,6.579,manual,thu,10:10,12:10,1.52,0.52,1615.5,0.0,1,4602,13.9,APPROX: placed at Sykkylven/Ikornnes area — needs exact address from HIG
+1173,Fergekaia Fosnavåg,Fosnavåg,6090,62.329,5.634,manual,thu,11:00,13:00,2.0,1.0,1664.12,0.0,1,4251,13.5,APPROX: placed at Fosnavåg town center — needs exact address from HIG
+9061,Fergekaia Sunde,Sunde,6030,62.422,6.32,manual,thu,13:35,15:35,2.0,1.0,1704.93,0.0,1,4401,7.3,APPROX: placed at Sunde area — needs exact address from HIG
+8551,Fisketorget Avd Sentrum,Ålesund,6002,62.472,6.15,manual,thu,07:35,09:35,1.0,0.0,431.2,0.0,1,4041,10.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+907,Fiskå Brygge Gjestgiveri,Fiskå Brygge Gjestgiveri,,62.0974968,5.558036,found,thu,09:05,11:05,1.0,0.5,693.82,0.0,1,4351,8.9,
+2392,Hareid Kommune Felleskjøkken,Hareid,6060,62.358,6.035,manual,thu,08:30,10:30,2.0,0.5,651.0,0.0,1,4701,8.6,APPROX: placed at Hareid town center — needs exact address from HIG
+2388,Hareid Pizza Og Pub,Hareid,6060,62.358,6.035,manual,thu,16:35,18:35,1.5,0.5,541.8,0.0,1,4702,7.2,APPROX: placed at Hareid town center — needs exact address from HIG
+7920,Hatlane Omsorssenter 20204,Hatlane,6008,62.466,6.21,manual,thu,07:05,09:05,1.5,0.5,945.35,0.0,1,4101,5.0,APPROX: placed at Hatlane — needs exact address from HIG
+11074,Hatløy Catering,Ålesund,6002,62.472,6.15,manual,thu,09:10,11:10,1.5,0.5,627.9,0.0,1,4701,7.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+1172,Havila Service Kantine,Ulsteinvik,6065,62.343,5.85,manual,thu,08:52,10:52,0.5,0.0,282.52,0.0,1,4251,5.1,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+1171,Havila Service Resepsjon,Ulsteinvik,6065,62.343,5.85,manual,thu,08:50,10:50,0.5,0.0,300.0,0.0,1,4251,7.4,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+2547,Herøy Omsorgssenter 324000,Herøy omsorgssenter,,62.3256584,5.6425265,found,thu,09:10,11:10,3.5,0.5,2947.4,0.0,1,4251,10.5,
+2620,Hjørundfjordheimen,Hjørundfjordheimen,,62.2079519,6.4763469,found,thu,08:40,10:40,1.5,0.5,840.99,0.0,1,4501,7.6,
+8066,Hofseth Aalesund,Ålesund,6002,62.472,6.15,manual,thu,13:10,15:10,1.5,0.5,887.1,0.0,1,4052,12.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+6712,Holmen Mat Og Drikke,Ålesund,6002,62.472,6.15,manual,thu,10:30,12:30,0.5,0.0,23.9,0.0,1,4502,10.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+1179,Horisont Restaurant As,Ålesund,6002,62.472,6.15,manual,thu,08:40,10:40,1.0,0.5,481.9,0.0,1,4251,7.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+8559,Hotel Noreg,KONGENS GATE 27,6002,62.4755287,6.1560491,found,thu,07:35,09:35,0.5,0.0,78.4,0.0,1,4101,7.3,
+1057,Innvik As,Innvik,,61.8521038,6.6151452,found,thu,10:35,12:35,1.0,0.5,512.2,0.0,1,4551,10.4,
+2700,Innvik Fjordhotell,Innvik Fjordhotell,,61.8500514,6.6111973,found,thu,10:40,12:40,1.0,0.5,514.4,0.0,1,4551,7.8,
+899,Iss 422542 Nordea Ålesund,Ålesund,6002,62.472,6.15,manual,thu,07:55,09:55,1.0,0.5,439.7,0.0,1,4051,6.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+8531,Iss 422547 Tussa Hovdebygda,Hovdebygda,6160,62.182,6.084,manual,thu,08:35,10:35,0.5,0.5,44.1,0.0,1,4502,6.4,APPROX: location estimated from business name — verify with HIG
+1177,Jafs Fosnavåg,Fosnavåg,6090,62.329,5.634,manual,thu,09:45,11:45,2.0,1.0,1423.15,0.0,1,4251,7.7,APPROX: placed at Fosnavåg town center — needs exact address from HIG
+554,Joker Bellingen,Joker Bellingen,,62.209326,6.475956,found,thu,07:30,09:30,4.0,0.5,3423.29,0.0,1,4501,14.5,
+796,Joker Fiksdal,Joker Fiksdal,,62.618987,6.852696,found,thu,10:15,12:15,2.5,0.5,2215.17,0.0,1,4651,18.2,
+13110,Joker Flatraket,Joker Flatraket,,61.974108,5.226046,found,thu,08:35,10:35,3.0,0.5,3162.37,0.0,1,4451,15.4,
+3580,Joker Geiranger,Joker Geiranger,,62.101089,7.205247,found,thu,10:10,12:10,5.5,2.0,5064.71,0.0,1,4302,20.0,service_time: default (no delivery data)
+2218,Joker Gursken,Joker Gursken,,62.216106,5.649571,found,thu,07:10,09:10,4.5,0.5,3957.12,0.0,1,4351,9.8,
+4070,Joker Larsnes,Joker Larsnes,,62.2064458,5.5713076,found,thu,07:45,09:45,7.5,1.0,7693.6,0.0,1,4351,16.9,
+1126,Joker Loen,Joker Loen,,61.871862,6.848274,found,thu,08:25,10:25,2.5,0.5,2963.07,0.0,1,4551,14.3,
+6170,Joker Sæbø,Joker Sæbø,,62.2093322,6.4753281,found,thu,08:05,10:05,2.0,0.5,1933.61,0.0,1,4501,10.4,
+1890,Joker Tomrefjord,Joker Tomrefjord,,62.582343,6.931146,found,thu,09:35,11:35,3.5,0.5,3513.21,0.0,1,4651,16.6,
+6011,Joker Utvik,Joker,,61.8068792,6.5189964,found,thu,10:50,12:50,3.5,1.0,3236.38,0.0,1,4551,14.9,
+3148,Joker Åram,Joker Åram,,62.1738267,5.4413348,found,thu,08:40,10:40,2.5,0.5,1931.58,0.0,1,4351,10.7,
+13219,Kaffebaren Ulsteinvik,KaffeBaren AS,,62.343557,5.846433,found,thu,11:10,13:10,1.0,0.5,598.31,0.0,1,4701,6.0,
+6731,Kantina Berte Kanutte Huset,Ålesund,6002,62.472,6.15,manual,thu,10:00,12:00,2.0,0.5,1139.4,0.0,1,4502,11.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+8944,Kantine Lerstadveien 545,Lerstadveien 545,6008,62.47,6.2,manual,thu,12:20,14:20,1.5,1.0,370.0,0.0,1,4401,4.4,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+9305,Kantine Tafjord Kraft,Ålesund,6002,62.472,6.15,manual,thu,12:10,14:10,1.5,0.5,558.66,0.0,1,4401,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+1642,Kiosk Volda Ungdomsklubb,Volda,6100,62.149,6.084,manual,thu,09:05,11:05,0.5,0.0,50.0,0.0,1,4502,6.9,APPROX: placed at Volda town center — needs exact address from HIG
+355,Kiwi 827 Ørsta,Kiwi Meieribygget Ørsta,,62.1991,6.127521,found,thu,06:30,08:30,14.699,2.5,18299.379999999997,0.0,1,4501,26.6,
+7642,Kiwi 830 Skjellebreida Volda,Volda,6100,62.149,6.084,manual,thu,19:30,21:30,9.21,1.5,10582.19,0.0,1,4503,22.9,APPROX: placed at Volda town center — needs exact address from HIG
+9045,Kiwi 832 Sundgata,SUNDGATA 8,6003,62.471056,6.166693,found,thu,19:10,21:10,8.776,0.0,10697.06,0.0,1,4109,22.9,
+2958,Kiwi 841 Skodje,Kiwi Skodje,,62.5033919,6.6966718,found,thu,06:45,08:45,8.35,1.0,9211.34,0.0,1,4651,19.6,
+2936,Kiwi 843 Volda,Kiwi Volda,,62.1467135,6.0889177,found,thu,19:20,21:20,17.999,2.0,25387.02,0.0,1,4503,26.0,
+2935,Kiwi 844 Sykkylven,Kiwi Sykkylven,,62.3913141,6.5816796,found,thu,06:55,08:55,10.555,0.0,13169.15,0.0,1,4602,26.5,
+9093,Kiwi 849 Skarbøvik,SKARBØVIKGATA 25,6006,62.4666932,6.114175,found,thu,17:10,19:10,9.833,0.0,10631.39,0.0,1,4054,26.9,
+2931,Kiwi 901 Nørve,NØRVEGATA 23,6008,62.4715115,6.2065205,found,thu,16:20,18:20,14.866,2.5,19658.02,0.0,1,4102,25.4,
+2932,Kiwi 902 Spjelkavik,SPJELKAVIKVEGEN 42,6010,62.463529,6.364485,found,thu,16:50,18:50,12.283,0.0,13662.31,0.0,1,4103,32.2,
+2914,Kiwi 903 Måløy,Kiwi Deknepollen,,61.9230879,5.1505134,found,thu,10:00,12:00,6.2,1.0,5766.4,0.0,1,4451,27.2,
+2920,Kiwi 905 Eggesbønes,Eggesbønes,6008,62.47,6.23,manual,thu,17:00,19:00,9.686,0.0,12691.54,0.0,1,4252,25.3,APPROX: location estimated from business name — verify with HIG
+2927,Kiwi 906 Deknepollen,Kiwi Deknepollen,,61.9230879,5.1505134,found,thu,09:20,11:20,2.0,0.0,3143.6,0.0,1,4451,30.2,
+2908,Kiwi 908 Klokkersund,NEDRE KLOKKERSUNDVEGEN 2,6015,62.466608,6.246044,found,thu,15:30,17:30,9.766,1.0,11426.87,0.0,1,4105,24.9,
+2939,Kiwi 909 Flisnes,FLISNESVEGEN 1,6012,62.4319749,6.4127797,found,thu,20:00,22:00,17.79,1.0,20908.9,0.0,1,4104,29.4,
+2942,Kiwi 910 Kverve,Kverve,6008,62.467,6.2,manual,thu,16:40,18:40,10.46,0.0,10091.66,0.0,1,4751,18.3,APPROX: placed at Kverve — needs exact address from HIG
+2946,Kiwi 911 Fiskarstrand,Fiskarstrand,6037,62.438,6.238,manual,thu,15:40,17:40,9.34,2.0,10663.07,0.0,1,4402,17.6,APPROX: placed at Fiskarstrand — needs exact address from HIG
+2948,Kiwi 912 Stranda,Kiwi Stranda,,62.307148,6.945331,found,thu,08:40,10:40,12.349,2.0,15077.02,0.0,1,4601,20.9,
+2950,Kiwi 913 Stryn,Kiwi Stryn,,61.903006,6.719597,found,thu,07:20,09:20,10.633,1.0,11177.02,0.0,1,4551,32.7,
+2928,Kiwi 914 Ulsteinvik,Kiwi Ulsteinvik,,62.3402676,5.855327,found,thu,17:05,19:05,27.123,2.5,35488.64,0.0,1,4702,44.0,
+2953,Kiwi 915 Valderøy,Valderøy,6050,62.478,6.103,manual,thu,17:10,19:10,10.02,1.0,10971.0,0.0,1,4751,24.0,APPROX: placed at Valderøy — needs exact address from HIG
+2955,Kiwi 916 Kremmergaarden,RASMUS RØNNEBERGS GATE 6,6002,62.4712466,6.1538577,found,thu,18:50,20:50,7.98,0.0,6788.59,0.0,1,4055,33.3,
+2957,Kiwi 917 Myrvåg,Kiwi Myrvåg,,62.277132,5.802988,found,thu,07:30,09:30,18.899,2.5,24751.27,0.0,1,4251,31.3,
+2959,Kiwi 918 Langevåg,Kiwi Langevåg,,62.4407247,6.2001066,found,thu,16:55,18:55,11.08,0.5,13169.34,0.0,1,4402,23.5,
+2956,Kiwi 919 Nedre Strandgate,NEDRE STRANDGATE 51,6005,62.470082,6.140048,found,thu,19:20,21:20,6.24,0.0,5255.9,0.0,1,4055,20.2,
+2947,Kiwi 920 Breivika,LERSTADVEGEN 545,6018,62.471726,6.363353,found,thu,16:00,18:00,11.233,1.0,13141.0,0.0,1,4751,27.6,
+2930,Kiwi 921 Vestnes,Kiwi Vestnes,,62.6235206,7.0904334,found,thu,08:55,10:55,12.016,0.5,12882.08,0.0,1,4651,30.3,
+2963,Kiwi 922 Nordfjordeid,Kiwi Nordfjordeid,,61.9099355,5.9954311,found,thu,07:30,09:30,8.533,1.0,8480.8,0.0,1,4451,23.4,
+2940,Kiwi 923 Hatlane,SMEDGARDEN 1,6016,62.4604828,6.2686763,found,thu,19:35,21:35,7.12,0.0,6887.14,0.0,1,4108,20.9,
+2961,Kiwi 924 Vallekrysset,Vallekrysset,6013,62.467,6.35,manual,thu,06:50,08:50,10.833,2.5,12931.02,0.0,1,4302,17.8,APPROX: location estimated from business name — verify with HIG
+2937,Kiwi 925 Meieribygget Ørsta,Ørsta,6150,62.2,6.13,manual,thu,07:30,09:30,12.2,1.5,15735.49,0.0,1,4502,20.0,APPROX: placed at Ørsta town center — needs exact address from HIG | service_time: default (no delivery data)
+8358,Kk Mat As,Ålesund,6002,62.472,6.15,manual,thu,10:05,12:05,1.0,0.5,719.1,0.0,1,4042,7.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+9321,Koiwa Ramen,KONGENS GATE 30,6002,62.4752788,6.1565513,found,thu,13:25,15:25,0.5,0.0,10.0,0.0,1,4052,6.2,
+3567,Kontorpunkt,Ålesund,6002,62.472,6.15,manual,thu,09:45,11:45,2.5,0.0,2738.9,0.0,1,4451,9.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+3295,Lanternen As,Ålesund,6002,62.472,6.15,manual,thu,08:35,10:35,1.5,0.5,902.99,0.0,1,4251,7.5,APPROX: placed at Ålesund city center — needs exact address from HIG
+13258,Larsnes Mek Verksted As,Larsnes,6098,62.223,5.53,manual,thu,07:55,09:55,1.0,0.5,550.3,0.0,1,4351,7.0,APPROX: location estimated from business name — verify with HIG
+8694,Lets Eat Deli,KEISER WILHELMS GATE 32,6003,62.4713955,6.1594019,found,thu,13:35,15:35,2.0,0.5,805.24,0.0,1,4052,7.6,
+13054,Madelynn Coffee,Ålesund,6002,62.472,6.15,manual,thu,10:50,12:50,1.0,0.5,287.33,0.0,1,4251,16.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+211,Marutham Hjørungavåg,Hjørungavåg,6092,62.375,5.965,manual,thu,08:15,10:15,4.5,1.5,4291.9,0.0,1,4701,7.6,APPROX: location estimated from business name — verify with HIG
+3735,Meny Fosnavåg,Meny Fosnavåg,,62.342208,5.6336574,found,thu,17:50,19:50,7.536,1.0,7494.61,0.0,1,4252,23.6,
+8620,Meny Lerstad,LERSTADVEGEN 291,6015,62.468368,6.292074,found,thu,16:15,18:15,8.79,1.0,8373.91,0.0,1,4105,32.6,
+8063,Mf Festøya,Festøya,6090,62.472,6.15,manual,thu,13:15,15:15,1.0,0.5,335.4,0.0,1,4401,4.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+8586,Mf Giskøy 100004,Giske,6050,62.505,6.02,manual,thu,06:45,08:45,1.0,0.5,800.9,0.0,1,4251,10.7,APPROX: placed at Giske/Valderøya area — needs exact address from HIG
+8587,Mf Hadarøy Catering 100004,Giske,6050,62.505,6.02,manual,thu,07:05,09:05,1.0,0.5,749.34,0.0,1,4701,8.0,APPROX: placed at Giske/Valderøya area — needs exact address from HIG
+8064,Mf Solavågen,Solavågen,6240,62.47,6.68,manual,thu,13:25,15:25,1.5,1.0,625.79,0.0,1,4401,5.4,APPROX: location estimated from business name — verify with HIG
+8058,Mf Tidefjord,Ålesund,6002,62.472,6.15,manual,thu,13:05,15:05,0.5,0.0,95.6,0.0,1,4401,5.4,APPROX: placed at Ålesund city center — needs exact address from HIG
+12009,Miljøstasjonen Hig,HIG,6010,62.46,6.35,manual,thu,21:10,23:10,0.0,0.0,0.0,0.0,1,3251,20.0,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG | service_time: default (no delivery data)"
+3891,Møre Trafo Kantine,Ålesund,6002,62.472,6.15,manual,thu,07:50,09:50,0.52,0.02,511.59,0.0,1,4602,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+1151,Napoli-pizzeria Ulst.vik,Ulsteinvik,6065,62.343,5.85,manual,thu,11:05,13:05,0.5,0.0,94.2,0.0,1,4701,11.9,APPROX: placed at Ulsteinvik town center — needs exact address from HIG
+6086,Nf Cowork As,Ålesund,6002,62.472,6.15,manual,thu,08:00,10:00,1.0,0.5,294.0,0.0,1,4602,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+9141,Nonna Lina,KORSEGATA 4,6002,62.4713488,6.1559244,found,thu,13:30,15:30,0.5,0.0,449.83,0.0,1,4052,10.6,
+8071,Nor F. Postvegen 11,POSTVEGEN 11,6018,62.471058,6.342171,found,thu,08:40,10:40,0.5,0.0,20.51,0.0,1,4101,6.2,
+8070,Nor F. Postvegen 17,POSTVEGEN 17,6018,62.4716084,6.3453172,found,thu,08:20,10:20,1.0,0.5,452.39,0.0,1,4101,4.9,
+8074,Nor F. Postvegen15,POSTVEGEN 15,6018,62.4714714,6.3447286,found,thu,08:30,10:30,0.52,0.02,375.33,0.0,1,4101,5.4,
+8059,Nor F. Røysegata,Røysegata,6002,62.472,6.15,manual,thu,12:00,14:00,2.5,0.5,1532.19,0.0,1,4052,6.8,APPROX: placed at Ålesund city center — needs exact address from HIG
+8057,Nor F. Spareb. 1 Smn,Ålesund,6002,62.472,6.15,manual,thu,08:45,10:45,0.52,0.02,376.33,0.0,1,4051,6.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+3999,Nordfjord Kjøtt As Kantine,Nordfjordeid,6770,61.906,5.989,manual,thu,08:40,10:40,1.0,0.0,563.0,0.0,1,4551,6.3,APPROX: placed at Nordfjordeid — needs exact address from HIG
+6442,Nærbutikken Norddal,Nærbutikken Norddal,,62.254809,7.234539,found,thu,08:40,10:40,2.5,1.0,1740.64,0.0,1,4302,7.6,service_time: median estimate (n=2 < 5)
+7672,Nærbutikken Rovde,Nærbutikken Rovde,,62.1788163,5.7550061,found,thu,11:00,13:00,2.5,0.5,2990.06,0.0,1,4351,18.3,
+1968,Olebuda,Olebuda,,62.102016,7.2066184,found,thu,10:35,12:35,1.5,1.0,577.0,0.0,1,4302,7.6,service_time: median estimate (n=2 < 5)
+7591,Pharma Marine,Ålesund,6002,62.472,6.15,manual,thu,11:00,13:00,0.5,0.0,369.1,0.0,1,4042,6.2,APPROX: placed at Ålesund city center — needs exact address from HIG
+8882,Quality Hotel Waterfront,Quality Hotel Waterfront,,62.4699296,6.1460985,found,thu,07:55,09:55,4.0,0.5,3171.98,0.0,1,4101,12.1,
+8942,Quality Hotel Ålesund,SORENSKRIVER BULLS GATE 7,6002,62.4756638,6.1552199,found,thu,07:40,09:40,2.5,0.5,1629.37,0.0,1,4101,9.8,
+9312,Rasoi Ålesund,RÅDSTUGATA 3B,6002,62.4712404,6.1617014,found,thu,13:35,15:35,0.5,0.0,51.8,0.0,1,4052,8.5,
+2634,Raus Restaurant,Ålesund,6002,62.472,6.15,manual,thu,08:20,10:20,1.5,0.5,951.42,0.0,1,4602,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+5181,Rekkedal Gjestegard,Rekkedal,6210,62.32,7.02,manual,thu,09:10,11:10,0.0,0.0,30.0,0.0,1,4501,7.8,APPROX: location estimated from business name — verify with HIG
+2221,Renex Avd Myklebust,Ålesund,6008,62.47,6.2,manual,thu,07:25,09:25,1.0,0.5,1033.06,0.0,1,4351,4.3,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+9079,Sit Kafe/kantine Ålesund,Ålesund,6003,62.4735,6.153,manual,thu,07:25,09:25,2.5,0.5,1576.9,0.0,1,4101,9.8,APPROX: placed at Ålesund city center (Parkgata) — needs exact address from HIG
+7906,Skarbøvik Sykehjem 2024,OLE THORESENS GATE 16,6006,62.46609,6.109488,found,thu,12:40,14:40,0.5,0.0,49.2,0.0,1,4052,4.6,
+7571,Skrøppatausene,Ålesund,6002,62.472,6.15,manual,thu,07:55,09:55,1.5,0.5,645.2,0.0,1,4651,5.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+3289,Soi One,Ålesund,6002,62.472,6.15,manual,thu,16:05,18:05,0.5,0.0,312.4,0.0,1,4402,5.9,APPROX: placed at Ålesund city center — needs exact address from HIG
+6717,Soi One Volda,Volda,6100,62.149,6.084,manual,thu,19:15,21:15,1.5,0.5,952.5,0.0,1,4503,10.0,APPROX: placed at Volda town center — needs exact address from HIG
+9294,Soi One Ålesund,RASMUS RØNNEBERGS GATE 4,6002,62.470954,6.153081,found,thu,12:20,14:20,2.04,0.5,1483.7,0.0,1,4052,14.3,
+6084,Sol Cafè,Ålesund,6002,62.472,6.15,manual,thu,08:55,10:55,1.0,0.5,353.65,0.0,1,4602,8.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+9055,Spar Eidsnes,SOLAVÅGSEIDET 76,6037,62.4273727,6.3156806,found,thu,12:45,14:45,7.0,2.5,8720.36,0.0,1,4401,17.2,
+880,Spar Fiskåbygd,Spar Fiskåbygd,,62.1000153,5.5566242,found,thu,09:35,11:35,6.71,0.0,7672.68,0.0,1,4351,20.2,
+1845,Spar Fosnavåg,Spar Fosnavåg,,62.3288549,5.6344584,found,thu,18:30,20:30,8.35,0.0,9667.58,0.0,1,4252,20.0,
+5550,Spar Hovdebygda,Spar Hovdebygda,,62.1826871,6.0843933,found,thu,08:45,10:45,1.0,0.0,1115.17,0.0,1,4502,15.4,
+1090,Spar Langevåg,Spar Langevåg,,62.44221,6.190282,found,thu,16:15,18:15,9.683,0.0,8933.36,0.0,1,4402,13.1,
+4235,Spar Raudeberg,Spar Raudeberg,,61.9817494,5.1359776,found,thu,11:25,13:25,4.5,0.0,3607.2,0.0,1,4451,24.2,
+8697,Spar Spjelkavik,Spjelkavikvegen 61,6010,62.4622693,6.3640886,found,thu,16:20,18:20,5.23,0.0,5595.56,0.0,1,4103,19.0,
+6600,Spar Straumane,Spar Straumane,,62.3159888,5.8438243,found,thu,18:05,20:05,5.35,0.0,5618.23,0.0,1,4702,18.7,
+6780,Spar Svingen,Spar Svingen,,62.3115806,6.9183612,found,thu,11:55,13:55,5.32,1.0,4651.48,0.0,1,4601,14.0,
+7765,Spar Ulsteinvik,Spar Ulsteinvik,,62.34227,5.868304,found,thu,18:35,20:35,8.333,1.0,8333.97,0.0,1,4702,17.4,
+7450,Spar Vartdal,Spar Vartdal,,62.301075,6.083249,found,thu,16:50,18:50,9.18,0.5,9274.79,0.0,1,4503,14.7,
+4225,Spar Åse,Øvre Geilegrend 1,6017,62.4643885,6.3172074,found,thu,15:35,17:35,12.85,0.0,15210.72,0.0,1,4102,16.3,
+8479,Spisestua Kafe Og Restaurant,Ålesund,6002,62.472,6.15,manual,thu,09:00,11:00,1.0,0.0,792.9,0.0,1,4101,6.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+8967,Spjelkavik Veiservice,Esso Spjelkavik,,62.466974,6.361239,found,thu,11:25,13:25,2.0,1.0,1327.75,0.0,1,4401,5.6,
+1689,St1 Vegsund 9377,St1 Vegsund,,62.44362,6.3668508,found,thu,11:25,13:25,3.0,1.5,2318.41,0.0,1,4052,5.9,
+1698,St1 Ørsta 9163,St1 Ørsta,,62.1963482,6.1278627,found,thu,07:40,09:40,2.02,1.02,1556.5,0.0,1,4502,7.2,
+6433,Stabburet Sve Kantine St-soh,Svemorka,6010,62.46,6.35,manual,thu,10:20,12:20,1.52,0.02,1424.24,0.0,1,4601,6.8,"APPROX: placed at Spjelkavik/HIG area, Ålesund — needs exact address from HIG"
+9232,Stift.viti Avd Sunnm.museum,Ålesund,6009,62.4718,6.134,manual,thu,13:45,15:45,1.0,0.5,211.6,0.0,1,4052,12.0,APPROX: placed at Ålesund — needs exact address from HIG
+500,Storfjord Kulturhus,Storfjord kulturhus,,62.3079445,6.9458428,found,thu,09:05,11:05,0.5,0.0,33.6,0.0,1,4601,6.0,
+6456,Stranda Bakeri,Stranda Bakeri og Konditori,,62.3085425,6.9482569,found,thu,09:25,11:25,1.0,0.5,714.66,0.0,1,4601,6.1,
+6599,Stranda Booking,Stranda,6200,62.3085,6.948,manual,thu,09:55,11:55,0.5,0.0,231.8,0.0,1,4601,9.9,APPROX: placed at Stranda town center — needs exact address from HIG
+6548,Stranda Omsorgss.avd Solbakken,Stranda,6200,62.3085,6.929,manual,thu,11:45,13:45,1.0,0.5,84.5,0.0,1,4601,9.2,APPROX: location estimated from business name — verify with HIG
+6545,Stranda Omsorgssenter,Stranda omsorgssenter,,62.3084372,6.9292028,found,thu,10:10,12:10,1.5,0.5,1208.78,0.0,1,4601,7.5,
+9085,Sunde Fjord Hotel As,Sundgata 26,6030,62.4216,6.3206,manual,thu,12:55,14:55,1.5,0.5,1097.1,0.0,1,4401,5.7,APPROX: location estimated from business name — verify with HIG
+2684,Sunde Kiosken,Sunde,6030,62.422,6.32,manual,thu,09:00,11:00,1.0,0.5,546.33,0.0,1,4551,9.0,APPROX: placed at Sunde area — needs exact address from HIG
+6853,Sykkylven Bu Og Aktivitetss.,Sykkylven,6230,62.389,6.582,manual,thu,08:30,10:30,1.0,0.5,696.7,0.0,1,4602,7.7,APPROX: location estimated from business name — verify with HIG
+13313,Thon Hotel Baronen,Thon Hotel Baronen,,62.462139,6.3633526,found,thu,11:25,13:25,0.5,0.0,300.0,0.0,1,4052,3.9,
+13333,"Toma Kant.nørestranda,1188202",Nørestranda,6008,62.47,6.2,manual,thu,10:20,12:20,0.0,0.0,30.0,0.0,1,4501,11.1,APPROX: placed at Ålesund east (Nørve/Lerstad area) — needs exact address from HIG
+12201,Trsp.o. Bacalaofabrikken,Ålesund,6002,62.472,6.15,manual,thu,11:31,13:31,0.0,0.0,0.0,0.0,1,4501,20.0,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: default (no delivery data)
+9279,Tyrholm Og Farstad,Ålesund,6002,62.472,6.15,manual,thu,07:00,16:00,0.5,0.5,194.8,0.0,1,4051,9.1,APPROX: placed at Ålesund city center — needs exact address from HIG
+7312,Ulstein Arena 252201,Ulstein Arena,,62.3437755,5.8490876,found,thu,10:25,12:25,1.0,0.5,221.8,0.0,1,4701,7.0,
+7311,Ulstein Sjukeheim 304101,Ulstein sjukeheim,,62.3378087,5.8591707,found,thu,09:35,11:35,2.02,0.52,1856.38,0.0,1,4701,7.7,
+7385,Valaker Avd. Rådhuset Ålesund,Rådhuset,6002,62.4723,6.1536,manual,thu,12:15,14:15,0.5,0.0,414.5,0.0,1,4052,6.4,APPROX: placed at Ålesund Rådhus area — needs exact address from HIG
+13220,Valaker Avd. Ålesund Storsente,Ålesund Storsenter,6002,62.472,6.15,manual,thu,08:35,10:35,1.0,0.5,598.91,0.0,1,4051,6.6,APPROX: placed at Ålesund city center — needs exact address from HIG
+7435,Vanylven Omsorgsenter 50401,Fiskå,6139,62.095,5.5,manual,thu,09:10,11:10,1.5,0.5,907.1,0.0,1,4351,5.2,APPROX: location estimated from business name — verify with HIG
+1640,Volda Omsorgssenter 410401,Volda omsorgssenter sjukeheim,,62.1503135,6.0630322,found,thu,09:10,11:10,3.52,0.52,2930.1,0.0,1,4502,10.2,
+1838,Volda Sjukehus Hf Avd 9033,Volda,6100,62.149,6.084,manual,thu,09:30,11:30,1.0,0.5,27.2,0.0,1,4502,7.6,APPROX: placed at Volda town center — needs exact address from HIG
+8053,Welle Gravferdstjenester,Ålesund,6002,62.472,6.15,manual,thu,07:26,09:26,1.0,0.5,274.5,0.0,1,4602,7.6,APPROX: placed at Ålesund city center — needs exact address from HIG | service_time: median estimate (n=4 < 5)
+376,Yusuf,Ålesund,6002,62.472,6.15,manual,thu,15:45,17:45,0.5,0.0,0.0,0.0,1,4103,4.7,APPROX: placed at Ålesund city center — needs exact address from HIG
+8130,Ørstaheimen Felleskj 31266,Ørsta,6150,62.197,6.128,manual,thu,08:05,10:05,0.5,0.0,0.0,0.0,1,4502,8.7,APPROX: location estimated from business name — verify with HIG
+8963,Ålesund Sjukehus Hf Avd 9034,Åsehaugen 5,6017,62.467,6.186,manual,thu,07:25,09:25,2.0,1.0,456.2,0.0,1,4051,4.9,APPROX: location estimated from business name — verify with HIG

@@ -1,14 +1,11 @@
 import sys
 import os
 import numpy as np
-import torch
 import glob
-import random
-import csv
 import time
-import pandas as pd
-import matplotlib.pyplot as plt
-from torch.utils.tensorboard import SummaryWriter
+import random
+from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import BaseCallback
 
 # --- PATH SETUP ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -16,177 +13,145 @@ project_root = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(0, project_root)
 
 from Benchmark.drl.env import VRPTWEnv
-from Benchmark.drl.agent import PPOAgent
 from Benchmark.utils.utils import load_raw_solomon_data
 
-def generate_moving_average_plot(csv_path, output_path, window=100):
-    """
-    Generates a professional training curve with moving average.
-    """
-    try:
-        # Load Data
-        df = pd.read_csv(csv_path)
-        
-        # Calculate Moving Average (smooths out the noise from switching instances)
-        df['MA_Cost'] = df['Best_Cost'].rolling(window=window).mean()
-        
-        plt.figure(figsize=(10, 6))
-        
-        # Plot Raw Data (faint)
-        plt.plot(df['Episode'], df['Best_Cost'], color='lightgray', alpha=0.3, label='Raw Episode Cost')
-        
-        # Plot Moving Average (bold)
-        plt.plot(df['Episode'], df['MA_Cost'], color='blue', linewidth=2, label=f'Moving Avg (n={window})')
-        
-        plt.title('DRL Training Convergence (Generalist Agent)', fontsize=14)
-        plt.xlabel('Episode', fontsize=12)
-        plt.ylabel('Best Cost Found', fontsize=12)
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        
-        # Save
-        plt.savefig(output_path, dpi=300)
-        print(f"✅ Generated thesis plot: {output_path}")
-        plt.close()
-        
-    except Exception as e:
-        print(f"Could not generate plot: {e}")
 
-def train_drlh():
-    # --- LOGGING SETUP ---
-    # Create unique run name based on time
-    run_name = f"drl_run_{time.strftime('%Y%m%d_%H%M%S')}"
-    log_dir = os.path.join(project_root, 'logs', run_name)
-    writer = SummaryWriter(log_dir=log_dir)
+class TrainingCallback(BaseCallback):
+    """Logging and checkpointing for vectorized environments."""
     
-    # CSV file for raw data (backup)
-    os.makedirs(log_dir, exist_ok=True)
-    csv_file = os.path.join(log_dir, 'training_log.csv')
-    with open(csv_file, 'w', newline='') as f:
-        csv_writer = csv.writer(f)
-        csv_writer.writerow(['Episode', 'Instance', 'Best_Cost', 'Total_Reward', 'Steps', 'Avg_Success_Rate'])
+    def __init__(self, save_freq=50000, save_path=None, verbose=0):
+        super().__init__(verbose)
+        self.start_time = time.time()
+        self.save_freq = save_freq
+        self.save_path = save_path
+        self.last_save_step = 0
+        self.last_log_step = 0
+    
+    def _on_step(self) -> bool:
+        # Log metrics every 100 steps
+        if self.num_timesteps - self.last_log_step >= 100:
+            elapsed = time.time() - self.start_time
+            fps = self.num_timesteps / elapsed
+            self.logger.record("time/fps", fps)
+            self.last_log_step = self.num_timesteps
+        
+        # Save checkpoint
+        if self.num_timesteps - self.last_save_step >= self.save_freq:
+            checkpoint_path = os.path.join(self.save_path, f'checkpoint_{self.num_timesteps}')
+            self.model.save(checkpoint_path)
+            print(f"\n[Checkpoint] Saved at {self.num_timesteps} timesteps\n")
+            self.last_save_step = self.num_timesteps
+        
+        return True
 
+
+def train_sb3():
+    # --- LOGGING SETUP ---
+    run_name = f"drl_sb3_{time.strftime('%Y%m%d_%H%M%S')}"
+    log_dir = os.path.join(project_root, 'logs', run_name)
+    os.makedirs(log_dir, exist_ok=True)
+    
+    print(f"--- Training with Stable-Baselines3 PPO (Single Env) ---")
+    print(f"--- Note: Single env is more stable than DummyVecEnv (which causes PPO deadlocks) ---")
     print(f"--- Logs will be saved to: {log_dir} ---")
     print(f"--- To view: tensorboard --logdir={os.path.join(project_root, 'logs')} ---")
-
+    
     # --- DATA LOADING ---
     data_dirs = [
         os.path.join(project_root, 'Benchmark', 'data', 'homberger_100'),
-        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200')
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_200'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_400'),
+        os.path.join(project_root, 'Benchmark', 'data', 'homberger_600')
     ]
+    TYPE1_PREFIXES = ('C1', 'R1', 'RC1')
     instance_files = []
     for data_dir in data_dirs:
-        instance_files.extend(glob.glob(os.path.join(data_dir, "*.txt")))
-        instance_files.extend(glob.glob(os.path.join(data_dir, "*.TXT")))
+        for f in glob.glob(os.path.join(data_dir, "*.txt")) + glob.glob(os.path.join(data_dir, "*.TXT")):
+            if os.path.basename(f).upper().startswith(TYPE1_PREFIXES):
+                instance_files.append(f)
     
     if not instance_files:
         print(f"\nError: No .txt files found in {', '.join(data_dirs)}")
         return
-
+    
     print(f"--- Pre-loading {len(instance_files)} instances... ---")
     all_instances_data = []
-    instance_names = [] # Keep track of names for logging
     
     for file_path in instance_files:
         try:
             data = load_raw_solomon_data(file_path)
             all_instances_data.append(data)
-            instance_names.append(os.path.basename(file_path))
         except Exception as e:
             print(f"Skipping {os.path.basename(file_path)}: {e}")
-
-    # --- AGENT SETUP ---
-    temp_env = VRPTWEnv(*all_instances_data[0])
-    state_dim = temp_env.observation_space.shape[0]
-    action_dim = temp_env.action_space.n
-    agent = PPOAgent(state_dim, action_dim, lr=0.001, K_epochs=4)
     
-    # Define Action Names for Logging
-    action_names = [f"{d.__name__}_{r.__name__}" for d, r in temp_env.action_pairs]
-
-    # --- TRAINING LOOP ---
-    MAX_EPISODES = 5000  
-    UPDATE_TIMESTEP = 200 
-    CHECKPOINT_FREQ = 100
+    print(f"--- Successfully loaded {len(all_instances_data)} instances ---")
     
-    time_step = 0
+    # --- ENVIRONMENT SETUP ---
+    MAX_EPISODE_ITERATIONS = 1000
+
+    # Wrapper to rotate instances
+    class MultiInstanceEnv(VRPTWEnv):
+        def __init__(self, instance_list):
+            self.instance_list = instance_list
+            self.reset_count = 0
+            # Initialize with first instance
+            super().__init__(*instance_list[0], MAX_EPISODE_ITERATIONS)
+
+        def reset(self, **kwargs):
+            # Pick new instance and re-initialize
+            idx = random.randint(0, len(self.instance_list) - 1)
+            instance_data = self.instance_list[idx]
+
+            # Log first 5 resets to verify rotation
+            if self.reset_count < 5:
+                num_custs = len(instance_data[0]['customer_id']) if isinstance(instance_data[0], dict) else len(instance_data[0])
+                print(f"  [Reset {self.reset_count}] Instance {idx}, {num_custs} customers")
+            self.reset_count += 1
+
+            # Call parent init with new instance
+            VRPTWEnv.__init__(self, *instance_data, MAX_EPISODE_ITERATIONS)
+
+            # Now call parent reset
+            return VRPTWEnv.reset(self, **kwargs)
     
-    for i_episode in range(1, MAX_EPISODES + 1):
-        # Pick random instance
-        idx = random.randint(0, len(all_instances_data) - 1)
-        selected_data = all_instances_data[idx]
-        current_instance_name = instance_names[idx]
-        
-        env = VRPTWEnv(*selected_data)
-        state, _ = env.reset()
-        
-        current_ep_reward = 0
-        done = False
-        step_count = 0
-        
-        while not done:
-            time_step += 1
-            step_count += 1
-            action = agent.select_action(state)
-            
-            state, reward, terminated, truncated, info = env.step(action)
-            done = terminated or truncated
-            
-            agent.store_reward(reward, done)
-            current_ep_reward += reward
-            
-            # PPO Update
-            if time_step % UPDATE_TIMESTEP == 0:
-                agent.update()
-        
-        # --- LOGGING PER EPISODE ---
-        
-        # 1. Scalar Logs (Performance)
-        writer.add_scalar('Reward/Total_Reward', current_ep_reward, i_episode)
-        writer.add_scalar('Performance/Best_Cost', info['best_cost'], i_episode)
-        
-        # 2. Operator Usage (The important part for your Thesis)
-        # Normalize counts to frequencies to see which op is preferred
-        total_actions = info['action_counts'].sum()
-        if total_actions > 0:
-            usage_freq = info['action_counts'] / total_actions
-            # Log as a dictionary of scalars
-            for i, freq in enumerate(usage_freq):
-                writer.add_scalar(f'Operators_Usage/{action_names[i]}', freq, i_episode)
-            
-            # Calculate Success Rate
-            success_rate = np.divide(info['improvement_counts'], info['action_counts'], 
-                                     out=np.zeros_like(info['improvement_counts']), 
-                                     where=info['action_counts']!=0)
-            avg_success = np.mean(success_rate)
-            writer.add_scalar('Operators/Avg_Success_Rate', avg_success, i_episode)
-        else:
-            avg_success = 0
+    env = MultiInstanceEnv(all_instances_data)
+    
+    print(f"--- Created multi-instance environment ({len(all_instances_data)} instances) ---")
+    
+    # --- MODEL SETUP ---
+    model = PPO(
+        policy="MlpPolicy",
+        env=env,
+        learning_rate=3e-04,
+        n_steps=2048,
+        batch_size=64,
+        n_epochs=10,
+        gamma=0.99,
+        gae_lambda=0.95,
+        clip_range=0.2,
+        ent_coef=0.05,  # raised from 0.01 to maintain operator diversity (prevent regret collapse)
+        verbose=1,
+        tensorboard_log=log_dir,
+        device="cpu"
+    )
+    
+    # --- TRAINING ---
+    MAX_TIMESTEPS = 1_000_000
+    CHECKPOINT_FREQ = 50_000
+    
+    print(f"\n--- Starting training for {MAX_TIMESTEPS} timesteps ---\n")
+    
+    model.learn(
+        total_timesteps=MAX_TIMESTEPS,
+        callback=TrainingCallback(save_freq=CHECKPOINT_FREQ, save_path=log_dir),
+        tb_log_name="PPO_VRPTW"
+    )
+    
+    # --- SAVE MODEL ---
+    final_model_path = os.path.join(log_dir, 'ppo_vrptw_final')
+    model.save(final_model_path)
+    print(f"\nTraining complete. Final model saved to {final_model_path}")
 
-        # 3. CSV Log
-        with open(csv_file, 'a', newline='') as f:
-            csv_writer = csv.writer(f)
-            csv_writer.writerow([i_episode, current_instance_name, info['best_cost'], current_ep_reward, step_count, avg_success])
-
-        # 4. Console Print
-        if i_episode % 10 == 0:
-            print(f"Ep {i_episode} | Instance: {current_instance_name} | Best: {info['best_cost']:.2f} | Reward: {current_ep_reward:.2f}")
-
-        # 5. Save Model Checkpoint
-        if i_episode % CHECKPOINT_FREQ == 0:
-            ckpt_path = os.path.join(log_dir, f'drl_checkpoint_{i_episode}.pth')
-            torch.save(agent.policy.state_dict(), ckpt_path)
-            print(f"Saved checkpoint: {ckpt_path}")
-
-    # Final Save
-    final_path = os.path.join(current_dir, 'drlh_vrptw_model.pth')
-    torch.save(agent.policy.state_dict(), final_path)
-    writer.close()
-    print(f"Training Complete. Final model saved to {final_path}")
-
-    # --- GENERATE THESIS PLOT ---
-    plot_output = os.path.join(current_dir, 'training_curve.png') # Saves next to train.py
-    generate_moving_average_plot(csv_file, plot_output, window=100)
 
 if __name__ == "__main__":
-    train_drlh()
+    train_sb3()

@@ -1,30 +1,29 @@
 import folium
 import math
+import re
 import pandas as pd
 import requests
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from utils.feasibility import get_earliest_departure, compute_route_schedule
+
 OSRM_SERVER_URL = "http://localhost:5001"
 
-# Colorblind-friendly, high-contrast colors for up to 15 routes
-ROUTE_COLORS = [
-    '#377eb8',  # Blue
-    '#e41a1c',  # Red
-    '#4daf4a',  # Green
-    '#984ea3',  # Purple
-    '#ff7f00',  # Orange
-    '#ffff33',  # Yellow
-    '#a65628',  # Brown
-    '#f781bf',  # Pink
-    '#999999',  # Grey
-    '#66c2a5',  # Teal
-    '#fc8d62',  # Salmon
-    '#8da0cb',  # Light Blue
-    '#e78ac3',  # Light Pink
-    '#a6d854',  # Light Green
-    '#ffd92f',  # Bright Yellow
-]
+def _generate_route_colors(n):
+    """Generate n visually distinct colors using HSL rotation."""
+    colors = []
+    for i in range(n):
+        hue = (i * 137.508) % 360  # golden angle for good spread
+        sat = 65 + (i % 3) * 10    # vary saturation slightly
+        light = 45 + (i % 2) * 10  # vary lightness slightly
+        # Convert HSL to hex
+        import colorsys
+        r, g, b = colorsys.hls_to_rgb(hue / 360, light / 100, sat / 100)
+        colors.append(f'#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}')
+    return colors
+
+ROUTE_COLORS = _generate_route_colors(72)
 
 
 def get_osrm_route_geometry(waypoints):
@@ -50,28 +49,46 @@ def get_osrm_route_geometry(waypoints):
     return [[coord[1], coord[0]] for coord in geojson_coords]
 
 
-def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, output_file='route_map.html'):
+def plot_solution(solution, customers_df, customer_arrays=None, output_file='route_map.html',
+                  time_matrix_array=None, customer_addr_idx=None, depot_idx=0):
     """
     Plot ALNS solution routes on an interactive Folium map.
 
     Args:
-        solution: Solution object with .routes and .vehicles
-        customers_df: DataFrame from customers.csv
-        geocoded_df: DataFrame from geocoded_addresses.csv (Adresse, Latitude, Longitude)
+        solution: Solution object with .routes, .vehicles, .route_meta
+        customers_df: DataFrame with latitude/longitude columns (new or legacy schema)
         customer_arrays: dict with 'demand', 'tw_start', 'tw_end' arrays (optional, for richer popups)
         output_file: path to save the HTML map
+        time_matrix_array: time matrix for schedule computation (optional)
+        customer_addr_idx: address index array (optional)
+        depot_idx: depot index in matrix (optional)
     """
-    # Address -> (lat, lon) lookup
+    # Build geo_lookup from customers_df
+    # Detect schema: new has 'latitude'/'longitude', legacy uses geocoded_addresses.csv
     geo_lookup = {}
-    for _, row in geocoded_df.iterrows():
-        addr = str(row['Adresse']).strip()
-        lat, lon = row['Latitude'], row['Longitude']
-        if pd.notna(lat) and pd.notna(lon):
-            geo_lookup[addr] = (float(lat), float(lon))
+    if 'latitude' in customers_df.columns:
+        # New schema: lat/lon in customers_df
+        for _, row in customers_df.iterrows():
+            addr = str(row.get('address', '')).strip()
+            if not addr or addr.lower() in ('nan', 'none'):
+                addr = f"cust_{int(row['customer_id'])}"
+            lat, lon = row.get('latitude'), row.get('longitude')
+            if pd.notna(lat) and pd.notna(lon):
+                geo_lookup[addr] = (float(lat), float(lon))
+    else:
+        # Legacy schema: load from geocoded_addresses.csv
+        geocoded_path = 'Case_study/data/geocoded_addresses.csv'
+        if os.path.exists(geocoded_path):
+            geocoded_df = pd.read_csv(geocoded_path)
+            for _, row in geocoded_df.iterrows():
+                addr = str(row['Adresse']).strip()
+                lat, lon = row['Latitude'], row['Longitude']
+                if pd.notna(lat) and pd.notna(lon):
+                    geo_lookup[addr] = (float(lat), float(lon))
 
-    depot_coords = geo_lookup.get('Depot')
-    if depot_coords is None:
-        raise ValueError("Depot not found in geocoded_addresses.csv")
+    # Depot coordinates
+    DEPOT_LAT, DEPOT_LON = 62.4293036, 6.3280543
+    depot_coords = geo_lookup.get('Depot', (DEPOT_LAT, DEPOT_LON))
 
     m = folium.Map(location=list(depot_coords), zoom_start=13, tiles='OpenStreetMap')
 
@@ -91,8 +108,8 @@ def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, out
     fg_hide = folium.FeatureGroup(name="Hide all routes", show=True)
     fg_hide.add_to(m)
 
-    # Pre-pass: track address occurrences to offset overlapping markers
-    addr_occurrence = {}
+    # Pre-pass: track coordinate occurrences to offset overlapping markers
+    coord_occurrence = {}
 
     # Store overlays to control their default visibility
     overlays = []
@@ -102,45 +119,103 @@ def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, out
             continue
 
         active_route_count += 1
-        color = ROUTE_COLORS[i % len(ROUTE_COLORS)]
-        group_name = f"{vehicle} ({len(route)} stops)"
+        color = ROUTE_COLORS[active_route_count % len(ROUTE_COLORS)]
+        meta = solution.route_meta[i] if hasattr(solution, 'route_meta') and solution.route_meta else None
+        if meta:
+            group_name = f"{vehicle} S{meta['shift']}T{meta['trip']} ({len(route)} stops)"
+        else:
+            group_name = f"{vehicle} ({len(route)} stops)"
         fg = folium.FeatureGroup(name=group_name, show=False)  # show=False means not ticked by default
+
+        # Pre-compute schedule for this route if data available
+        arrival_times = {}    # customer_idx -> arrival_time (hours)
+        drive_times = {}      # customer_idx -> drive time from previous stop (minutes)
+        service_times = {}    # customer_idx -> service time (minutes)
+        wait_times = {}       # customer_idx -> wait time at stop (minutes)
+        if time_matrix_array is not None and customer_addr_idx is not None and customer_arrays is not None:
+            earliest_dep = get_earliest_departure(
+                solution, i, time_matrix_array, customer_addr_idx,
+                customer_arrays, depot_idx
+            )
+            lunch_pos = solution.lunch_breaks[i] if hasattr(solution, 'lunch_breaks') else None
+            events = compute_route_schedule(
+                route, time_matrix_array, customer_addr_idx,
+                customer_arrays, depot_idx, earliest_dep, lunch_pos
+            )
+            # Compute drive times from matrix directly
+            for s_idx, cust in enumerate(route):
+                cust_addr = customer_addr_idx[cust - 1]
+                if s_idx == 0:
+                    prev_addr = depot_idx
+                else:
+                    prev_addr = customer_addr_idx[route[s_idx - 1] - 1]
+                drive_times[cust] = time_matrix_array[prev_addr, cust_addr] * 60  # hours -> min
+                service_times[cust] = float(customer_arrays['service_time'][cust - 1]) * 60  # hours -> min
+
+            for ev in events:
+                if ev['event'] == 'arrive' and ev['customer'] is not None:
+                    arrival_times[ev['customer']] = ev['time']
+                    # Extract wait time from event details
+                    wait_match = re.search(r'wait (\d+)min', ev['details'])
+                    if wait_match:
+                        wait_times[ev['customer']] = int(wait_match.group(1))
 
         # Collect waypoints: depot -> customers -> depot
         waypoints = [depot_coords]
 
         for stop_num, c in enumerate(route, start=1):
             row = customers_df.iloc[c - 1]
-            addr = str(row['Adresse']).strip()
+            # Handle both new and legacy schema column names
+            if 'address' in customers_df.columns:
+                addr = str(row.get('address', '')).strip()
+                if not addr or addr.lower() in ('nan', 'none'):
+                    addr = f"cust_{int(row['customer_id'])}"
+                name = row.get('customer_name', '')
+                kundenr = row.get('customer_id', '')
+            else:
+                addr = str(row['Adresse']).strip()
+                name = row.get('Kundenavn', '')
+                kundenr = row.get('Kundenr', '')
+
             base_coords = geo_lookup.get(addr)
             if base_coords is None:
                 continue
 
-            idx = addr_occurrence.get(addr, 0)
-            addr_occurrence[addr] = idx + 1
+            # Use coordinate tuple as key so customers at same location
+            # get offset even if their address strings differ
+            coord_key = (round(base_coords[0], 7), round(base_coords[1], 7))
+            idx = coord_occurrence.get(coord_key, 0)
+            coord_occurrence[coord_key] = idx + 1
             if idx == 0:
                 coords = base_coords
             else:
                 angle = idx * (2 * math.pi / 8)
-                delta = 0.00008  # ~8 metres
+                delta = 0.00015  # ~15 metres offset for better visibility
                 coords = (base_coords[0] + delta * math.cos(angle), base_coords[1] + delta * math.sin(angle))
 
             waypoints.append(base_coords)  # OSRM route uses real address, not offset
 
-            name = row.get('Kundenavn', '')
-            kundenr = row.get('Kundenr', '')
             popup_lines = [
                 f"<b>{name}</b>",
                 f"Kundenr: {kundenr}",
                 f"Address: {addr}",
                 f"Stop: {stop_num}/{len(route)}",
-                f"Vehicle: {vehicle}",
+                f"Vehicle: {group_name}",
             ]
             if customer_arrays is not None:
                 tw_s = customer_arrays['tw_start'][c - 1]
                 tw_e = customer_arrays['tw_end'][c - 1]
                 demand = customer_arrays['demand'][c - 1]
                 popup_lines.append(f"TW: {fmt_time(tw_s)} - {fmt_time(tw_e)}")
+                if c in arrival_times:
+                    popup_lines.append(f"Arrives: {fmt_time(arrival_times[c])}")
+                if c in drive_times:
+                    from_label = "depot" if stop_num == 1 else f"stop {stop_num - 1}"
+                    popup_lines.append(f"Drive from {from_label}: {drive_times[c]:.0f} min")
+                if c in wait_times and wait_times[c] > 0:
+                    popup_lines.append(f"Wait: {wait_times[c]:.0f} min")
+                if c in service_times:
+                    popup_lines.append(f"Service: {service_times[c]:.0f} min")
                 popup_lines.append(f"Demand: {demand:.1f} PPL")
 
             popup_html = '<br>'.join(popup_lines)
@@ -168,13 +243,20 @@ def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, out
         fg_unassigned = folium.FeatureGroup(name=f"Unassigned ({len(solution.routes[dummy_idx])})", show=False)
         for c in solution.routes[dummy_idx]:
             row = customers_df.iloc[c - 1]
-            addr = str(row['Adresse']).strip()
+            if 'address' in customers_df.columns:
+                addr = str(row.get('address', '')).strip()
+                if not addr or addr.lower() in ('nan', 'none'):
+                    addr = f"cust_{int(row['customer_id'])}"
+                name = row.get('customer_name', '')
+                kundenr = row.get('customer_id', '')
+            else:
+                addr = str(row['Adresse']).strip()
+                name = row.get('Kundenavn', '')
+                kundenr = row.get('Kundenr', '')
             coords = geo_lookup.get(addr)
             if coords is None:
                 continue
 
-            name = row.get('Kundenavn', '')
-            kundenr = row.get('Kundenr', '')
             popup_html = f"<b>{name}</b><br>Kundenr: {kundenr}<br>{addr}<br><i>UNASSIGNED</i>"
 
             folium.CircleMarker(
@@ -199,7 +281,8 @@ def plot_solution(solution, customers_df, geocoded_df, customer_arrays=None, out
     return m
 
 
-def plot_from_alns(solution, output_file='route_map.html'):
+def plot_from_alns(solution, delivery_day='tue', customers_file='Case_study/data/customers.csv',
+                   output_file='route_map.html'):
     """
     Convenience wrapper: loads all data files and plots the solution.
     Call this directly after run_alns() returns.
@@ -212,17 +295,31 @@ def plot_from_alns(solution, output_file='route_map.html'):
 
     from utils.utils import load_vrp_data
 
-    customers_df = pd.read_csv('Case_study/data/customers.csv')
-    geocoded_df = pd.read_csv('Case_study/data/geocoded_addresses.csv')
-    _, _, _, _, _, _, _, customer_arrays = load_vrp_data()
+    customers_df = pd.read_csv(customers_file)
 
-    plot_solution(solution, customers_df, geocoded_df, customer_arrays, output_file)
+    # Filter to delivery day if using new schema
+    if 'delivery_day' in customers_df.columns:
+        customers_df = customers_df[
+            customers_df['delivery_day'].eq(delivery_day)
+        ].reset_index(drop=True)
+
+    _, _, _, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data(
+        delivery_day=delivery_day, customers_file=customers_file)
+
+    plot_solution(solution, customers_df, customer_arrays, output_file,
+                  time_matrix_array=time_matrix_array, customer_addr_idx=addr_idx,
+                  depot_idx=depot_idx)
 
 
 if __name__ == '__main__':
     from alns import run_alns
 
-    print("Running ALNS...")
-    solution = run_alns()
+    customers_file = 'Case_study/data/customers_alesund_sula_tue.csv'
+    day = 'tue'
+    output = 'Case_study/route_map_alns.html'
+
+    print(f"Running ALNS (customers={customers_file}, day={day})...")
+    solution = run_alns(delivery_day=day, customers_file=customers_file)
     print("\nGenerating route map...")
-    plot_from_alns(solution, output_file='Case_study/route_map.html')
+    plot_from_alns(solution, delivery_day=day, customers_file=customers_file,
+                   output_file=output)

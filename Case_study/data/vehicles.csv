@@ -1,6 +1,6 @@
 Navn,PPL total,PPL Frys,m3,Vekt (KG),antall
-small,17.5,5,32.0,14155,1
-medium-small,20.0,5,52.0,10835,4
-medium ,22.0,5,57.0,10075,1
-medium-large,30.0,6,75.5,17725,3
-large,33.0,6,78.5,18600,9
+small,17.5,5,32000.0,14155,1
+medium-small,20.0,5,52000.0,10835,4
+medium ,22.0,5,57000.0,10075,1
+medium-large,30.0,6,75500.0,17725,3
+large,33.0,6,78500.0,18600,9
