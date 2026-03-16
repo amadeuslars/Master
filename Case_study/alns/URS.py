@@ -7,10 +7,20 @@ import random
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.utils import load_vrp_data, generate_initial_solution, evaluate_solution
-from utils.operators import (
-    random_removal, worst_removal, cluster_removal,
-    greedy_insertion, regret_insertion
-)
+try:
+    from utils.operators_cy import (
+        random_removal, worst_removal, cluster_removal,
+        greedy_insertion, regret_insertion,
+    )
+    _USING_CYTHON = True
+except ImportError:
+    from utils.operators import (
+        random_removal, worst_removal, cluster_removal,
+        greedy_insertion, regret_insertion,
+    )
+    _USING_CYTHON = False
+
+print(f"[URS] Backend: {'Cython' if _USING_CYTHON else 'Python'}")
 
 # --- Configuration ---
 MAX_ITERATIONS = 10000
@@ -71,9 +81,9 @@ def build_actions():
 #  MAIN ALNS LOOP (RRT with Uniform Selection)
 # ---------------------------------------------------------
 
-def run_alns_uniform():
-    
-    customers_dict, vehicles_dict, vehicle_names, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data()
+def run_alns_uniform(delivery_day='tue', customers_file='Case_study/data/customers.csv'):
+
+    customers_dict, vehicles_dict, vehicle_names, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data(delivery_day=delivery_day, customers_file=customers_file)
 
     real_vehicle_indices = [i for i, name in enumerate(vehicle_names) if name != 'dummy']
     # Sort by PPL total (descending)
@@ -181,4 +191,4 @@ def run_alns_uniform():
     return best_sol
 
 if __name__ == "__main__":
-    sol = run_alns_uniform()
+    sol = run_alns_uniform(delivery_day='tue', customers_file='Case_study/data/customers_alesund_sula_tue.csv')
