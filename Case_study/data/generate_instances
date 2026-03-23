@@ -1,0 +1,103 @@
+import pandas as pd
+import numpy as np
+import os
+from datetime import timedelta
+
+def jitter_time_windows(time_str, shift_minutes):
+    """Parses HH:MM, applies a shift in minutes, and returns clipped HH:MM."""
+    if pd.isna(time_str):
+        return time_str
+        
+    try:
+        h, m = map(int, str(time_str).split(':'))
+        total_mins = h * 60 + m + shift_minutes
+        
+        # Clip to valid day hours (00:00 to 23:59)
+        total_mins = max(0, min(1439, total_mins))
+        
+        new_h = int(total_mins // 60)
+        new_m = int(total_mins % 60)
+        return f"{new_h:02d}:{new_m:02d}"
+    except Exception:
+        return time_str # Fallback for malformed strings
+
+def generate_synthetic_instances(input_csv, output_dir, num_instances=1000, target_day='fri'):
+    """
+    Generates realistic VRPTW instances based on a real-world master dataset.
+    """
+    print(f"--- Loading real-world data from {input_csv} ---")
+    df_master = pd.read_csv(input_csv)
+    
+    # Filter for a specific delivery day (e.g., 'fri') to simulate single-day routing
+    df_day = df_master[df_master['delivery_day'].str.lower() == target_day.lower()].copy()
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    print(f"--- Generating {num_instances} synthetic instances for '{target_day}' ---")
+    
+    for i in range(num_instances):
+        # 1. Sub-sampling: Keep between 75% and 100% of customers to simulate daily order variance
+        drop_fraction = np.random.uniform(0.0, 0.25)
+        df_synth = df_day.sample(frac=(1.0 - drop_fraction)).copy()
+        
+        n_customers = len(df_synth)
+        
+        # 2. Demand Perturbation: Scale volume, weight, and pallets by +/- 20%
+        demand_noise = np.random.uniform(0.8, 1.2, size=n_customers)
+        df_synth['ppl'] = (df_synth['ppl'] * demand_noise).clip(lower=0).round(2)
+        df_synth['volume_m3'] = (df_synth['volume_m3'] * demand_noise).clip(lower=0).round(2)
+        df_synth['weight_kg'] = (df_synth['weight_kg'] * demand_noise).clip(lower=0).round(2)
+        
+        # Service time variation: +/- 15%
+        service_noise = np.random.uniform(0.85, 1.15, size=n_customers)
+        df_synth['service_time_min'] = (df_synth['service_time_min'] * service_noise).clip(lower=1.0).round(1)
+
+        # 3. Coordinate Jittering: Add tiny Gaussian noise to Lat/Lon
+        # 0.0005 degrees latitude is approx 55 meters. This prevents exact map memorization.
+        df_synth['latitude'] += np.random.normal(0, 0.0005, size=n_customers)
+        df_synth['longitude'] += np.random.normal(0, 0.0005, size=n_customers)
+
+        # 4. Time Window Shifting: Shift start and end times by independent noise
+        # Shift start time by up to +/- 20 mins
+        tw_start_shifts = np.random.normal(0, 10, size=n_customers).astype(int) 
+        # Shift end time by up to +/- 20 mins
+        tw_end_shifts = np.random.normal(0, 10, size=n_customers).astype(int)
+        
+        df_synth['tw_start'] = [jitter_time_windows(tw, shift) for tw, shift in zip(df_synth['tw_start'], tw_start_shifts)]
+        df_synth['tw_end'] = [jitter_time_windows(tw, shift) for tw, shift in zip(df_synth['tw_end'], tw_end_shifts)]
+        
+        # Fallback to ensure tw_start < tw_end after jittering
+        # If jitter caused them to cross, revert to original for that specific row
+        invalid_tw_mask = df_synth['tw_start'] >= df_synth['tw_end']
+        df_synth.loc[invalid_tw_mask, 'tw_start'] = df_day.loc[df_synth[invalid_tw_mask].index, 'tw_start']
+        df_synth.loc[invalid_tw_mask, 'tw_end'] = df_day.loc[df_synth[invalid_tw_mask].index, 'tw_end']
+
+        # Save to file
+        output_filename = os.path.join(output_dir, f"instance_{target_day}_{i+1:04d}.csv")
+        df_synth.to_csv(output_filename, index=False)
+        
+        if (i + 1) % 100 == 0:
+            print(f"Generated {i + 1} / {num_instances} instances...")
+
+    print(f"--- Successfully generated {num_instances} instances in '{output_dir}/' ---")
+
+if __name__ == "__main__":
+    # Update this path to where your real-world CSV is located
+    REAL_WORLD_DATA_CSV = "customers.csv" # Update to your full dataset name
+    OUTPUT_DIRECTORY = "synthetic_instances"
+    
+    # The days present in your dataset
+    delivery_days = ['mon', 'tue', 'wed', 'thu', 'fri']
+    
+    total_instances = 1000
+    instances_per_day = total_instances // len(delivery_days)
+    
+    for day in delivery_days:
+        generate_synthetic_instances(
+            input_csv=REAL_WORLD_DATA_CSV,
+            output_dir=OUTPUT_DIRECTORY,
+            num_instances=instances_per_day,
+            target_day=day 
+        )
+        
+    print(f"\nFinished generating all {total_instances} mixed instances!")
