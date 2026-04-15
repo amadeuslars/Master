@@ -18,6 +18,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from stable_baselines3 import PPO
+import torch
 
 # Path setup
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -422,9 +423,33 @@ def solve_case_study(customers_file=CUSTOMERS_FILE, delivery_day=DELIVERY_DAY,
     bucket_names = ['xs(2-5)', 'sm(5-10)', 'md(10-20)', 'lg(20-30)', 'xl(30-40)']
     repair_names = ['greedy', 'regret']
 
+    # Build action labels
+    action_labels = []
+    for d in ['random', 'worst', 'cluster']:
+        for s in ['xs', 'sm', 'md', 'lg', 'xl']:
+            for r in ['greedy', 'regret']:
+                action_labels.append(f"{d}_{s}_{r}")
+
+    # History logging
+    history = {
+        'iterations': [],
+        'actions': [],
+        'costs': [],
+        'policy_probs': [],
+        'algorithm': 'DRLH',
+        'action_labels': action_labels,
+    }
+
     t0 = time.perf_counter()
     while not done:
         step += 1
+
+        # Extract policy probabilities before predict
+        obs_tensor = torch.as_tensor(obs).float().unsqueeze(0).to(model.policy.device)
+        with torch.no_grad():
+            dist = model.policy.get_distribution(obs_tensor)
+            probs = dist.distribution.probs.cpu().numpy()[0]  # shape (30,)
+
         action, _ = model.predict(obs, deterministic=True)
 
         d_idx, s_idx, r_idx = decode_action(action)
@@ -432,6 +457,13 @@ def solve_case_study(customers_file=CUSTOMERS_FILE, delivery_day=DELIVERY_DAY,
         done = terminated or truncated
 
         current_best = env.best_sol.cost
+
+        # Log history
+        history['iterations'].append(step - 1)
+        history['actions'].append(int(action))
+        history['costs'].append(current_best)
+        history['policy_probs'].append(probs.copy())
+
         if current_best < prev_best:
             improvement = prev_best - current_best
             assigned = sum(
@@ -505,8 +537,13 @@ def solve_case_study(customers_file=CUSTOMERS_FILE, delivery_day=DELIVERY_DAY,
         unassigned_kundenr = [int(cids[c - 1]) for c in best_sol.routes[-1]]
         print(f"\n  Unassigned ({num_unassigned}): {unassigned_kundenr}")
 
-    return best_sol
+    # Convert history to numpy arrays
+    history['policy_probs'] = np.array(history['policy_probs'])
+    history['actions'] = np.array(history['actions'])
+    history['costs'] = np.array(history['costs'])
+
+    return best_sol, history
 
 
 if __name__ == '__main__':
-    solve_case_study()
+    sol, history = solve_case_study()

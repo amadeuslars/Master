@@ -171,7 +171,7 @@ def check_hig_feasibility(sol, customers_dict, vehicles_dict, time_matrix_array,
         # --- 2. Capacity violations (against largest vehicle) ---
         if not check_capacity_feasibility(route, largest_vehicle, vehicles_dict, customer_arrays):
             idx = np.array([c - 1 for c in route], dtype=np.int32)
-            total_ppl = float(customer_arrays['pallets'][idx].sum())
+            total_ppl = float(customer_arrays['demand'][idx].sum())
             total_frys = float(customer_arrays['frys'][idx].sum())
             total_vol = float(customer_arrays['volume_m3'][idx].sum())
             total_wt = float(customer_arrays['weight_kg'][idx].sum())

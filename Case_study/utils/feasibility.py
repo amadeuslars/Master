@@ -126,7 +126,7 @@ def check_capacity_feasibility(route_indices, vehicle_name, vehicles_dict, custo
         ppl_tol = 1/3 - 1e-6  # under 1/3 pallet overshoot is rounding noise
         tol = 1e-6             # float tolerance for volume/weight
 
-        if float(customer_arrays['pallets'][idx].sum()) > cap['PPL total'] + ppl_tol: return False
+        if float(customer_arrays['demand'][idx].sum()) > cap['PPL total'] + ppl_tol: return False
         if float(customer_arrays['frys'][idx].sum()) > cap['PPL Frys'] + ppl_tol: return False
         if float(customer_arrays['volume_m3'][idx].sum()) > cap['m3'] + tol: return False
         if float(customer_arrays['weight_kg'][idx].sum()) > cap['Vekt (KG)'] + tol: return False

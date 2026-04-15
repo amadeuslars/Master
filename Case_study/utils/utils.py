@@ -11,6 +11,10 @@ from utils.cost import calculate_route_cost
 # Multi-trip constants
 SHIFT_WINDOWS = {1: (6.0, 14.0), 2: (15.0, 23.0)}
 
+# Extended 10h shifts for dedicated long-haul vehicles
+EXTENDED_SHIFT_WINDOWS = {1: (6.0, 16.0), 2: (13.0, 23.0)}
+EXTENDED_SHIFT_VEHICLES = {'large-henger-stor'}
+
 
 class Solution:
     def __init__(self, routes, vehicles, unassigned=None, route_meta=None):
@@ -63,18 +67,17 @@ def load_vrp_data(delivery_day='tue',
 
 
 def _load_new_schema(customers_df, vehicles_df, delivery_day):
-    """Load from the new unified customers.csv with per-day matrices."""
-    # Filter customers by delivery day
-    customers_df = customers_df[
-        customers_df['delivery_day'].eq(delivery_day)
-    ].reset_index(drop=True)
+    """Load from the new unified customers.csv with master matrix."""
+    # Filter customers by delivery day (if column exists)
+    if 'delivery_day' in customers_df.columns:
+        customers_df = customers_df[
+            customers_df['delivery_day'].eq(delivery_day)
+        ].reset_index(drop=True)
+        if len(customers_df) == 0:
+            raise ValueError(f"No customers found for delivery day '{delivery_day}'")
 
-    num_customers = len(customers_df)
-    if num_customers == 0:
-        raise ValueError(f"No customers found for delivery day '{delivery_day}'")
-
-    # Load per-day matrices
-    matrix_dir = f'Case_study/data/matrices/{delivery_day}'
+    # Load master matrix
+    matrix_dir = 'Case_study/data/matrices/master'
     time_matrix_file = os.path.join(matrix_dir, 'time_matrix.csv')
     dist_matrix_file = os.path.join(matrix_dir, 'distance_matrix.csv')
 
@@ -176,8 +179,8 @@ def _load_new_schema(customers_df, vehicles_df, delivery_day):
 
     service_minutes = customers_df['service_time_min'].fillna(20.0).to_numpy(np.float64)
 
-    tw_start_arr = customers_df['tw_start'].apply(time_str_to_hours).to_numpy(np.float64)
-    tw_end_arr = customers_df['tw_end'].apply(time_str_to_hours).to_numpy(np.float64)
+    tw_start_arr = customers_df['tw_start'].apply(time_str_to_hours).to_numpy(np.float64).copy()
+    tw_end_arr = customers_df['tw_end'].apply(time_str_to_hours).to_numpy(np.float64).copy()
 
     # Clamp time windows that barely overshoot shift-1 end:
     # Only clamp if tw_end extends past shift-1 end by a small margin (<= 30 min)
@@ -198,7 +201,6 @@ def _load_new_schema(customers_df, vehicles_df, delivery_day):
         'tw_start': tw_start_arr,
         'tw_end': tw_end_arr,
         'service_time': service_minutes / 60.0,  # convert to hours
-        'pallets': customers_df['ppl'].fillna(0.0).to_numpy(np.float64),
         'frys': customers_df['ppl_freeze'].fillna(0.0).to_numpy(np.float64),
         'volume_m3': customers_df['volume_m3'].fillna(0.0).to_numpy(np.float64),
         'weight_kg': customers_df['weight_kg'].fillna(0.0).to_numpy(np.float64),
@@ -258,7 +260,6 @@ def _load_legacy_schema(customers_df, vehicles_df):
         'tw_start': customers_df['Leveringstid kunde fra'].apply(time_str_to_hours).fillna(0.0).to_numpy(np.float64),
         'tw_end': customers_df['Leveringstid kunde til'].apply(time_str_to_hours).fillna(24.0).to_numpy(np.float64),
         'service_time': np.full(num_customers, 0.5, dtype=np.float64),
-        'pallets': customers_df['PPL pr leveranse'].fillna(0.0).to_numpy(np.float64),
         'frys': customers_df['PPL hvorav frys'].fillna(0.0).to_numpy(np.float64),
         'volume_m3': customers_df['Volum pr leveranse (m3)'].fillna(0.0).to_numpy(np.float64),
         'weight_kg': customers_df['Vekt pr leveranse (tonn)'].fillna(0.0).to_numpy(np.float64) * 1000,
@@ -296,8 +297,11 @@ def generate_initial_solution(customers_dict, vehicle_names=None):
     route_meta = []
 
     for v_idx, v_name in enumerate(real_names):
-        for shift in [1, 2]:
-            shift_start, shift_end = SHIFT_WINDOWS[shift]
+        is_extended = v_name in EXTENDED_SHIFT_VEHICLES
+        sw = EXTENDED_SHIFT_WINDOWS if is_extended else SHIFT_WINDOWS
+        shifts = [1] if is_extended else [1, 2]  # Extended vehicles: single 10h shift only
+        for shift in shifts:
+            shift_start, shift_end = sw[shift]
             for trip in [1, 2]:
                 routes.append([])
                 vehicles.append(v_name)

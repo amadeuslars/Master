@@ -7,6 +7,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
+import torch
 import time
 
 # --- PATH SETUP ---
@@ -18,12 +19,12 @@ from Benchmark.drl.env import VRPTWEnv
 from Benchmark.utils.utils import load_raw_solomon_data
 
 # Configuration
-MAX_ITERATIONS = 25000
+MAX_ITERATIONS = 10000
 
-def solve_with_sb3(instance_path, model_path):
+def solve_with_sb3(instance_path, model_path, deterministic=True):
     """
     Solve a VRPTW instance using a trained SB3 model.
-    
+
     Args:
         instance_path: Path to instance .txt file
         model_path: Path to saved model (.zip file)
@@ -48,7 +49,7 @@ def solve_with_sb3(instance_path, model_path):
     
     # Load trained model
     print(f"--- Loading model: {model_path} ---")
-    model = PPO.load(model_path, env=env, deterministic = True)
+    model = PPO.load(model_path, env=env)
     
     # Run episode with tracking
     print("--- Solving with trained agent ---")
@@ -56,36 +57,59 @@ def solve_with_sb3(instance_path, model_path):
     done = False
     step = 0
     prev_best = env.best_sol._cost
+    best_found_at = 0
     print(f"  Initial solution: {prev_best:.2f}")
-    
-    # Tracking arrays
-    cost_history = []
-    action_history = []
 
     # Decode action to operator info
-    # Action space: 20 actions = 2 destroy ops × 5 sizes × 2 repair ops
     destroy_ops = ['random', 'worst', 'cluster']
     buckets = ['xs(2-5)', 'sm(5-10)', 'md(10-20)', 'lg(20-30)', 'xl(30-40)']
     repair_ops = ['greedy', 'regret']
 
+    # Build action labels
+    action_labels = []
+    for d in ['random', 'worst', 'cluster']:
+        for s in ['xs', 'sm', 'md', 'lg', 'xl']:
+            for r in ['greedy', 'regret']:
+                action_labels.append(f"{d}_{s}_{r}")
+
+    # History logging
+    history = {
+        'iterations': [],
+        'actions': [],
+        'costs': [],
+        'policy_probs': [],
+        'algorithm': 'DRLH',
+        'action_labels': action_labels,
+    }
+
     while not done:
         step += 1
-        action, _states = model.predict(obs)
+
+        # Extract policy probabilities before predict
+        obs_tensor = torch.as_tensor(obs).float().unsqueeze(0).to(model.policy.device)
+        with torch.no_grad():
+            dist = model.policy.get_distribution(obs_tensor)
+            probs = dist.distribution.probs.cpu().numpy()[0]  # shape (30,)
+
+        action, _states = model.predict(obs, deterministic=deterministic)
 
         # Decode action (MUST match env.py / actions.py exactly)
         repair_idx = action % 2
         bucket_idx = (action // 2) % 5
         destroy_op_idx = action // 10
-        
-        action_history.append(action)
-        
+
         obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
-        
+
         # Track cost
         current_best = env.best_sol._cost
-        cost_history.append(current_best)
-        
+
+        # Log history
+        history['iterations'].append(step - 1)
+        history['actions'].append(int(action))
+        history['costs'].append(current_best)
+        history['policy_probs'].append(probs.copy())
+
         # Check if new best found
         if current_best < prev_best:
             improvement = prev_best - current_best
@@ -93,7 +117,7 @@ def solve_with_sb3(instance_path, model_path):
                   f"[{destroy_ops[destroy_op_idx]}|{buckets[bucket_idx]}|{repair_ops[repair_idx]}]")
             prev_best = current_best
             best_found_at = step
-        
+
         # Progress update every 100 steps
         if step % 100 == 0:
             print(f"  [Step {step}] Current best: {current_best:.2f}")
@@ -116,11 +140,12 @@ def solve_with_sb3(instance_path, model_path):
     print(f"\nVehicles Used: {vehicle_count}")
     print("="*50)
     
-    # Create plots
-    # plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops, 
-    #              os.path.basename(instance_path))
-    
-    return env.best_sol._cost, env.best_sol, best_found_at
+    # Convert history to numpy arrays
+    history['policy_probs'] = np.array(history['policy_probs'])
+    history['actions'] = np.array(history['actions'])
+    history['costs'] = np.array(history['costs'])
+
+    return env.best_sol._cost, env.best_sol, best_found_at, history
 
 
 def plot_results(action_history, cost_history, destroy_ops, buckets, repair_ops, instance_name):
@@ -221,21 +246,24 @@ if __name__ == "__main__":
     import glob
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     NUM_RUNS = 10
-    ALGORITHM = "DRLH"
+    DETERMINISTIC = False
+    ALGORITHM = "DRLH_stochastic" if not DETERMINISTIC else "DRLH"
     MODEL = os.path.join(project_root, 'logs', '5310_all_files_agent', 'ppo_vrptw_final.zip')
 
-    INSTANCE_DIR = os.path.join(project_root, 'Benchmark', 'data', 'continue')
+    INSTANCE_DIR = os.path.join(project_root, 'Benchmark', 'data', 'homberger_600')
 
     INSTANCES = sorted(glob.glob(os.path.join(INSTANCE_DIR, '*.TXT')) +
                        glob.glob(os.path.join(INSTANCE_DIR, '*.txt')))
     INSTANCES = [f for f in INSTANCES if os.path.basename(f).upper().startswith(('C1', 'R1', 'RC1'))]
 
-
-
     # Get the last part of the instance directory (e.g., 'homberger_600')
     instance_dir_name = os.path.basename(INSTANCE_DIR.rstrip('/'))
-    output_csv = os.path.join(project_root, 'logs', f'drlh_results_{instance_dir_name}_{MAX_ITERATIONS}iter_5310_all.csv')
+    det_suffix = '' if DETERMINISTIC else '_stochastic'
+    output_csv = os.path.join(project_root, 'logs', f'drlh_results_{instance_dir_name}_{MAX_ITERATIONS}iter_5310_all{det_suffix}.csv')
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
+
+    print(f"Deterministic: {DETERMINISTIC}")
+    print(f"Output: {output_csv}")
 
     with open(output_csv, 'w', newline='') as f:
         writer = csv.writer(f)
@@ -250,7 +278,7 @@ if __name__ == "__main__":
             for run in range(1, NUM_RUNS + 1):
                 print(f"\n--- Run {run}/{NUM_RUNS} ---")
                 start = time.perf_counter()
-                cost, _, best_iter = solve_with_sb3(instance_path, MODEL)
+                cost, _, best_iter, _ = solve_with_sb3(instance_path, MODEL, deterministic=DETERMINISTIC)
                 elapsed = time.perf_counter() - start
                 print(f"Elapsed time: {elapsed:.3f}s")
                 writer.writerow([ALGORITHM, instance_name, run, f"{cost:.2f}", best_iter])

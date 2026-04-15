@@ -57,7 +57,16 @@ def run_alns(instance_file):
     print(f"Initial Cost: {current_sol._cost:.2f}")
 
     print(f"Starting Main Loop (RRT Strategy). Start Deviation: {RRT_START_PERCENTAGE*100}%")
-    
+
+    # History logging
+    history = {
+        'iterations': [],
+        'actions': [],
+        'costs': [],
+        'action_weights': [],
+        'algorithm': 'RRT',
+    }
+
     for it in range(MAX_ITERATIONS):
 
         # Select composite action using roulette wheel
@@ -113,9 +122,21 @@ def run_alns(instance_file):
 
         # Update action weight based on performance (roulette wheel)
         action_weights[action_idx] = WEIGHT_DECAY * action_weights[action_idx] + (1 - WEIGHT_DECAY) * reward
-            
+
+        # Log history
+        history['iterations'].append(it)
+        history['actions'].append(int(action_idx))
+        history['costs'].append(best_sol._cost)
+        history['action_weights'].append(action_weights.copy())
+
         if (it + 1) % SEGMENT_SIZE == 0:
             print(f"--- Iter {it+1} | Threshold: +{threshold_value:.2f} | Best: {best_sol._cost:.2f} | Cur: {current_sol._cost:.2f} ---")
+
+    # Convert history to numpy arrays
+    history['action_weights'] = np.array(history['action_weights'])
+    history['actions'] = np.array(history['actions'])
+    history['costs'] = np.array(history['costs'])
+    history['action_labels'] = [a[2] for a in actions]  # label strings
 
     print("\n" + "="*40)
     print("FINAL RESULTS")
@@ -129,7 +150,7 @@ def run_alns(instance_file):
             load = sum(cust_arrays['demand'][c-1] for c in r)
             print(f"V{i+1}: {r} | Load: {load}")
 
-    return best_sol._cost, best_found_at
+    return best_sol._cost, best_found_at, history
 
 if __name__ == "__main__":
     import glob
@@ -161,7 +182,7 @@ if __name__ == "__main__":
             for run in range(1, NUM_RUNS + 1):
                 print(f"\n--- Run {run}/{NUM_RUNS} ---")
                 start = time.perf_counter()
-                cost, best_iter = run_alns(instance_path)
+                cost, best_iter, _ = run_alns(instance_path)
                 elapsed = time.perf_counter() - start
                 print(f"Elapsed time: {elapsed:.3f}s")
                 writer.writerow([ALGORITHM, instance_name, run, f"{cost:.2f}", best_iter])

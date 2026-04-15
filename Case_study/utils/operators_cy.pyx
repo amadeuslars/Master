@@ -260,7 +260,7 @@ cdef bint c_simulate_with_break(list route, int route_len, int break_pos,
 
 
 cdef bint c_check_capacity(list route, int route_len, int new_cust,
-                            double[:] pallets, double[:] frys,
+                            double[:] demand, double[:] frys,
                             double[:] vol, double[:] weight,
                             double cap_ppl, double cap_frys,
                             double cap_vol, double cap_wt):
@@ -272,14 +272,14 @@ cdef bint c_check_capacity(list route, int route_len, int new_cust,
 
     for i in range(route_len):
         c = <int>route[i] - 1
-        sum_ppl += pallets[c]
+        sum_ppl += demand[c]
         sum_frys += frys[c]
         sum_vol += vol[c]
         sum_wt += weight[c]
 
     if new_cust > 0:
         c = new_cust - 1
-        sum_ppl += pallets[c]
+        sum_ppl += demand[c]
         sum_frys += frys[c]
         sum_vol += vol[c]
         sum_wt += weight[c]
@@ -865,14 +865,15 @@ def greedy_insertion(solution,
     new_sol = solution.copy()
     cdef list unassigned = list(new_sol.routes[len(new_sol.routes) - 1])
     new_sol.routes[len(new_sol.routes) - 1] = []
-    py_random.shuffle(unassigned)
+    # Sort by distance to depot (farthest first) so remote customers get priority
+    unassigned.sort(key=lambda c: time_matrix_array[depot_idx, customer_addr_idx[c - 1]], reverse=True)
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
     # Pre-extract typed memoryviews
     cdef double[:] tw_start = customer_arrays['tw_start']
     cdef double[:] tw_end = customer_arrays['tw_end']
     cdef double[:] service_time = customer_arrays['service_time']
-    cdef double[:] pallets = customer_arrays['pallets']
+    cdef double[:] demand_arr = customer_arrays['demand']
     cdef double[:] frys_arr = customer_arrays['frys']
     cdef double[:] vol_arr = customer_arrays['volume_m3']
     cdef double[:] wt_arr = customer_arrays['weight_kg']
@@ -900,7 +901,7 @@ def greedy_insertion(solution,
                                     tw_start, tw_end, service_time, depot_idx)
             unassigned.extend(new_sol.routes[len(new_sol.routes) - 1])
             new_sol.routes[len(new_sol.routes) - 1] = []
-            py_random.shuffle(unassigned)
+            unassigned.sort(key=lambda c: time_matrix_array[depot_idx, customer_addr_idx[c - 1]], reverse=True)
 
         still_unassigned = []
         for cust in unassigned:
@@ -928,7 +929,7 @@ def greedy_insertion(solution,
                 veh_ppl = cap_ppl
 
                 # Capacity check
-                if not c_check_capacity(route, route_len, cust, pallets, frys_arr,
+                if not c_check_capacity(route, route_len, cust, demand_arr, frys_arr,
                                          vol_arr, wt_arr, cap_ppl, cap_frys, cap_vol, cap_wt):
                     continue
 
@@ -1051,7 +1052,7 @@ def regret_insertion(solution,
     cdef double[:] tw_start = customer_arrays['tw_start']
     cdef double[:] tw_end = customer_arrays['tw_end']
     cdef double[:] service_time = customer_arrays['service_time']
-    cdef double[:] pallets = customer_arrays['pallets']
+    cdef double[:] demand_arr = customer_arrays['demand']
     cdef double[:] frys_arr = customer_arrays['frys']
     cdef double[:] vol_arr = customer_arrays['volume_m3']
     cdef double[:] wt_arr = customer_arrays['weight_kg']
@@ -1106,7 +1107,7 @@ def regret_insertion(solution,
                     cap_wt = cap['Vekt (KG)']
                     veh_ppl = cap_ppl
 
-                    if not c_check_capacity(route, route_len, cust, pallets, frys_arr,
+                    if not c_check_capacity(route, route_len, cust, demand_arr, frys_arr,
                                              vol_arr, wt_arr, cap_ppl, cap_frys, cap_vol, cap_wt):
                         continue
                     if not c_check_biltype(route, route_len, cust, biltype_arr,

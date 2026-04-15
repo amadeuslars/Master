@@ -222,12 +222,19 @@ def _validate_trip2_routes(solution, time_matrix_array, customer_addr_idx,
 #  OPERATORS (Repair) — shift-aware for multi-trip
 # ---------------------------------------------------------
 
+def _sort_by_depot_distance(unassigned, time_matrix_array, customer_addr_idx, depot_idx):
+    """Sort unassigned customers by distance to depot (farthest first)."""
+    return sorted(unassigned,
+                  key=lambda c: time_matrix_array[depot_idx, customer_addr_idx[c - 1]],
+                  reverse=True)
+
+
 def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
     """Greedy insertion with two-phase approach: trip-1 first, then trip-2."""
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
-    random.shuffle(unassigned)
+    unassigned = _sort_by_depot_distance(unassigned, time_matrix_array, customer_addr_idx, depot_idx)
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
     for phase_trip in (1, 2):
@@ -237,7 +244,7 @@ def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                                    customer_arrays, depot_idx)
             unassigned.extend(new_sol.routes[-1])
             new_sol.routes[-1] = []
-            random.shuffle(unassigned)
+            unassigned = _sort_by_depot_distance(unassigned, time_matrix_array, customer_addr_idx, depot_idx)
 
         still_unassigned = []
         for cust in unassigned:
