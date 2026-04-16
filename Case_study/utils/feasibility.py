@@ -24,7 +24,7 @@ def get_earliest_departure(solution, r_idx, time_matrix_array, customer_addr_idx
     """
     Get the earliest time loading can start for this trip slot.
     For trip 1: shift_start.
-    For trip 2: end of trip 1 (return + deload) in same vehicle+shift.
+    For trip N>1: end of trip N-1 (return + deload) on same vehicle.
     """
     meta = solution.route_meta[r_idx]
     if meta is None:
@@ -33,20 +33,24 @@ def get_earliest_departure(solution, r_idx, time_matrix_array, customer_addr_idx
     if meta['trip'] == 1:
         return meta['shift_start']
 
-    # Trip 2: find trip 1 in same vehicle+shift (always the preceding slot)
-    trip1_idx = r_idx - 1
-    trip1_meta = solution.route_meta[trip1_idx]
-    if (trip1_meta is not None and
-            trip1_meta['vehicle_idx'] == meta['vehicle_idx'] and
-            trip1_meta['shift'] == meta['shift'] and
-            trip1_meta['trip'] == 1):
-        trip1_route = solution.routes[trip1_idx]
-        if not trip1_route:
-            return meta['shift_start']
-        lunch_pos = solution.lunch_breaks[trip1_idx] if hasattr(solution, 'lunch_breaks') else None
+    # Trip N>1: find previous trip on same vehicle (always the preceding slot)
+    prev_idx = r_idx - 1
+    prev_meta = solution.route_meta[prev_idx]
+    if (prev_meta is not None and
+            prev_meta['vehicle_idx'] == meta['vehicle_idx'] and
+            prev_meta['trip'] == meta['trip'] - 1):
+        prev_route = solution.routes[prev_idx]
+        if not prev_route:
+            # Previous trip empty — recurse to find latest non-empty trip
+            return get_earliest_departure(solution, prev_idx, time_matrix_array,
+                                          customer_addr_idx, customer_arrays, depot_idx)
+        # Compute when previous trip's loading started
+        prev_departure = get_earliest_departure(solution, prev_idx, time_matrix_array,
+                                                customer_addr_idx, customer_arrays, depot_idx)
+        lunch_pos = solution.lunch_breaks[prev_idx] if hasattr(solution, 'lunch_breaks') else None
         return_time = compute_trip_return_time(
-            trip1_route, time_matrix_array, customer_addr_idx,
-            customer_arrays, depot_idx, meta['shift_start'],
+            prev_route, time_matrix_array, customer_addr_idx,
+            customer_arrays, depot_idx, prev_departure,
             lunch_pos=lunch_pos
         )
         return return_time + DELOADING_TIME
@@ -89,23 +93,32 @@ def compute_trip_return_time(route, time_matrix_array, customer_addr_idx,
 def check_shift_feasibility(route, time_matrix_array, customer_addr_idx,
                             customer_arrays, depot_idx, earliest_departure,
                             shift_end, lunch_duration=0.0, debug=False):
-    """
-    Check that the trip (load + deliver + return + deload + lunch) fits within the shift.
-    Pass lunch_duration=LUNCH_DURATION for trip-1 routes to account for mandatory lunch.
-    """
+    """Legacy shift check — kept for backward compatibility."""
     if not route:
         return True
-
     return_time = compute_trip_return_time(
         route, time_matrix_array, customer_addr_idx,
         customer_arrays, depot_idx, earliest_departure
     )
     end_time = return_time + DELOADING_TIME + lunch_duration
+    return end_time <= shift_end + 0.01
 
-    if debug:
-        print(f"Shift check: return={return_time:.2f}h + deload={DELOADING_TIME}h + lunch={lunch_duration}h = {end_time:.2f}h (shift_end={shift_end}h)")
 
-    return end_time <= shift_end + 0.01  # small tolerance
+def check_trip_duration_feasibility(route, time_matrix_array, customer_addr_idx,
+                                    customer_arrays, depot_idx, earliest_departure,
+                                    max_trip_hours, lunch_duration=0.0):
+    """
+    Check that a single trip fits within the max trip duration.
+    Trip duration = (return + deload + lunch) - earliest_departure.
+    """
+    if not route:
+        return True
+    return_time = compute_trip_return_time(
+        route, time_matrix_array, customer_addr_idx,
+        customer_arrays, depot_idx, earliest_departure
+    )
+    trip_end = return_time + DELOADING_TIME + lunch_duration
+    return trip_end <= earliest_departure + max_trip_hours + 0.01
 
 
 # ---------------------------------------------------------
@@ -198,7 +211,7 @@ def check_max_route_duration(route_indices, customer_addr_idx, time_matrix_array
     Check that total route duration does not exceed max_hours.
     Total duration = loading + driving (depot->customers->depot) + service + lunch + deloading.
     All times in hours. Time matrix must already be in hours.
-    NOTE: Kept for backward compatibility. Multi-trip uses check_shift_feasibility instead.
+    NOTE: Kept for backward compatibility. Multi-trip uses check_trip_duration_feasibility.
     """
     if not route_indices:
         return True
@@ -398,11 +411,11 @@ def check_vehicle_store_compatibility(route_indices, vehicle_name, vehicles_dict
 def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
                              customer_arrays, depot_idx, verbose=False):
     """
-    Safety-net pass: check every non-dummy route for shift feasibility using
-    the ACTUAL lunch position.  If a route overflows, remove customers from the
-    end (one at a time) until it fits.  Removed customers go to the dummy route.
+    Safety-net pass: check every non-dummy route for max trip duration using
+    the ACTUAL lunch position. If a route overflows, remove customers from the
+    end (one at a time) until it fits. Removed customers go to the dummy route.
 
-    Call this after every repair operator to guarantee no shift violations.
+    Call this after every repair operator to guarantee trip duration feasibility.
     Returns the number of customers moved to dummy.
     """
     moved = 0
@@ -414,7 +427,7 @@ def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
         if meta is None:
             continue
 
-        shift_end = meta['shift_end']
+        max_trip_h = meta.get('max_trip_hours', 8.0)
         is_trip1 = meta['trip'] == 1
 
         earliest_dep = get_earliest_departure(
@@ -433,13 +446,13 @@ def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
         )
         end_time = return_time + DELOADING_TIME
 
-        while route and end_time > shift_end + 0.01:
+        while route and end_time > earliest_dep + max_trip_h + 0.01:
             removed_cust = route.pop()
             solution.routes[-1].append(removed_cust)
             moved += 1
             if verbose:
                 print(f"  [trim] Removed cust {removed_cust} from route {r_idx} "
-                      f"(end={end_time:.3f}h > shift_end={shift_end}h)")
+                      f"(end={end_time:.3f}h > max_end={earliest_dep + max_trip_h:.3f}h)")
             if not route:
                 solution.lunch_breaks[r_idx] = None
                 break

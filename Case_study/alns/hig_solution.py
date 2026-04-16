@@ -8,7 +8,7 @@ import sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.utils import load_vrp_data, Solution, evaluate_solution, SHIFT_WINDOWS
+from utils.utils import load_vrp_data, Solution, evaluate_solution, WORK_START
 from utils.feasibility import (
     get_earliest_departure, compute_route_schedule, compute_trip_return_time,
     check_time_window_feasibility, check_capacity_feasibility,
@@ -17,7 +17,7 @@ from utils.feasibility import (
 from alns import _fmt_time
 
 
-def build_hig_solution(delivery_day='tue', customers_file='Case_study/data/customers.csv',
+def build_hig_solution(delivery_day='mon', customers_file='Case_study/data/training_instances/real_tue.csv',
                        subset_tour_ids=None):
     """
     Build a Solution object from HIG's tour_id groupings.
@@ -34,7 +34,10 @@ def build_hig_solution(delivery_day='tue', customers_file='Case_study/data/custo
 
     # Load customer data for tour_id mapping
     full_df = pd.read_csv(customers_file)
-    day_df = full_df[full_df['delivery_day'] == delivery_day].reset_index(drop=True)
+    if 'delivery_day' in full_df.columns:
+        day_df = full_df[full_df['delivery_day'] == delivery_day].reset_index(drop=True)
+    else:
+        day_df = full_df.reset_index(drop=True)
 
     # Map customer_id -> 1-based index in day dataset
     cid_to_idx = {int(row['customer_id']): i + 1 for i, row in day_df.iterrows()}
@@ -210,15 +213,8 @@ def check_hig_feasibility(sol, customers_dict, vehicles_dict, time_matrix_array,
             })
 
         # --- 4. Lunch break feasibility ---
-        # Detect which shift this route belongs to based on departure time
-        shift1_start, shift1_end = SHIFT_WINDOWS[1]
-        shift2_start, shift2_end = SHIFT_WINDOWS[2]
-        if earliest_dep >= shift2_start - LOADING_TIME:
-            shift_start = shift2_start
-            shift_label = 'late'
-        else:
-            shift_start = shift1_start
-            shift_label = 'early'
+        # All trips start from the same work start
+        shift_start = WORK_START
 
         if not check_lunch_break_feasibility(
             route, time_matrix_array, addr_idx, customer_arrays, depot_idx,
@@ -228,7 +224,7 @@ def check_hig_feasibility(sol, customers_dict, vehicles_dict, time_matrix_array,
             violations.append({
                 'route': veh,
                 'type': 'LUNCH_BREAK',
-                'detail': f'No feasible lunch break position within first 6h of {shift_label} shift '
+                'detail': f'No feasible lunch break position within first 6h of workday '
                           f'(shift_start={shift_start:.0f}h, departs {earliest_dep + LOADING_TIME:.2f}h)'
             })
 
@@ -236,28 +232,24 @@ def check_hig_feasibility(sol, customers_dict, vehicles_dict, time_matrix_array,
 
 
 if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser(description='Build and evaluate HIG current solution')
-    parser.add_argument('--customers', default='Case_study/data/customers_alesund_sula_tue.csv')
-    parser.add_argument('--day', default='tue')
-    parser.add_argument('--output', default='Case_study/hig_route_map.html')
-    args = parser.parse_args()
+    # --- Configure here ---
+    customers_file = 'Case_study/data/training_instances/real_tue.csv'
+    delivery_day = 'tue'
+    output_map = 'Case_study/hig_route_map.html'
+    # ----------------------
 
-    customers_file = args.customers
-
-    # Load tour_ids from the file
     df_tours = pd.read_csv(customers_file)
-    df_tours = df_tours[df_tours['delivery_day'] == args.day]
+    if 'delivery_day' in df_tours.columns:
+        df_tours = df_tours[df_tours['delivery_day'] == delivery_day]
     all_tour_ids = sorted(df_tours['tour_id'].dropna().unique().tolist())
     print(f"Tour IDs found: {all_tour_ids}")
 
     sol, day_df, tm, addr_idx, ca, depot_idx, cust_dict, veh_dict = build_hig_solution(
-        delivery_day=args.day, customers_file=customers_file, subset_tour_ids=all_tour_ids
+        delivery_day=delivery_day, customers_file=customers_file, subset_tour_ids=all_tour_ids
     )
 
     print_hig_schedule(sol, cust_dict, tm, addr_idx, ca, depot_idx)
 
-    # Feasibility check
     viols = check_hig_feasibility(sol, cust_dict, veh_dict, tm, addr_idx, ca, depot_idx)
     if viols:
         print(f"\n--- Feasibility Violations ({len(viols)}) ---")
@@ -266,9 +258,11 @@ if __name__ == '__main__':
     else:
         print("\n--- No feasibility violations found ---")
 
-    # Plot map
     from visualize import plot_solution
     customers_df = pd.read_csv(customers_file)
-    customers_df = customers_df[customers_df['delivery_day'] == args.day].reset_index(drop=True)
-    plot_solution(sol, customers_df, ca, args.output,
+    if 'delivery_day' in customers_df.columns:
+        customers_df = customers_df[customers_df['delivery_day'] == delivery_day].reset_index(drop=True)
+    else:
+        customers_df = customers_df.reset_index(drop=True)
+    plot_solution(sol, customers_df, ca, output_map,
                   time_matrix_array=tm, customer_addr_idx=addr_idx, depot_idx=depot_idx)

@@ -520,9 +520,8 @@ def solve_case_study(customers_file=CUSTOMERS_FILE, delivery_day=DELIVERY_DAY,
             route, time_matrix_array, addr_idx, customer_arrays,
             depot_idx, earliest_dep, lunch_pos
         )
-        label = f"{veh} S{meta['shift']}T{meta['trip']}" if meta else veh
-        shift_end = meta['shift_end'] if meta else 22.0
-        print(f"\n  === {label} ({len(route)} stops, shift ends {_fmt_time(shift_end)}) ===")
+        label = f"{veh} T{meta['trip']}" if meta else veh
+        print(f"\n  === {label} ({len(route)} stops) ===")
         for ev in events:
             cust_label = ""
             if ev['customer'] is not None:
@@ -530,8 +529,7 @@ def solve_case_study(customers_file=CUSTOMERS_FILE, delivery_day=DELIVERY_DAY,
             print(f"    {_fmt_time(ev['time'])}  {ev['details']}{cust_label}")
         if events:
             last_time = events[-1]['time']
-            slack = shift_end - last_time
-            print(f"    -- Slack: {slack*60:.0f} min until shift end --")
+            print(f"    -- Done at {_fmt_time(last_time)} --")
 
     if best_sol.routes[-1]:
         unassigned_kundenr = [int(cids[c - 1]) for c in best_sol.routes[-1]]

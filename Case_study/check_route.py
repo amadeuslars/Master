@@ -10,19 +10,18 @@ from utils.utils import load_vrp_data
 from utils.cost import calculate_route_cost
 from utils.feasibility import (
     check_time_window_feasibility,
-    check_max_route_duration,
+    check_trip_duration_feasibility,
     find_lunch_break_position,
 )
+from utils.utils import MAX_TRIP_HOURS, EXTENDED_TRIP_HOURS, EXTENDED_TRIP_VEHICLES, WORK_START
 
 # ── Edit this ────────────────────────────────────────────────────────────────
 ROUTE = [8280, 8942, 8343, 8378, 9238, 9178, 4225, 9295, 9045]    # Kundenr values in visit order
+VEHICLE_NAME = 'small'  # e.g., 'small' or 'large-henger-stor'
 # ─────────────────────────────────────────────────────────────────────────────
 
 customers_dict, _, _, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data(
     customers_file='Case_study/data/customers.csv',
-    vehicles_file='Case_study/data/vehicles.csv',
-    time_matrix_file='Case_study/data/time_matrix.csv',
-    dist_matrix_file='Case_study/data/distance_matrix.csv',
 )
 
 # Map Kundenr -> 1-based row index
@@ -38,11 +37,22 @@ total_hours = calculate_route_cost(route_indices, addr_idx, time_matrix_array, d
 total_minutes = total_hours * 60
 
 tw_ok      = check_time_window_feasibility(route_indices, time_matrix_array, addr_idx, customer_arrays, depot_idx)
-dur_ok     = check_max_route_duration(route_indices, addr_idx, time_matrix_array, depot_idx)
+max_trip_h = EXTENDED_TRIP_HOURS if VEHICLE_NAME in EXTENDED_TRIP_VEHICLES else MAX_TRIP_HOURS
+dur_ok     = check_trip_duration_feasibility(
+    route_indices,
+    time_matrix_array,
+    addr_idx,
+    customer_arrays,
+    depot_idx,
+    earliest_departure=WORK_START,
+    max_trip_hours=max_trip_h,
+    lunch_duration=0.5,
+)
 lunch_pos  = find_lunch_break_position(route_indices, time_matrix_array, addr_idx, customer_arrays, depot_idx)
 lunch_ok   = lunch_pos is not None
 
 print(f"Route (Kundenr):  {ROUTE}")
+print(f"Vehicle:          {VEHICLE_NAME} (max trip {max_trip_h:.1f} h)")
 print(f"Drive time:       {total_hours:.2f} h  ({total_minutes:.1f} min)")
 print(f"Time windows:     {'OK' if tw_ok  else 'INFEASIBLE'}")
 print(f"Max duration:     {'OK' if dur_ok else 'INFEASIBLE'}")

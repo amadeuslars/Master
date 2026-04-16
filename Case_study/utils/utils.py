@@ -8,12 +8,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.cost import calculate_route_cost
 
-# Multi-trip constants
-SHIFT_WINDOWS = {1: (6.0, 14.0), 2: (15.0, 23.0)}
+# Multi-trip constants — continuous work window (no shift split)
+WORK_START = 6.0   # Depot opens at 06:00
+MAX_TRIPS = 4      # Up to 4 trips per vehicle per day
 
-# Extended 10h shifts for dedicated long-haul vehicles
-EXTENDED_SHIFT_WINDOWS = {1: (6.0, 16.0), 2: (13.0, 23.0)}
-EXTENDED_SHIFT_VEHICLES = {'large-henger-stor'}
+# Per-trip duration limits (loading start → deloading done)
+MAX_TRIP_HOURS = 8.0
+EXTENDED_TRIP_HOURS = 8.0
+EXTENDED_TRIP_VEHICLES = set()
 
 
 class Solution:
@@ -182,20 +184,6 @@ def _load_new_schema(customers_df, vehicles_df, delivery_day):
     tw_start_arr = customers_df['tw_start'].apply(time_str_to_hours).to_numpy(np.float64).copy()
     tw_end_arr = customers_df['tw_end'].apply(time_str_to_hours).to_numpy(np.float64).copy()
 
-    # Clamp time windows that barely overshoot shift-1 end:
-    # Only clamp if tw_end extends past shift-1 end by a small margin (<= 30 min)
-    # AND the customer's TW doesn't reach into shift-2 territory.
-    # Customers with TWs spanning the gap (e.g. 13:15-15:15) are left unclamped
-    # so the repair operators can assign them to either shift.
-    shift1_end = SHIFT_WINDOWS[1][1]
-    shift2_start = SHIFT_WINDOWS[2][0]
-    CLAMP_MARGIN = 0.5  # Only clamp if tw_end overshoots by <= 30 min
-    for i in range(len(tw_start_arr)):
-        if (tw_start_arr[i] < shift1_end
-                and tw_end_arr[i] > shift1_end
-                and tw_end_arr[i] <= shift1_end + CLAMP_MARGIN):
-            tw_end_arr[i] = shift1_end
-
     customer_arrays = {
         'demand': customers_df['ppl'].fillna(0.0).to_numpy(np.float64),
         'tw_start': tw_start_arr,
@@ -281,9 +269,9 @@ def evaluate_solution(solution, customer_addr_idx, time_matrix_array, depot_idx)
 
 def generate_initial_solution(customers_dict, vehicle_names=None):
     """
-    Create a Solution with 4 route slots per vehicle (2 shifts x 2 trips)
+    Create a Solution with MAX_TRIPS route slots per vehicle (continuous work day)
     plus one dummy route containing all customers.
-    Route order per vehicle: S1T1, S1T2, S2T1, S2T2.
+    Route order per vehicle: T1, T2, T3, T4.
     """
     if vehicle_names is None:
         raise ValueError("vehicle_names must be provided as a list of vehicle type names.")
@@ -297,21 +285,16 @@ def generate_initial_solution(customers_dict, vehicle_names=None):
     route_meta = []
 
     for v_idx, v_name in enumerate(real_names):
-        is_extended = v_name in EXTENDED_SHIFT_VEHICLES
-        sw = EXTENDED_SHIFT_WINDOWS if is_extended else SHIFT_WINDOWS
-        shifts = [1] if is_extended else [1, 2]  # Extended vehicles: single 10h shift only
-        for shift in shifts:
-            shift_start, shift_end = sw[shift]
-            for trip in [1, 2]:
-                routes.append([])
-                vehicles.append(v_name)
-                route_meta.append({
-                    'vehicle_idx': v_idx,
-                    'shift': shift,
-                    'trip': trip,
-                    'shift_start': shift_start,
-                    'shift_end': shift_end,
-                })
+        trip_hours = EXTENDED_TRIP_HOURS if v_name in EXTENDED_TRIP_VEHICLES else MAX_TRIP_HOURS
+        for trip in range(1, MAX_TRIPS + 1):
+            routes.append([])
+            vehicles.append(v_name)
+            route_meta.append({
+                'vehicle_idx': v_idx,
+                'trip': trip,
+                'shift_start': WORK_START,
+                'max_trip_hours': trip_hours,
+            })
 
     # Dummy route (last)
     routes.append(all_customers)

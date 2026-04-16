@@ -1,16 +1,17 @@
 import pandas as pd
 import numpy as np
 import os
-import argparse
 
 
-# --- Shift constants ---
+# --- Work window constants (continuous, no shifts) ---
 LOADING_TIME = 1.0      # hours
 DELOADING_TIME = 1/3    # 20 min in hours
-S1_DEPART = 6.0 + LOADING_TIME   # 07:00
-S1_END = 14.0
-S2_DEPART = 15.0 + LOADING_TIME  # 16:00
-S2_END = 23.0
+WORK_START = 6.0        # Depot opens at 06:00
+WORK_DEPART = WORK_START + LOADING_TIME  # 07:00 earliest departure
+MAX_TRIP_HOURS = 8.0    # Max duration per trip
+# Latest possible return: vehicles can chain up to 4 trips
+# For TW generation, we use a generous end-of-day window
+WORK_END = 22.0         # Latest reasonable delivery time
 
 
 # --- Demand generation by class ---
@@ -44,7 +45,7 @@ TW_START_SLOTS = [
     (15 * 60, 18 * 60, 0.15),   # 15:00-18:00
     (18 * 60, 21 * 60, 0.05),   # 18:00-21:00
 ]
-TW_WINDOW_MINUTES = {1: 120, 2: 240}  # bracket 1: 2h, bracket 2: 4h
+TW_WINDOW_MINUTES = 120  # 2h window for all customers
 
 
 def load_master_matrix(matrix_dir):
@@ -88,73 +89,50 @@ def get_travel_times(lat, lon, time_matrix, col_to_idx, depot_idx):
     return t_from_depot, t_to_depot
 
 
-def generate_time_window(rng, tw_bracket, t_from_depot, t_to_depot):
-    """Generate a feasible time window respecting shift constraints."""
-    window = TW_WINDOW_MINUTES[tw_bracket]
-    window_h = window / 60.0
+def generate_time_window(rng, t_from_depot, t_to_depot):
+    """Generate a feasible time window within the continuous work window."""
+    window = TW_WINDOW_MINUTES
 
-    # Compute feasible TW bounds for each shift
-    # Earliest arrival: shift_depart + travel_from_depot
-    # Latest tw_end: shift_end - deloading - travel_to_depot
-    # tw_start must be <= tw_end - window_h (so the window fits)
+    # Earliest possible arrival: first departure + travel from depot
+    earliest_arrival_h = WORK_DEPART + t_from_depot
+    # Latest tw_end: end of work day minus travel back and deloading
+    latest_tw_end_h = WORK_END - DELOADING_TIME - t_to_depot
 
-    feasible_ranges = []  # list of (earliest_tw_start_mins, latest_tw_start_mins)
+    earliest_arrival_mins = int(np.ceil(earliest_arrival_h * 60))
+    latest_tw_end_mins = int(latest_tw_end_h * 60)
 
-    for s_depart, s_end in [(S1_DEPART, S1_END), (S2_DEPART, S2_END)]:
-        earliest_arrival_h = s_depart + t_from_depot
-        latest_tw_end_h = s_end - DELOADING_TIME - t_to_depot
+    # tw_start + window >= earliest_arrival => tw_start >= earliest_arrival - window
+    min_tw_start = max(0, earliest_arrival_mins - window)
+    # tw_end <= latest_tw_end => tw_start <= latest_tw_end - window
+    max_tw_start = latest_tw_end_mins - window
 
-        # tw_start >= earliest_arrival - window_h (customer can arrive at tw_start, we wait)
-        # But tw_start must be <= latest_tw_end - window_h so tw_end fits
-        # Also tw_start >= earliest_arrival (vehicle can't arrive before tw_start...
-        #   actually vehicle CAN arrive before tw_start and wait, so tw_start just needs
-        #   to be reachable: earliest_arrival <= tw_end)
-        # Simplest: tw_end <= latest_tw_end, and earliest_arrival <= tw_end
-
-        latest_tw_end_mins = int(latest_tw_end_h * 60)
-        earliest_arrival_mins = int(np.ceil(earliest_arrival_h * 60))
-
-        # tw_end must be >= earliest_arrival (so vehicle can reach in time)
-        # tw_end = tw_start + window
-        # So tw_start + window >= earliest_arrival => tw_start >= earliest_arrival - window
-        min_tw_start = max(0, earliest_arrival_mins - window)
-
-        # tw_end <= latest_tw_end => tw_start <= latest_tw_end - window
-        max_tw_start = latest_tw_end_mins - window
-
-        if min_tw_start <= max_tw_start:
-            feasible_ranges.append((min_tw_start, max_tw_start))
-
-    if not feasible_ranges:
-        # Fallback: wide window centered on day
+    if min_tw_start > max_tw_start:
+        # Fallback: wide window early in day
         start_mins = 7 * 60
         end_mins = start_mins + window
         sh, sm = divmod(start_mins, 60)
         eh, em = divmod(end_mins, 60)
         return f"{sh:02d}:{sm:02d}", f"{eh:02d}:{em:02d}"
 
-    # Pick a random feasible range (prefer S1 with realistic distribution)
+    # Sample from realistic time-of-day distribution
     probs = [s[2] for s in TW_START_SLOTS]
     probs = np.array(probs) / sum(probs)
 
-    # Try up to 20 times to find a slot that overlaps a feasible range
     for _ in range(20):
         slot_idx = rng.choice(len(TW_START_SLOTS), p=probs)
         slot_start, slot_end, _ = TW_START_SLOTS[slot_idx]
 
-        for fmin, fmax in feasible_ranges:
-            clamped_start = max(slot_start, fmin)
-            clamped_end = min(slot_end, fmax)
-            if clamped_start <= clamped_end:
-                start_mins = int(rng.integers(clamped_start, clamped_end + 1))
-                end_mins = start_mins + window
-                sh, sm = divmod(start_mins, 60)
-                eh, em = divmod(end_mins, 60)
-                return f"{sh:02d}:{sm:02d}", f"{eh:02d}:{em:02d}"
+        clamped_start = max(slot_start, min_tw_start)
+        clamped_end = min(slot_end, max_tw_start)
+        if clamped_start <= clamped_end:
+            start_mins = int(rng.integers(clamped_start, clamped_end + 1))
+            end_mins = start_mins + window
+            sh, sm = divmod(start_mins, 60)
+            eh, em = divmod(end_mins, 60)
+            return f"{sh:02d}:{sm:02d}", f"{eh:02d}:{em:02d}"
 
-    # Last resort: pick from any feasible range
-    fmin, fmax = feasible_ranges[0]
-    start_mins = int(rng.integers(fmin, fmax + 1))
+    # Last resort: uniform from feasible range
+    start_mins = int(rng.integers(min_tw_start, max_tw_start + 1))
     end_mins = start_mins + window
     sh, sm = divmod(start_mins, 60)
     eh, em = divmod(end_mins, 60)
@@ -163,8 +141,8 @@ def generate_time_window(rng, tw_bracket, t_from_depot, t_to_depot):
 
 def generate_instance(df_master, rng, time_matrix, col_to_idx, depot_idx):
     """Generate a single synthetic VRPTW instance."""
-    # 1. Sample 150-250 customers weighted by frekvens
-    n_customers = rng.integers(150, 251)
+    # 1. Sample 130-220 customers weighted by frekvens (matches real instance sizes)
+    n_customers = rng.integers(130, 221)
     n_customers = min(n_customers, len(df_master))
 
     weights = df_master['frekvens'].values.astype(float)
@@ -179,6 +157,13 @@ def generate_instance(df_master, rng, time_matrix, col_to_idx, depot_idx):
     df_inst['volume_m3'] = 0.0
     df_inst['weight_kg'] = 0.0
 
+    # Cap total PPL at 750 (real instances range 560-750) by scaling if needed
+    total_ppl = df_inst['ppl'].sum()
+    if total_ppl > 750:
+        scale = 750 / total_ppl
+        df_inst['ppl'] = (df_inst['ppl'] * scale).round(1).clip(lower=0.5)
+        df_inst['ppl_freeze'] = df_inst[['ppl_freeze', 'ppl']].min(axis=1)
+
     # 3. Generate feasible time windows using travel times from master matrix
     tw_data = []
     for _, row in df_inst.iterrows():
@@ -186,7 +171,7 @@ def generate_instance(df_master, rng, time_matrix, col_to_idx, depot_idx):
             row['latitude'], row['longitude'],
             time_matrix, col_to_idx, depot_idx
         )
-        tw = generate_time_window(rng, tw_bracket=row['tw_bracket'], t_from_depot=t_from, t_to_depot=t_to)
+        tw = generate_time_window(rng, t_from_depot=t_from, t_to_depot=t_to)
         tw_data.append(tw)
 
     df_inst['tw_start'] = [tw[0] for tw in tw_data]
@@ -234,11 +219,11 @@ def generate_instances(input_csv, output_dir, num_instances=1000, seed=42):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate synthetic VRPTW instances")
-    parser.add_argument("--input", default="customers.csv", help="Master customer CSV")
-    parser.add_argument("--output", default="synthetic_instances", help="Output directory")
-    parser.add_argument("--num", type=int, default=1000, help="Number of instances")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    args = parser.parse_args()
+    # --- Configure here ---
+    input_csv = 'Case_study/data/customers.csv'
+    output_dir = 'Case_study/data/training_instances'
+    num_instances = 100
+    seed = 42
+    # ----------------------
 
-    generate_instances(args.input, args.output, args.num, args.seed)
+    generate_instances(input_csv, output_dir, num_instances, seed)

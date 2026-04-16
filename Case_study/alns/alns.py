@@ -30,11 +30,11 @@ from utils.feasibility import compute_route_schedule
 print(f"[ALNS] Backend: {'Cython' if _USING_CYTHON else 'Python'}")
 
 # --- Configuration ---
-MAX_ITERATIONS = 10000
+MAX_ITERATIONS = 100000
 SEGMENT_SIZE = 50
 
 # RRT Parameters
-RRT_START_PERCENTAGE = 0.10
+RRT_START_PERCENTAGE = 0.05
 
 # Removal size buckets (fixed counts, matching DRLH action space)
 REMOVAL_SIZES = [
@@ -58,7 +58,7 @@ WEIGHT_DECAY = 0.8
 #  MAIN ALNS LOOP (RRT)
 # ---------------------------------------------------------
 
-def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv'):
+def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv', max_iterations=None):
 
     customers_dict, vehicles_dict, vehicle_names, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data(delivery_day=delivery_day, customers_file=customers_file)
 
@@ -86,7 +86,7 @@ def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv')
         ('greedy', greedy_insertion),
         ('regret', regret_insertion),
     ]
-    NUM_ACTIONS = len(destroy_ops) * len(REMOVAL_SIZES) * len(repair_ops)  # 30
+    NUM_ACTIONS = len(destroy_ops) * len(REMOVAL_SIZES) * len(repair_ops)  # 40
 
     actions = []
     for d_name, d_op in destroy_ops:
@@ -122,14 +122,15 @@ def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv')
         'algorithm': 'RRT',
     }
 
-    for i in range(MAX_ITERATIONS):
+    num_iterations = max_iterations if max_iterations is not None else MAX_ITERATIONS
+    for i in range(num_iterations):
         # Select composite action using roulette wheel
         action_probs = action_weights / action_weights.sum()
         action_idx = np.random.choice(NUM_ACTIONS, p=action_probs)
         act = actions[action_idx]
 
         # RRT Threshold
-        remaining_ratio = (MAX_ITERATIONS - i) / MAX_ITERATIONS
+        remaining_ratio = (num_iterations - i) / num_iterations
         threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol.cost
         acceptance_threshold = best_sol.cost + threshold_value
 
@@ -229,20 +230,18 @@ def print_schedule(solution, customers_dict, time_matrix_array, customer_addr_id
             customer_arrays, depot_idx, earliest_dep, lunch_pos
         )
 
-        label = f"{veh} S{meta['shift']}T{meta['trip']}" if meta else veh
-        shift_end = meta['shift_end'] if meta else 22.0
-        print(f"\n  === {label} ({len(route)} stops, shift ends {_fmt_time(shift_end)}) ===")
+        label = f"{veh} T{meta['trip']}" if meta else veh
+        print(f"\n  === {label} ({len(route)} stops) ===")
         for ev in events:
             cust_label = ""
             if ev['customer'] is not None:
                 cust_label = f" [#{int(cids[ev['customer'] - 1])}]"
             print(f"    {_fmt_time(ev['time'])}  {ev['details']}{cust_label}")
 
-        # Show slack
+        # Show end time
         if events:
             last_time = events[-1]['time']
-            slack = shift_end - last_time
-            print(f"    -- Slack: {slack*60:.0f} min until shift end --")
+            print(f"    -- Done at {_fmt_time(last_time)} --")
 
 
 def _print_final_results(best_sol, customers_dict, num_customers,
@@ -274,7 +273,7 @@ def _print_final_results(best_sol, customers_dict, num_customers,
         if not route:
             continue
         meta = best_sol.route_meta[i] if i < len(best_sol.route_meta) else None
-        label = f"{veh} S{meta['shift']}T{meta['trip']}" if meta else veh
+        label = f"{veh} T{meta['trip']}" if meta else veh
         print(f"  [{i:2d}] {label}: {route}")
 
     # Print full schedule if data is available
@@ -288,5 +287,4 @@ def _print_final_results(best_sol, customers_dict, num_customers,
 
 
 if __name__ == "__main__":
-    sol, history = run_alns(customers_file='Case_study/data/training_instances/real_mon.csv')
-
+    sol, history = run_alns(customers_file='Case_study/data/training_instances/real_tue.csv')
