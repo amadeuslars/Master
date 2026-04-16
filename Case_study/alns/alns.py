@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.utils import load_vrp_data, generate_initial_solution, evaluate_solution
 try:
     from utils.operators_cy import (
-        random_removal, worst_removal, cluster_removal,
+        random_removal, worst_removal, cluster_removal, shaw_removal,
         greedy_insertion, regret_insertion,
         two_opt_local_search, or_opt_local_search,
         get_earliest_departure, LOADING_TIME, DELOADING_TIME,
@@ -17,7 +17,7 @@ try:
     _USING_CYTHON = True
 except ImportError:
     from utils.operators import (
-        random_removal, worst_removal, cluster_removal,
+        random_removal, worst_removal, cluster_removal, shaw_removal,
         greedy_insertion, regret_insertion,
         two_opt_local_search, or_opt_local_search
     )
@@ -30,11 +30,11 @@ from utils.feasibility import compute_route_schedule
 print(f"[ALNS] Backend: {'Cython' if _USING_CYTHON else 'Python'}")
 
 # --- Configuration ---
-MAX_ITERATIONS = 10000
+MAX_ITERATIONS = 100000
 SEGMENT_SIZE = 50
 
 # RRT Parameters
-RRT_START_PERCENTAGE = 0.10
+RRT_START_PERCENTAGE = 0.05
 
 # Removal size buckets (fixed counts, matching DRLH action space)
 REMOVAL_SIZES = [
@@ -58,7 +58,7 @@ WEIGHT_DECAY = 0.8
 #  MAIN ALNS LOOP (RRT)
 # ---------------------------------------------------------
 
-def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv'):
+def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv', max_iterations=None):
 
     customers_dict, vehicles_dict, vehicle_names, time_matrix_array, _, depot_idx, addr_idx, customer_arrays = load_vrp_data(delivery_day=delivery_day, customers_file=customers_file)
 
@@ -74,16 +74,33 @@ def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv')
             compatible_ppls_set.add(vehicles_dict[v_name]['PPL total'])
 
     # --------------------------------
-    destroy_ops = [random_removal, worst_removal, cluster_removal]
-    repair_ops = [greedy_insertion, regret_insertion]
+    # Build 30 composite actions (3 destroy × 5 sizes × 2 repair)
+    # Encoding: action_idx = d_idx * 10 + s_idx * 2 + r_idx
+    destroy_ops = [
+        ('random', random_removal),
+        ('worst', worst_removal),
+        ('cluster', cluster_removal),
+        ('shaw', shaw_removal),
+    ]
+    repair_ops = [
+        ('greedy', greedy_insertion),
+        ('regret', regret_insertion),
+    ]
+    NUM_ACTIONS = len(destroy_ops) * len(REMOVAL_SIZES) * len(repair_ops)  # 40
 
-    destroy_names = ['Random', 'Worst', 'Cluster']
-    repair_names = ['Greedy', 'Regret']
+    actions = []
+    for d_name, d_op in destroy_ops:
+        for s_name, lo, hi in REMOVAL_SIZES:
+            for r_name, r_op in repair_ops:
+                actions.append({
+                    'd_name': d_name, 'd_op': d_op,
+                    's_name': s_name, 'lo': lo, 'hi': hi,
+                    'r_name': r_name, 'r_op': r_op,
+                    'label': f"{d_name}_{s_name}_{r_name}",
+                })
 
-    # Initialize roulette wheel weights (start equal for all operators + buckets)
-    destroy_weights = np.ones(len(destroy_ops))
-    repair_weights = np.ones(len(repair_ops))
-    bucket_weights = np.ones(len(REMOVAL_SIZES))
+    # Initialize single composite roulette wheel (one weight per action)
+    action_weights = np.ones(NUM_ACTIONS)
 
     # Generate initial solution: 72 route slots (18 vehicles x 4 trips) + 1 dummy
     current_sol = generate_initial_solution(customers_dict, vehicle_names=sorted_vehicle_names)
@@ -96,24 +113,31 @@ def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv')
     print(f"Multi-trip ALNS: {num_customers} customers, {len(vehicle_names)} vehicles, {num_slots} route slots")
     print(f"Initial Cost: {current_sol.cost:.2f}")
 
-    for i in range(MAX_ITERATIONS):
-        d_probs = destroy_weights / destroy_weights.sum()
-        r_probs = repair_weights / repair_weights.sum()
-        b_probs = bucket_weights / bucket_weights.sum()
-        d_idx = np.random.choice(len(destroy_names), p=d_probs)
-        r_idx = np.random.choice(len(repair_names), p=r_probs)
-        b_idx = np.random.choice(len(REMOVAL_SIZES), p=b_probs)
+    # History logging
+    history = {
+        'iterations': [],
+        'actions': [],
+        'costs': [],
+        'action_weights': [],
+        'algorithm': 'RRT',
+    }
+
+    num_iterations = max_iterations if max_iterations is not None else MAX_ITERATIONS
+    for i in range(num_iterations):
+        # Select composite action using roulette wheel
+        action_probs = action_weights / action_weights.sum()
+        action_idx = np.random.choice(NUM_ACTIONS, p=action_probs)
+        act = actions[action_idx]
 
         # RRT Threshold
-        remaining_ratio = (MAX_ITERATIONS - i) / MAX_ITERATIONS
+        remaining_ratio = (num_iterations - i) / num_iterations
         threshold_value = RRT_START_PERCENTAGE * remaining_ratio * best_sol.cost
         acceptance_threshold = best_sol.cost + threshold_value
 
-        _, lo, hi = REMOVAL_SIZES[b_idx]
-        n_remove = random.randint(lo, min(hi, num_customers))
+        n_remove = random.randint(act['lo'], min(act['hi'], num_customers))
 
-        destroyed = destroy_ops[d_idx](current_sol, n_remove, time_matrix_array=time_matrix_array, customer_addr_idx=addr_idx, customer_arrays=customer_arrays, depot_idx=depot_idx)
-        repaired = repair_ops[r_idx](
+        destroyed = act['d_op'](current_sol, n_remove, time_matrix_array=time_matrix_array, customer_addr_idx=addr_idx, customer_arrays=customer_arrays, depot_idx=depot_idx)
+        repaired = act['r_op'](
             destroyed,
             time_matrix_array,
             addr_idx,
@@ -154,20 +178,29 @@ def run_alns(delivery_day='tue', customers_file='Case_study/data/customers.csv')
                 num_trips = sum(1 for r, v in zip(best_sol.routes, best_sol.vehicles) if r and v != 'dummy')
                 print(f"Iter {i} [New Best]: {new_cost:.2f} | Assigned: {num_assigned}/{num_customers} | Trips: {num_trips}")
 
+        # Update composite action weight
+        action_weights[action_idx] = WEIGHT_DECAY * action_weights[action_idx] + (1 - WEIGHT_DECAY) * reward
 
-        # Update action weights based on performance (roulette wheel)
-        destroy_weights[d_idx] = WEIGHT_DECAY * destroy_weights[d_idx] + (1 - WEIGHT_DECAY) * reward
-        repair_weights[r_idx] = WEIGHT_DECAY * repair_weights[r_idx] + (1 - WEIGHT_DECAY) * reward
-        bucket_weights[b_idx] = WEIGHT_DECAY * bucket_weights[b_idx] + (1 - WEIGHT_DECAY) * reward
+        # Log history
+        history['iterations'].append(i)
+        history['actions'].append(int(action_idx))
+        history['costs'].append(best_sol.cost)
+        history['action_weights'].append(action_weights.copy())
 
         if (i + 1) % SEGMENT_SIZE == 0:
             print(f"--- Iter {i+1} | Threshold: +{threshold_value:.2f} | Best: {best_sol.cost:.2f} | Cur: {current_sol.cost:.2f} ---")
+
+    # Convert to numpy arrays for efficient storage/plotting
+    history['action_weights'] = np.array(history['action_weights'])
+    history['actions'] = np.array(history['actions'])
+    history['costs'] = np.array(history['costs'])
+    history['action_labels'] = [a['label'] for a in actions]
 
     # --- Final Results ---
     _print_final_results(best_sol, customers_dict, num_customers,
                          time_matrix_array, addr_idx, customer_arrays, depot_idx)
 
-    return best_sol
+    return best_sol, history
 
 
 def _fmt_time(h):
@@ -197,20 +230,18 @@ def print_schedule(solution, customers_dict, time_matrix_array, customer_addr_id
             customer_arrays, depot_idx, earliest_dep, lunch_pos
         )
 
-        label = f"{veh} S{meta['shift']}T{meta['trip']}" if meta else veh
-        shift_end = meta['shift_end'] if meta else 22.0
-        print(f"\n  === {label} ({len(route)} stops, shift ends {_fmt_time(shift_end)}) ===")
+        label = f"{veh} T{meta['trip']}" if meta else veh
+        print(f"\n  === {label} ({len(route)} stops) ===")
         for ev in events:
             cust_label = ""
             if ev['customer'] is not None:
                 cust_label = f" [#{int(cids[ev['customer'] - 1])}]"
             print(f"    {_fmt_time(ev['time'])}  {ev['details']}{cust_label}")
 
-        # Show slack
+        # Show end time
         if events:
             last_time = events[-1]['time']
-            slack = shift_end - last_time
-            print(f"    -- Slack: {slack*60:.0f} min until shift end --")
+            print(f"    -- Done at {_fmt_time(last_time)} --")
 
 
 def _print_final_results(best_sol, customers_dict, num_customers,
@@ -242,7 +273,7 @@ def _print_final_results(best_sol, customers_dict, num_customers,
         if not route:
             continue
         meta = best_sol.route_meta[i] if i < len(best_sol.route_meta) else None
-        label = f"{veh} S{meta['shift']}T{meta['trip']}" if meta else veh
+        label = f"{veh} T{meta['trip']}" if meta else veh
         print(f"  [{i:2d}] {label}: {route}")
 
     # Print full schedule if data is available
@@ -256,5 +287,4 @@ def _print_final_results(best_sol, customers_dict, num_customers,
 
 
 if __name__ == "__main__":
-    sol = run_alns(delivery_day='tue', customers_file='Case_study/data/customers_alesund_sula_tue.csv')
-
+    sol, history = run_alns(customers_file='Case_study/data/training_instances/real_tue.csv')

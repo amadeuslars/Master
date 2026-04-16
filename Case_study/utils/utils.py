@@ -8,8 +8,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.cost import calculate_route_cost
 
-# Multi-trip constants
-SHIFT_WINDOWS = {1: (6.0, 14.0), 2: (15.0, 23.0)}
+# Multi-trip constants — continuous work window (no shift split)
+WORK_START = 6.0   # Depot opens at 06:00
+MAX_TRIPS = 4      # Up to 4 trips per vehicle per day
+
+# Per-trip duration limits (loading start → deloading done)
+MAX_TRIP_HOURS = 8.0
+EXTENDED_TRIP_HOURS = 8.0
+EXTENDED_TRIP_VEHICLES = set()
 
 
 class Solution:
@@ -63,18 +69,17 @@ def load_vrp_data(delivery_day='tue',
 
 
 def _load_new_schema(customers_df, vehicles_df, delivery_day):
-    """Load from the new unified customers.csv with per-day matrices."""
-    # Filter customers by delivery day
-    customers_df = customers_df[
-        customers_df['delivery_day'].eq(delivery_day)
-    ].reset_index(drop=True)
+    """Load from the new unified customers.csv with master matrix."""
+    # Filter customers by delivery day (if column exists)
+    if 'delivery_day' in customers_df.columns:
+        customers_df = customers_df[
+            customers_df['delivery_day'].eq(delivery_day)
+        ].reset_index(drop=True)
+        if len(customers_df) == 0:
+            raise ValueError(f"No customers found for delivery day '{delivery_day}'")
 
-    num_customers = len(customers_df)
-    if num_customers == 0:
-        raise ValueError(f"No customers found for delivery day '{delivery_day}'")
-
-    # Load per-day matrices
-    matrix_dir = f'Case_study/data/matrices/{delivery_day}'
+    # Load master matrix
+    matrix_dir = 'Case_study/data/matrices/master'
     time_matrix_file = os.path.join(matrix_dir, 'time_matrix.csv')
     dist_matrix_file = os.path.join(matrix_dir, 'distance_matrix.csv')
 
@@ -176,29 +181,14 @@ def _load_new_schema(customers_df, vehicles_df, delivery_day):
 
     service_minutes = customers_df['service_time_min'].fillna(20.0).to_numpy(np.float64)
 
-    tw_start_arr = customers_df['tw_start'].apply(time_str_to_hours).to_numpy(np.float64)
-    tw_end_arr = customers_df['tw_end'].apply(time_str_to_hours).to_numpy(np.float64)
-
-    # Clamp time windows that barely overshoot shift-1 end:
-    # Only clamp if tw_end extends past shift-1 end by a small margin (<= 30 min)
-    # AND the customer's TW doesn't reach into shift-2 territory.
-    # Customers with TWs spanning the gap (e.g. 13:15-15:15) are left unclamped
-    # so the repair operators can assign them to either shift.
-    shift1_end = SHIFT_WINDOWS[1][1]
-    shift2_start = SHIFT_WINDOWS[2][0]
-    CLAMP_MARGIN = 0.5  # Only clamp if tw_end overshoots by <= 30 min
-    for i in range(len(tw_start_arr)):
-        if (tw_start_arr[i] < shift1_end
-                and tw_end_arr[i] > shift1_end
-                and tw_end_arr[i] <= shift1_end + CLAMP_MARGIN):
-            tw_end_arr[i] = shift1_end
+    tw_start_arr = customers_df['tw_start'].apply(time_str_to_hours).to_numpy(np.float64).copy()
+    tw_end_arr = customers_df['tw_end'].apply(time_str_to_hours).to_numpy(np.float64).copy()
 
     customer_arrays = {
         'demand': customers_df['ppl'].fillna(0.0).to_numpy(np.float64),
         'tw_start': tw_start_arr,
         'tw_end': tw_end_arr,
         'service_time': service_minutes / 60.0,  # convert to hours
-        'pallets': customers_df['ppl'].fillna(0.0).to_numpy(np.float64),
         'frys': customers_df['ppl_freeze'].fillna(0.0).to_numpy(np.float64),
         'volume_m3': customers_df['volume_m3'].fillna(0.0).to_numpy(np.float64),
         'weight_kg': customers_df['weight_kg'].fillna(0.0).to_numpy(np.float64),
@@ -258,7 +248,6 @@ def _load_legacy_schema(customers_df, vehicles_df):
         'tw_start': customers_df['Leveringstid kunde fra'].apply(time_str_to_hours).fillna(0.0).to_numpy(np.float64),
         'tw_end': customers_df['Leveringstid kunde til'].apply(time_str_to_hours).fillna(24.0).to_numpy(np.float64),
         'service_time': np.full(num_customers, 0.5, dtype=np.float64),
-        'pallets': customers_df['PPL pr leveranse'].fillna(0.0).to_numpy(np.float64),
         'frys': customers_df['PPL hvorav frys'].fillna(0.0).to_numpy(np.float64),
         'volume_m3': customers_df['Volum pr leveranse (m3)'].fillna(0.0).to_numpy(np.float64),
         'weight_kg': customers_df['Vekt pr leveranse (tonn)'].fillna(0.0).to_numpy(np.float64) * 1000,
@@ -280,9 +269,9 @@ def evaluate_solution(solution, customer_addr_idx, time_matrix_array, depot_idx)
 
 def generate_initial_solution(customers_dict, vehicle_names=None):
     """
-    Create a Solution with 4 route slots per vehicle (2 shifts x 2 trips)
+    Create a Solution with MAX_TRIPS route slots per vehicle (continuous work day)
     plus one dummy route containing all customers.
-    Route order per vehicle: S1T1, S1T2, S2T1, S2T2.
+    Route order per vehicle: T1, T2, T3, T4.
     """
     if vehicle_names is None:
         raise ValueError("vehicle_names must be provided as a list of vehicle type names.")
@@ -296,18 +285,16 @@ def generate_initial_solution(customers_dict, vehicle_names=None):
     route_meta = []
 
     for v_idx, v_name in enumerate(real_names):
-        for shift in [1, 2]:
-            shift_start, shift_end = SHIFT_WINDOWS[shift]
-            for trip in [1, 2]:
-                routes.append([])
-                vehicles.append(v_name)
-                route_meta.append({
-                    'vehicle_idx': v_idx,
-                    'shift': shift,
-                    'trip': trip,
-                    'shift_start': shift_start,
-                    'shift_end': shift_end,
-                })
+        trip_hours = EXTENDED_TRIP_HOURS if v_name in EXTENDED_TRIP_VEHICLES else MAX_TRIP_HOURS
+        for trip in range(1, MAX_TRIPS + 1):
+            routes.append([])
+            vehicles.append(v_name)
+            route_meta.append({
+                'vehicle_idx': v_idx,
+                'trip': trip,
+                'shift_start': WORK_START,
+                'max_trip_hours': trip_hours,
+            })
 
     # Dummy route (last)
     routes.append(all_customers)

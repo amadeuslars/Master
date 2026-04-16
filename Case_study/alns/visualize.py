@@ -66,6 +66,7 @@ def plot_solution(solution, customers_df, customer_arrays=None, output_file='rou
     # Build geo_lookup from customers_df
     # Detect schema: new has 'latitude'/'longitude', legacy uses geocoded_addresses.csv
     geo_lookup = {}
+    geo_lookup_by_customer_id = {}
     if 'latitude' in customers_df.columns:
         # New schema: lat/lon in customers_df
         for _, row in customers_df.iterrows():
@@ -74,7 +75,12 @@ def plot_solution(solution, customers_df, customer_arrays=None, output_file='rou
                 addr = f"cust_{int(row['customer_id'])}"
             lat, lon = row.get('latitude'), row.get('longitude')
             if pd.notna(lat) and pd.notna(lon):
-                geo_lookup[addr] = (float(lat), float(lon))
+                coords = (float(lat), float(lon))
+                geo_lookup[addr] = coords
+                try:
+                    geo_lookup_by_customer_id[int(row['customer_id'])] = coords
+                except Exception:
+                    pass
     else:
         # Legacy schema: load from geocoded_addresses.csv
         geocoded_path = 'Case_study/data/geocoded_addresses.csv'
@@ -122,9 +128,9 @@ def plot_solution(solution, customers_df, customer_arrays=None, output_file='rou
         color = ROUTE_COLORS[active_route_count % len(ROUTE_COLORS)]
         meta = solution.route_meta[i] if hasattr(solution, 'route_meta') and solution.route_meta else None
         if meta:
-            group_name = f"{vehicle} S{meta['shift']}T{meta['trip']} ({len(route)} stops)"
+            group_name = f"R{i:02d} | {vehicle} T{meta['trip']} ({len(route)} stops)"
         else:
-            group_name = f"{vehicle} ({len(route)} stops)"
+            group_name = f"R{i:02d} | {vehicle} ({len(route)} stops)"
         fg = folium.FeatureGroup(name=group_name, show=False)  # show=False means not ticked by default
 
         # Pre-compute schedule for this route if data available
@@ -177,7 +183,14 @@ def plot_solution(solution, customers_df, customer_arrays=None, output_file='rou
                 name = row.get('Kundenavn', '')
                 kundenr = row.get('Kundenr', '')
 
-            base_coords = geo_lookup.get(addr)
+            base_coords = None
+            if 'address' in customers_df.columns:
+                try:
+                    base_coords = geo_lookup_by_customer_id.get(int(kundenr))
+                except Exception:
+                    base_coords = None
+            if base_coords is None:
+                base_coords = geo_lookup.get(addr)
             if base_coords is None:
                 continue
 
@@ -253,7 +266,15 @@ def plot_solution(solution, customers_df, customer_arrays=None, output_file='rou
                 addr = str(row['Adresse']).strip()
                 name = row.get('Kundenavn', '')
                 kundenr = row.get('Kundenr', '')
-            coords = geo_lookup.get(addr)
+
+            coords = None
+            if 'address' in customers_df.columns:
+                try:
+                    coords = geo_lookup_by_customer_id.get(int(kundenr))
+                except Exception:
+                    coords = None
+            if coords is None:
+                coords = geo_lookup.get(addr)
             if coords is None:
                 continue
 
@@ -314,12 +335,12 @@ def plot_from_alns(solution, delivery_day='tue', customers_file='Case_study/data
 if __name__ == '__main__':
     from alns import run_alns
 
-    customers_file = 'Case_study/data/customers_alesund_sula_tue.csv'
-    day = 'tue'
+    customers_file = 'Case_study/data/training_instances/real_mon.csv'
+    day = 'mon'
     output = 'Case_study/route_map_alns.html'
 
     print(f"Running ALNS (customers={customers_file}, day={day})...")
-    solution = run_alns(delivery_day=day, customers_file=customers_file)
+    solution, history = run_alns(delivery_day=day, customers_file=customers_file)
     print("\nGenerating route map...")
     plot_from_alns(solution, delivery_day=day, customers_file=customers_file,
                    output_file=output)

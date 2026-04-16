@@ -7,11 +7,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.feasibility import (
     check_time_window_feasibility, check_capacity_feasibility,
-    check_vehicle_store_compatibility, check_shift_feasibility,
+    check_vehicle_store_compatibility, check_trip_duration_feasibility,
     check_lunch_break_feasibility, find_lunch_break_position,
     get_earliest_departure, LOADING_TIME, LUNCH_DURATION,
-    validate_and_trim_routes,
 )
+from utils.utils import MAX_TRIPS
 
 # ---------------------------------------------------------
 #  OPERATORS (Destroy) — no changes for multi-trip
@@ -183,15 +183,15 @@ def least_used_vehicle_removal(solution, num_to_remove, **kwargs):
 #  Trip-2 validation (trip-1 changes can invalidate trip-2)
 # ---------------------------------------------------------
 
-def _validate_trip2_routes(solution, time_matrix_array, customer_addr_idx,
-                           customer_arrays, depot_idx):
+def _validate_later_trips(solution, time_matrix_array, customer_addr_idx,
+                          customer_arrays, depot_idx):
     """
-    After repair, trip-1 may have grown, pushing trip-2 departure later.
-    Check all trip-2 routes and move infeasible ones back to dummy.
+    After repair, earlier trips may have grown, pushing later trip departures later.
+    Check all trip N>1 routes and move infeasible ones back to dummy.
     """
     for r_idx in range(len(solution.routes) - 1):
         meta = solution.route_meta[r_idx]
-        if meta is None or meta['trip'] != 2 or not solution.routes[r_idx]:
+        if meta is None or meta['trip'] <= 1 or not solution.routes[r_idx]:
             continue
 
         earliest_dep = get_earliest_departure(
@@ -199,18 +199,11 @@ def _validate_trip2_routes(solution, time_matrix_array, customer_addr_idx,
             customer_arrays, depot_idx
         )
 
-        # Check if trip-2 still fits in shift
-        feasible = check_shift_feasibility(
+        # Check time windows with updated departure
+        feasible = check_time_window_feasibility(
             solution.routes[r_idx], time_matrix_array, customer_addr_idx,
-            customer_arrays, depot_idx, earliest_dep, meta['shift_end']
+            customer_arrays, depot_idx, earliest_departure=earliest_dep
         )
-
-        # Also check time windows with updated departure
-        if feasible:
-            feasible = check_time_window_feasibility(
-                solution.routes[r_idx], time_matrix_array, customer_addr_idx,
-                customer_arrays, depot_idx, earliest_departure=earliest_dep
-            )
 
         if not feasible:
             solution.routes[-1].extend(solution.routes[r_idx])
@@ -222,22 +215,27 @@ def _validate_trip2_routes(solution, time_matrix_array, customer_addr_idx,
 #  OPERATORS (Repair) — shift-aware for multi-trip
 # ---------------------------------------------------------
 
+def _sort_by_depot_distance(unassigned, time_matrix_array, customer_addr_idx, depot_idx):
+    """Preserve current unassigned order (no distance-based prioritization)."""
+    return list(unassigned)
+
+
 def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_arrays, vehicles_dict, neighbor_sets, depot_idx=0, temperature=1.0, **kwargs):
     """Greedy insertion with two-phase approach: trip-1 first, then trip-2."""
     new_sol = solution.copy()
     unassigned = list(new_sol.routes[-1])
     new_sol.routes[-1] = []
-    random.shuffle(unassigned)
+    unassigned = _sort_by_depot_distance(unassigned, time_matrix_array, customer_addr_idx, depot_idx)
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
-    for phase_trip in (1, 2):
-        # Between phases: validate existing trip-2 routes against updated trip-1
-        if phase_trip == 2:
-            _validate_trip2_routes(new_sol, time_matrix_array, customer_addr_idx,
-                                   customer_arrays, depot_idx)
+    for phase_trip in range(1, MAX_TRIPS + 1):
+        # Between phases: validate later trips against updated earlier trips
+        if phase_trip > 1:
+            _validate_later_trips(new_sol, time_matrix_array, customer_addr_idx,
+                                  customer_arrays, depot_idx)
             unassigned.extend(new_sol.routes[-1])
             new_sol.routes[-1] = []
-            random.shuffle(unassigned)
+            unassigned = _sort_by_depot_distance(unassigned, time_matrix_array, customer_addr_idx, depot_idx)
 
         still_unassigned = []
         for cust in unassigned:
@@ -252,8 +250,8 @@ def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                 # Phase filter: only consider slots matching current phase
                 if meta is None or meta['trip'] != phase_trip:
                     continue
-                # Skip trip-2 when trip-1 in same shift is empty
-                if phase_trip == 2 and not new_sol.routes[r_idx - 1]:
+                # Skip trip N when trip N-1 on same vehicle is empty
+                if phase_trip > 1 and not new_sol.routes[r_idx - 1]:
                     continue
 
                 if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays):
@@ -265,7 +263,7 @@ def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                     new_sol, r_idx, time_matrix_array, customer_addr_idx,
                     customer_arrays, depot_idx
                 )
-                shift_end = meta['shift_end']
+                max_trip_h = meta['max_trip_hours']
 
                 route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
                 for i in range(len(route) + 1):
@@ -277,7 +275,7 @@ def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                     if not check_time_window_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
                         continue
                     lunch_buf = LUNCH_DURATION if phase_trip == 1 else 0.0
-                    if not check_shift_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                    if not check_trip_duration_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, max_trip_h, lunch_duration=lunch_buf):
                         continue
                     if phase_trip == 1:
                         if not check_lunch_break_feasibility(candidate_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
@@ -308,9 +306,6 @@ def greedy_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
         unassigned = still_unassigned
 
     new_sol.routes[-1] = unassigned
-    # Safety net: trim any routes that overflow the shift
-    validate_and_trim_routes(new_sol, time_matrix_array, customer_addr_idx,
-                             customer_arrays, depot_idx)
     return new_sol
 
 # ---------------------------------------------------------
@@ -334,8 +329,8 @@ def two_opt_local_search(solution, time_matrix_array, customer_addr_idx, custome
             new_sol, r_idx, time_matrix_array, customer_addr_idx,
             customer_arrays, depot_idx
         )
-        shift_end = meta['shift_end'] if meta else 22.0
         shift_start = meta['shift_start'] if meta else 6.0
+        max_trip_h = meta['max_trip_hours'] if meta else 8.0
         is_trip1 = meta is not None and meta['trip'] == 1
 
         route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
@@ -357,7 +352,7 @@ def two_opt_local_search(solution, time_matrix_array, customer_addr_idx, custome
                         if not check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
                             continue
                         lunch_buf = LUNCH_DURATION if is_trip1 else 0.0
-                        if not check_shift_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                        if not check_trip_duration_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, max_trip_h, lunch_duration=lunch_buf):
                             continue
                         if is_trip1:
                             if not check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
@@ -397,8 +392,8 @@ def or_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer
             new_sol, r_idx, time_matrix_array, customer_addr_idx,
             customer_arrays, depot_idx
         )
-        shift_end = meta['shift_end'] if meta else 22.0
         shift_start = meta['shift_start'] if meta else 6.0
+        max_trip_h = meta['max_trip_hours'] if meta else 8.0
         is_trip1 = meta is not None and meta['trip'] == 1
 
         improved = True
@@ -435,7 +430,7 @@ def or_opt_local_search(solution, time_matrix_array, customer_addr_idx, customer
                         if not check_time_window_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
                             continue
                         lunch_buf = LUNCH_DURATION if is_trip1 else 0.0
-                        if not check_shift_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                        if not check_trip_duration_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, max_trip_h, lunch_duration=lunch_buf):
                             continue
                         if is_trip1:
                             if not check_lunch_break_feasibility(candidate, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
@@ -465,11 +460,11 @@ def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
     new_sol.routes[-1] = []
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
-    for phase_trip in (1, 2):
-        # Between phases: validate existing trip-2 routes against updated trip-1
-        if phase_trip == 2:
-            _validate_trip2_routes(new_sol, time_matrix_array, customer_addr_idx,
-                                   customer_arrays, depot_idx)
+    for phase_trip in range(1, MAX_TRIPS + 1):
+        # Between phases: validate later trips against updated earlier trips
+        if phase_trip > 1:
+            _validate_later_trips(new_sol, time_matrix_array, customer_addr_idx,
+                                  customer_arrays, depot_idx)
             unassigned.extend(new_sol.routes[-1])
             new_sol.routes[-1] = []
 
@@ -488,8 +483,8 @@ def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                     # Phase filter: only consider slots matching current phase
                     if meta is None or meta['trip'] != phase_trip:
                         continue
-                    # Skip trip-2 when trip-1 in same shift is empty
-                    if phase_trip == 2 and not new_sol.routes[r_idx - 1]:
+                    # Skip trip N when trip N-1 on same vehicle is empty
+                    if phase_trip > 1 and not new_sol.routes[r_idx - 1]:
                         continue
 
                     if not check_capacity_feasibility(route + [cust], vehicle_name, vehicles_dict, customer_arrays):
@@ -501,7 +496,7 @@ def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                         new_sol, r_idx, time_matrix_array, customer_addr_idx,
                         customer_arrays, depot_idx
                     )
-                    shift_end = meta['shift_end']
+                    max_trip_h = meta['max_trip_hours']
 
                     route_addrs = [depot_idx] + [customer_addr_idx[c-1] for c in route] + [depot_idx]
                     for i in range(len(route) + 1):
@@ -513,7 +508,7 @@ def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
                         if not check_time_window_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_departure=earliest_dep):
                             continue
                         lunch_buf = LUNCH_DURATION if phase_trip == 1 else 0.0
-                        if not check_shift_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, shift_end, lunch_duration=lunch_buf):
+                        if not check_trip_duration_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx, earliest_dep, max_trip_h, lunch_duration=lunch_buf):
                             continue
                         if phase_trip == 1:
                             if not check_lunch_break_feasibility(temp_route, time_matrix_array, customer_addr_idx, customer_arrays, depot_idx,
@@ -562,7 +557,4 @@ def regret_insertion(solution, time_matrix_array, customer_addr_idx, customer_ar
             unassigned.remove(target_cust)
 
     new_sol.routes[-1] = unassigned
-    # Safety net: trim any routes that overflow the shift
-    validate_and_trim_routes(new_sol, time_matrix_array, customer_addr_idx,
-                             customer_arrays, depot_idx)
     return new_sol

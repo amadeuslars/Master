@@ -11,8 +11,8 @@ from collections import defaultdict
 # --- Configure files to compare here ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 FILES = {
-    "rrt": os.path.join(SCRIPT_DIR, "rrt_results_homberger_600_25000iter.csv"),
-    "DRLH":   os.path.join(SCRIPT_DIR, "urs_results_homberger_600_25000iter.csv")
+    "rrt": os.path.join(SCRIPT_DIR, "drlh_results_homberger_600_10000iter_5310_all_stochastic.csv"),
+    "DRLH":   os.path.join(SCRIPT_DIR, "drlh_results_homberger_600_10000iter_5310_all.csv")
 }
 # ----------------------------------------
 

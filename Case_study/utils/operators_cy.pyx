@@ -260,7 +260,7 @@ cdef bint c_simulate_with_break(list route, int route_len, int break_pos,
 
 
 cdef bint c_check_capacity(list route, int route_len, int new_cust,
-                            double[:] pallets, double[:] frys,
+                            double[:] demand, double[:] frys,
                             double[:] vol, double[:] weight,
                             double cap_ppl, double cap_frys,
                             double cap_vol, double cap_wt):
@@ -272,14 +272,14 @@ cdef bint c_check_capacity(list route, int route_len, int new_cust,
 
     for i in range(route_len):
         c = <int>route[i] - 1
-        sum_ppl += pallets[c]
+        sum_ppl += demand[c]
         sum_frys += frys[c]
         sum_vol += vol[c]
         sum_wt += weight[c]
 
     if new_cust > 0:
         c = new_cust - 1
-        sum_ppl += pallets[c]
+        sum_ppl += demand[c]
         sum_frys += frys[c]
         sum_vol += vol[c]
         sum_wt += weight[c]
@@ -365,13 +365,13 @@ def get_earliest_departure(solution, int r_idx,
                            customer_arrays, int depot_idx):
     """
     Get earliest time loading can start for this trip slot.
-    Trip 1: shift_start.  Trip 2: end of trip 1 + deload.
+    Trip 1: shift_start.  Trip N>1: end of trip N-1 + deload.
     """
-    cdef int trip1_idx
+    cdef int prev_idx
     cdef double[:] tw_start_v
     cdef double[:] service_time_v
     cdef int lunch_pos_val = 0
-    cdef double ret
+    cdef double ret, prev_departure
 
     meta = solution.route_meta[r_idx]
     if meta is None:
@@ -380,27 +380,32 @@ def get_earliest_departure(solution, int r_idx,
     if meta['trip'] == 1:
         return meta['shift_start']
 
-    # Trip 2: find trip 1 (always preceding slot)
-    trip1_idx = r_idx - 1
-    trip1_meta = solution.route_meta[trip1_idx]
-    if (trip1_meta is not None and
-            trip1_meta['vehicle_idx'] == meta['vehicle_idx'] and
-            trip1_meta['shift'] == meta['shift'] and
-            trip1_meta['trip'] == 1):
-        trip1_route = solution.routes[trip1_idx]
-        if not trip1_route:
-            return meta['shift_start']
+    # Trip N>1: find previous trip on same vehicle (preceding slot)
+    prev_idx = r_idx - 1
+    prev_meta = solution.route_meta[prev_idx]
+    if (prev_meta is not None and
+            prev_meta['vehicle_idx'] == meta['vehicle_idx'] and
+            prev_meta['trip'] == meta['trip'] - 1):
+        prev_route = solution.routes[prev_idx]
+        if not prev_route:
+            # Previous trip empty — recurse to find latest non-empty trip
+            return get_earliest_departure(solution, prev_idx, time_matrix_array,
+                                          customer_addr_idx, customer_arrays, depot_idx)
+
+        # Compute when previous trip's loading started
+        prev_departure = get_earliest_departure(solution, prev_idx, time_matrix_array,
+                                                customer_addr_idx, customer_arrays, depot_idx)
 
         tw_start_v = customer_arrays['tw_start']
         service_time_v = customer_arrays['service_time']
-        lb = solution.lunch_breaks[trip1_idx]
+        lb = solution.lunch_breaks[prev_idx]
         if lb is not None:
             lunch_pos_val = <int>lb
 
         ret = c_compute_return_time(
-            trip1_route, len(trip1_route), time_matrix_array,
+            prev_route, len(prev_route), time_matrix_array,
             customer_addr_idx, tw_start_v, service_time_v,
-            depot_idx, meta['shift_start'], lunch_pos_val, LUNCH_DURATION_C
+            depot_idx, prev_departure, lunch_pos_val, LUNCH_DURATION_C
         )
         return ret + DELOADING_TIME_C
 
@@ -414,9 +419,9 @@ cdef double c_get_earliest_departure(solution, int r_idx,
                                       double[:] service_time,
                                       int depot_idx):
     """C-level version of get_earliest_departure for internal use."""
-    cdef int trip1_idx
+    cdef int prev_idx
     cdef int lunch_pos_val = 0
-    cdef double ret
+    cdef double ret, prev_departure
 
     meta = solution.route_meta[r_idx]
     if meta is None:
@@ -425,24 +430,27 @@ cdef double c_get_earliest_departure(solution, int r_idx,
     if meta['trip'] == 1:
         return <double>meta['shift_start']
 
-    trip1_idx = r_idx - 1
-    trip1_meta = solution.route_meta[trip1_idx]
-    if (trip1_meta is not None and
-            trip1_meta['vehicle_idx'] == meta['vehicle_idx'] and
-            trip1_meta['shift'] == meta['shift'] and
-            trip1_meta['trip'] == 1):
-        trip1_route = solution.routes[trip1_idx]
-        if not trip1_route:
-            return <double>meta['shift_start']
+    prev_idx = r_idx - 1
+    prev_meta = solution.route_meta[prev_idx]
+    if (prev_meta is not None and
+            prev_meta['vehicle_idx'] == meta['vehicle_idx'] and
+            prev_meta['trip'] == <int>meta['trip'] - 1):
+        prev_route = solution.routes[prev_idx]
+        if not prev_route:
+            return c_get_earliest_departure(solution, prev_idx, dm, addr_idx,
+                                            tw_start, service_time, depot_idx)
 
-        lb = solution.lunch_breaks[trip1_idx]
+        prev_departure = c_get_earliest_departure(solution, prev_idx, dm, addr_idx,
+                                                  tw_start, service_time, depot_idx)
+
+        lb = solution.lunch_breaks[prev_idx]
         if lb is not None:
             lunch_pos_val = <int>lb
 
         ret = c_compute_return_time(
-            trip1_route, len(trip1_route), dm, addr_idx,
+            prev_route, len(prev_route), dm, addr_idx,
             tw_start, service_time, depot_idx,
-            <double>meta['shift_start'], lunch_pos_val, LUNCH_DURATION_C
+            prev_departure, lunch_pos_val, LUNCH_DURATION_C
         )
         return ret + DELOADING_TIME_C
 
@@ -495,7 +503,7 @@ def check_lunch_break_feasibility(route_indices, time_matrix_array, customer_add
 def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
                               customer_arrays, depot_idx, verbose=False):
     """
-    Safety-net: check every route for shift feasibility. If overflow,
+    Safety-net: check every route for max trip duration feasibility. If overflow,
     remove customers from end until it fits. Moved customers go to dummy.
     """
     cdef double[:, :] dm = time_matrix_array
@@ -507,7 +515,7 @@ def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
 
     cdef int moved = 0
     cdef int r_idx, route_len
-    cdef double shift_end, earliest_dep, return_time, end_time
+    cdef double max_trip_h, earliest_dep, return_time, end_time
     cdef int is_trip1, lunch_pos_val
     cdef double lunch_dur
 
@@ -519,7 +527,7 @@ def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
         if meta is None:
             continue
 
-        shift_end = <double>meta['shift_end']
+        max_trip_h = <double>meta.get('max_trip_hours', 8.0)
         is_trip1 = 1 if meta['trip'] == 1 else 0
 
         earliest_dep = c_get_earliest_departure(
@@ -540,7 +548,7 @@ def validate_and_trim_routes(solution, time_matrix_array, customer_addr_idx,
         )
         end_time = return_time + DELOADING_TIME_C
 
-        while route and end_time > shift_end + 0.01:
+        while route and end_time > earliest_dep + max_trip_h + 0.01:
             removed_cust = route.pop()
             solution.routes[len(solution.routes) - 1].append(removed_cust)
             moved += 1
@@ -801,21 +809,21 @@ def least_used_vehicle_removal(solution, int num_to_remove, **kwargs):
 #      TRIP-2 VALIDATION (internal helper)
 # =============================================================
 
-cdef void _validate_trip2_routes(solution,
-                                  double[:, :] dm,
-                                  np.intp_t[:] addr_idx,
-                                  double[:] tw_start,
-                                  double[:] tw_end,
-                                  double[:] service_time,
-                                  int depot_idx):
-    """After repair, check all trip-2 routes; move infeasible ones to dummy."""
+cdef void _validate_later_trips(solution,
+                                 double[:, :] dm,
+                                 np.intp_t[:] addr_idx,
+                                 double[:] tw_start,
+                                 double[:] tw_end,
+                                 double[:] service_time,
+                                 int depot_idx):
+    """After repair, check all trip N>1 routes; move infeasible ones to dummy."""
     cdef int r_idx, route_len
-    cdef double earliest_dep, shift_end, return_time, end_time
+    cdef double earliest_dep
     cdef list route
 
     for r_idx in range(len(solution.routes) - 1):
         meta = solution.route_meta[r_idx]
-        if meta is None or meta['trip'] != 2:
+        if meta is None or meta['trip'] <= 1:
             continue
         route = solution.routes[r_idx]
         if not route:
@@ -824,23 +832,13 @@ cdef void _validate_trip2_routes(solution,
         earliest_dep = c_get_earliest_departure(
             solution, r_idx, dm, addr_idx, tw_start, service_time, depot_idx
         )
-        shift_end = <double>meta['shift_end']
         route_len = len(route)
 
-        # Check shift feasibility
-        return_time = c_compute_return_time(
-            route, route_len, dm, addr_idx, tw_start, service_time,
-            depot_idx, earliest_dep, 0, 0.0
+        # Check time windows with updated departure
+        feasible = c_check_tw_route(
+            route, route_len, dm, addr_idx, tw_start, tw_end,
+            service_time, depot_idx, earliest_dep
         )
-        end_time = return_time + DELOADING_TIME_C
-        feasible = end_time <= shift_end + 0.01
-
-        # Also check time windows
-        if feasible:
-            feasible = c_check_tw_route(
-                route, route_len, dm, addr_idx, tw_start, tw_end,
-                service_time, depot_idx, earliest_dep
-            )
 
         if not feasible:
             solution.routes[len(solution.routes) - 1].extend(route)
@@ -865,42 +863,39 @@ def greedy_insertion(solution,
     new_sol = solution.copy()
     cdef list unassigned = list(new_sol.routes[len(new_sol.routes) - 1])
     new_sol.routes[len(new_sol.routes) - 1] = []
-    py_random.shuffle(unassigned)
     compatible_ppls_set = kwargs.get('compatible_ppls_set', set())
 
     # Pre-extract typed memoryviews
     cdef double[:] tw_start = customer_arrays['tw_start']
     cdef double[:] tw_end = customer_arrays['tw_end']
     cdef double[:] service_time = customer_arrays['service_time']
-    cdef double[:] pallets = customer_arrays['pallets']
+    cdef double[:] demand_arr = customer_arrays['demand']
     cdef double[:] frys_arr = customer_arrays['frys']
     cdef double[:] vol_arr = customer_arrays['volume_m3']
     cdef double[:] wt_arr = customer_arrays['weight_kg']
     cdef np.int32_t[:] biltype_arr = customer_arrays['biltype']
 
     cdef int cust, cust_addr, r_idx, i, n_routes, route_len
-    cdef double d, earliest_dep, shift_end, shift_start_val
+    cdef double d, earliest_dep, shift_start_val
     cdef double cap_ppl, cap_frys, cap_vol, cap_wt, veh_ppl
     cdef int prev_addr, next_addr
     cdef list route, feasible_points, still_unassigned
     cdef int n_fp, idx
     cdef int selected_r, selected_p
     cdef double[:] cost_view
-    cdef double return_time
     cdef int lunch_pos_val
     cdef int phase_trip, is_trip1
-    cdef double lunch_buf
 
     cdef int max_fp = 4096
     cdef double[4096] probs_buf
+    cdef int max_trips = 4  # MAX_TRIPS
 
-    for phase_trip in (1, 2):
-        if phase_trip == 2:
-            _validate_trip2_routes(new_sol, time_matrix_array, customer_addr_idx,
-                                    tw_start, tw_end, service_time, depot_idx)
+    for phase_trip in range(1, max_trips + 1):
+        if phase_trip > 1:
+            _validate_later_trips(new_sol, time_matrix_array, customer_addr_idx,
+                                   tw_start, tw_end, service_time, depot_idx)
             unassigned.extend(new_sol.routes[len(new_sol.routes) - 1])
             new_sol.routes[len(new_sol.routes) - 1] = []
-            py_random.shuffle(unassigned)
 
         still_unassigned = []
         for cust in unassigned:
@@ -916,7 +911,7 @@ def greedy_insertion(solution,
                 # Phase filter
                 if meta is None or meta['trip'] != phase_trip:
                     continue
-                if phase_trip == 2 and not new_sol.routes[r_idx - 1]:
+                if phase_trip > 1 and not new_sol.routes[r_idx - 1]:
                     continue
 
                 vehicle_name = new_sol.vehicles[r_idx]
@@ -928,7 +923,7 @@ def greedy_insertion(solution,
                 veh_ppl = cap_ppl
 
                 # Capacity check
-                if not c_check_capacity(route, route_len, cust, pallets, frys_arr,
+                if not c_check_capacity(route, route_len, cust, demand_arr, frys_arr,
                                          vol_arr, wt_arr, cap_ppl, cap_frys, cap_vol, cap_wt):
                     continue
 
@@ -941,8 +936,8 @@ def greedy_insertion(solution,
                     new_sol, r_idx, time_matrix_array, customer_addr_idx,
                     tw_start, service_time, depot_idx
                 )
-                shift_end = <double>meta['shift_end']
                 shift_start_val = <double>meta['shift_start']
+                max_trip_h = <double>meta['max_trip_hours']
                 is_trip1 = 1 if phase_trip == 1 else 0
                 lunch_buf = LUNCH_DURATION_C if is_trip1 else 0.0
 
@@ -960,8 +955,7 @@ def greedy_insertion(solution,
                             depot_idx, earliest_dep):
                         continue
 
-                    # Shift feasibility: compute return time for candidate route
-                    # Build temp route for return time calculation
+                    # Trip duration check
                     candidate_route = route[:i] + [cust] + route[i:]
                     cand_len = route_len + 1
                     return_time = c_compute_return_time(
@@ -970,7 +964,7 @@ def greedy_insertion(solution,
                         depot_idx, earliest_dep, 0, 0.0
                     )
                     if not c_check_shift(return_time, DELOADING_TIME_C,
-                                          lunch_buf, shift_end):
+                                          lunch_buf, earliest_dep + max_trip_h):
                         continue
 
                     # Lunch feasibility for trip-1
@@ -1027,8 +1021,6 @@ def greedy_insertion(solution,
         unassigned = still_unassigned
 
     new_sol.routes[len(new_sol.routes) - 1] = unassigned
-    validate_and_trim_routes(new_sol, time_matrix_array, customer_addr_idx,
-                              customer_arrays, depot_idx)
     return new_sol
 
 
@@ -1051,32 +1043,31 @@ def regret_insertion(solution,
     cdef double[:] tw_start = customer_arrays['tw_start']
     cdef double[:] tw_end = customer_arrays['tw_end']
     cdef double[:] service_time = customer_arrays['service_time']
-    cdef double[:] pallets = customer_arrays['pallets']
+    cdef double[:] demand_arr = customer_arrays['demand']
     cdef double[:] frys_arr = customer_arrays['frys']
     cdef double[:] vol_arr = customer_arrays['volume_m3']
     cdef double[:] wt_arr = customer_arrays['weight_kg']
     cdef np.int32_t[:] biltype_arr = customer_arrays['biltype']
 
     cdef int cust, cust_addr, r_idx, i, n_routes, route_len
-    cdef double d, earliest_dep, shift_end, shift_start_val
+    cdef double d, earliest_dep, shift_start_val
     cdef double cap_ppl, cap_frys, cap_vol, cap_wt, veh_ppl
     cdef int prev_addr, next_addr
     cdef list route, feasible_options
     cdef double regret_val
     cdef int n_opts, choice_idx, final_r, final_p
     cdef double[:] cost_view
-    cdef double return_time
     cdef int lunch_pos_val
     cdef int phase_trip, is_trip1
-    cdef double lunch_buf
 
     cdef int max_fp = 4096
     cdef double[4096] probs_buf
+    cdef int max_trips = 4  # MAX_TRIPS
 
-    for phase_trip in (1, 2):
-        if phase_trip == 2:
-            _validate_trip2_routes(new_sol, time_matrix_array, customer_addr_idx,
-                                    tw_start, tw_end, service_time, depot_idx)
+    for phase_trip in range(1, max_trips + 1):
+        if phase_trip > 1:
+            _validate_later_trips(new_sol, time_matrix_array, customer_addr_idx,
+                                   tw_start, tw_end, service_time, depot_idx)
             unassigned.extend(new_sol.routes[len(new_sol.routes) - 1])
             new_sol.routes[len(new_sol.routes) - 1] = []
 
@@ -1095,7 +1086,7 @@ def regret_insertion(solution,
 
                     if meta is None or meta['trip'] != phase_trip:
                         continue
-                    if phase_trip == 2 and not new_sol.routes[r_idx - 1]:
+                    if phase_trip > 1 and not new_sol.routes[r_idx - 1]:
                         continue
 
                     vehicle_name = new_sol.vehicles[r_idx]
@@ -1106,7 +1097,7 @@ def regret_insertion(solution,
                     cap_wt = cap['Vekt (KG)']
                     veh_ppl = cap_ppl
 
-                    if not c_check_capacity(route, route_len, cust, pallets, frys_arr,
+                    if not c_check_capacity(route, route_len, cust, demand_arr, frys_arr,
                                              vol_arr, wt_arr, cap_ppl, cap_frys, cap_vol, cap_wt):
                         continue
                     if not c_check_biltype(route, route_len, cust, biltype_arr,
@@ -1117,8 +1108,8 @@ def regret_insertion(solution,
                         new_sol, r_idx, time_matrix_array, customer_addr_idx,
                         tw_start, service_time, depot_idx
                     )
-                    shift_end = <double>meta['shift_end']
                     shift_start_val = <double>meta['shift_start']
+                    max_trip_h = <double>meta['max_trip_hours']
                     is_trip1 = 1 if phase_trip == 1 else 0
                     lunch_buf = LUNCH_DURATION_C if is_trip1 else 0.0
 
@@ -1135,6 +1126,7 @@ def regret_insertion(solution,
                                 depot_idx, earliest_dep):
                             continue
 
+                        # Trip duration check
                         candidate_route = route[:i] + [cust] + route[i:]
                         cand_len = route_len + 1
                         return_time = c_compute_return_time(
@@ -1143,7 +1135,7 @@ def regret_insertion(solution,
                             depot_idx, earliest_dep, 0, 0.0
                         )
                         if not c_check_shift(return_time, DELOADING_TIME_C,
-                                              lunch_buf, shift_end):
+                                              lunch_buf, earliest_dep + max_trip_h):
                             continue
 
                         if is_trip1:
@@ -1213,8 +1205,6 @@ def regret_insertion(solution,
             unassigned.remove(target_cust)
 
     new_sol.routes[len(new_sol.routes) - 1] = unassigned
-    validate_and_trim_routes(new_sol, time_matrix_array, customer_addr_idx,
-                              customer_arrays, depot_idx)
     return new_sol
 
 
@@ -1235,10 +1225,9 @@ def two_opt_local_search(solution,
     cdef double[:] service_time = customer_arrays['service_time']
 
     cdef int r_idx, n, i, j, passes
-    cdef double earliest_dep, shift_end, shift_start_val
+    cdef double earliest_dep, shift_start_val, max_trip_h, lunch_buf, return_time
     cdef int is_trip1
     cdef double old_edges, new_edges
-    cdef double lunch_buf, return_time
     cdef int lunch_pos_val
     cdef bint improved
     cdef list route, candidate, route_addrs
@@ -1254,9 +1243,10 @@ def two_opt_local_search(solution,
             new_sol, r_idx, time_matrix_array, customer_addr_idx,
             tw_start, service_time, depot_idx
         )
-        shift_end = <double>meta['shift_end'] if meta else 22.0
         shift_start_val = <double>meta['shift_start'] if meta else 6.0
+        max_trip_h = <double>meta['max_trip_hours'] if meta else 8.0
         is_trip1 = 1 if (meta is not None and meta['trip'] == 1) else 0
+        lunch_buf = LUNCH_DURATION_C if is_trip1 else 0.0
 
         route_addrs = [depot_idx] + [customer_addr_idx[c - 1] for c in route] + [depot_idx]
 
@@ -1281,14 +1271,14 @@ def two_opt_local_search(solution,
                                                  depot_idx, earliest_dep):
                             continue
 
-                        lunch_buf = LUNCH_DURATION_C if is_trip1 else 0.0
+                        # Trip duration check
                         return_time = c_compute_return_time(
                             candidate, len(candidate), time_matrix_array,
                             customer_addr_idx, tw_start, service_time,
                             depot_idx, earliest_dep, 0, 0.0
                         )
                         if not c_check_shift(return_time, DELOADING_TIME_C,
-                                              lunch_buf, shift_end):
+                                              lunch_buf, earliest_dep + max_trip_h):
                             continue
 
                         if is_trip1:
@@ -1338,10 +1328,9 @@ def or_opt_local_search(solution,
     cdef double[:] service_time = customer_arrays['service_time']
 
     cdef int r_idx, n, k, p, passes
-    cdef double earliest_dep, shift_end, shift_start_val
+    cdef double earliest_dep, shift_start_val, max_trip_h, lunch_buf, return_time
     cdef int is_trip1
     cdef double removal_gain, insertion_cost
-    cdef double lunch_buf, return_time
     cdef int lunch_pos_val
     cdef bint improved
     cdef list route, candidate, route_addrs, reduced_addrs, route_without_k
@@ -1357,9 +1346,10 @@ def or_opt_local_search(solution,
             new_sol, r_idx, time_matrix_array, customer_addr_idx,
             tw_start, service_time, depot_idx
         )
-        shift_end = <double>meta['shift_end'] if meta else 22.0
         shift_start_val = <double>meta['shift_start'] if meta else 6.0
+        max_trip_h = <double>meta['max_trip_hours'] if meta else 8.0
         is_trip1 = 1 if (meta is not None and meta['trip'] == 1) else 0
+        lunch_buf = LUNCH_DURATION_C if is_trip1 else 0.0
 
         improved = True
         passes = 0
@@ -1398,14 +1388,14 @@ def or_opt_local_search(solution,
                                                  depot_idx, earliest_dep):
                             continue
 
-                        lunch_buf = LUNCH_DURATION_C if is_trip1 else 0.0
+                        # Trip duration check
                         return_time = c_compute_return_time(
                             candidate, len(candidate), time_matrix_array,
                             customer_addr_idx, tw_start, service_time,
                             depot_idx, earliest_dep, 0, 0.0
                         )
                         if not c_check_shift(return_time, DELOADING_TIME_C,
-                                              lunch_buf, shift_end):
+                                              lunch_buf, earliest_dep + max_trip_h):
                             continue
 
                         if is_trip1:

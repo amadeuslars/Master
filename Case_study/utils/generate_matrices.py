@@ -199,11 +199,46 @@ def generate_for_day(day, df):
     print(f"  Travel time range: {np.nanmin(time_vals):.0f}s - {np.nanmax(time_vals):.0f}s")
 
 
+def generate_master_matrix(df):
+    """Generate a single master matrix from ALL customers (no day filter)."""
+    print(f"\n--- Generating MASTER matrix for all {len(df)} customers ---")
+
+    # Drop rows without coordinates
+    missing = df[df['latitude'].isna() | df['longitude'].isna()]
+    if len(missing) > 0:
+        print(f"  WARNING: {len(missing)} customers lack coordinates, excluding them")
+        df = df.dropna(subset=['latitude', 'longitude'])
+
+    locations = build_location_list(df)
+    print(f"  Unique locations (incl. depot): {len(locations)}")
+
+    dist_df, time_df, labels = generate_matrix(locations)
+    if dist_df is None:
+        print("  FAILED to generate master matrix")
+        return
+
+    master_dir = os.path.join(MATRICES_DIR, 'master')
+    os.makedirs(master_dir, exist_ok=True)
+
+    dist_path = os.path.join(master_dir, 'distance_matrix.csv')
+    time_path = os.path.join(master_dir, 'time_matrix.csv')
+
+    dist_df.to_csv(dist_path)
+    time_df.to_csv(time_path)
+    print(f"  Saved {dist_path} ({len(labels)}x{len(labels)})")
+    print(f"  Saved {time_path} ({len(labels)}x{len(labels)})")
+
+    time_vals = time_df.to_numpy()
+    np.fill_diagonal(time_vals, np.nan)
+    print(f"  Travel time range: {np.nanmin(time_vals):.0f}s - {np.nanmax(time_vals):.0f}s")
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Generate OSRM time/distance matrices')
     parser.add_argument('days', nargs='*', default=None, help='Days to generate (e.g. tue)')
     parser.add_argument('--file', default=CUSTOMERS_FILE, help='Path to customers CSV')
+    parser.add_argument('--master', action='store_true', help='Generate master matrix from all customers')
     args = parser.parse_args()
 
     customers_file = args.file
@@ -213,22 +248,25 @@ def main():
 
     df = pd.read_csv(customers_file)
 
-    # Determine which days to generate
-    if args.days:
-        days = [d.lower() for d in args.days]
-        invalid = [d for d in days if d not in ALL_DAYS]
-        if invalid:
-            print(f"ERROR: Invalid days: {invalid}. Use: {ALL_DAYS}")
-            sys.exit(1)
-    else:
-        days = ALL_DAYS
-
-    print(f"=== Generating OSRM matrices for: {', '.join(days)} ===")
     print(f"Customers file: {customers_file}")
     print(f"OSRM server: {OSRM_SERVER_URL}")
 
-    for day in days:
-        generate_for_day(day, df)
+    if args.master:
+        generate_master_matrix(df)
+    else:
+        # Determine which days to generate
+        if args.days:
+            days = [d.lower() for d in args.days]
+            invalid = [d for d in days if d not in ALL_DAYS]
+            if invalid:
+                print(f"ERROR: Invalid days: {invalid}. Use: {ALL_DAYS}")
+                sys.exit(1)
+        else:
+            days = ALL_DAYS
+
+        print(f"=== Generating OSRM matrices for: {', '.join(days)} ===")
+        for day in days:
+            generate_for_day(day, df)
 
     print("\n=== Done ===")
 
