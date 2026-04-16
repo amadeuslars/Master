@@ -287,4 +287,4 @@ def _print_final_results(best_sol, customers_dict, num_customers,
 
 
 if __name__ == "__main__":
-    sol, history = run_alns(customers_file='Case_study/data/training_instances/real_tue.csv')
+    sol, history = run_alns(customers_file='Case_study/data/real_instances/real_tue.csv')

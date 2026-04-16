@@ -63,5 +63,7 @@ venv.bak/
 .DS_Store
 
 # Logs
-logs/*
-!logs/compare_results.py
+logs/
+
+# Plots
+plots/
